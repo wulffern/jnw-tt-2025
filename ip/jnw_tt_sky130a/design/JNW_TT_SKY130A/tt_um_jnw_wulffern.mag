@@ -1,6 +1,6 @@
 magic
 tech sky130A
-timestamp 1754747714
+timestamp 1754756105
 << metal4 >>
 rect 3067 22476 3097 22576
 rect 3343 22476 3373 22576
@@ -55,12 +55,8 @@ rect 9385 0 9475 100
 rect 11317 0 11407 100
 rect 13249 0 13339 100
 rect 15181 0 15271 100
-use JNW_GR06  JNW_GR06_0 ../JNW_GR06_SKY130A
-timestamp 1754747714
-transform 1 0 441 0 1 1820
-box -394 -1172 15774 9534
 use JNW_GR07  JNW_GR07_0 ../JNW_GR07_SKY130A
-timestamp 1754747714
+timestamp 1754755634
 transform 1 0 -998 0 1 15739
 box 2000 -4000 12900 5500
 << labels >>

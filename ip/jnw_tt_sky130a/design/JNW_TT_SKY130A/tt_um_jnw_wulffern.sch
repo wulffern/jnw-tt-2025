@@ -7,6 +7,7 @@ E {}
 P 4 1 -460 -250 {}
 T {https://analogicus.github.io/jnw_gr07_sky130a/} -280 -710 0 0 0.4 0.4 {}
 T {https://analogicus.github.io/jnw_gr06_sky130a/} -260 -350 0 0 0.4 0.4 {}
+T {Temperature Sensors from NTNU Advanced Integrated Circuits Students} -810 -870 0 0 0.8 0.8 {}
 N -380 -550 -220 -550 {lab=clk}
 N -260 -570 -220 -570 {lab=VGND}
 N -180 -200 -140 -200 {lab=VGND}
@@ -73,4 +74,4 @@ C {devices/lab_wire.sym} -310 -590 0 0 {name=p26 sig_type=std_logic lab=VDPWR}
 C {devices/lab_wire.sym} -260 -570 0 0 {name=p27 sig_type=std_logic lab=VGND}
 C {devices/lab_wire.sym} -230 -250 0 0 {name=p28 sig_type=std_logic lab=VDPWR}
 C {devices/lab_wire.sym} -180 -200 0 0 {name=p29 sig_type=std_logic lab=VGND}
-C {cborder/border_xs.sym} -340 40 0 0 {}
+C {cborder/border_xs.sym} -340 40 0 0 {user="AIC Students" company="NTNU"}
