@@ -1,0 +1,18 @@
+[submodule "ip/cpdk"]
+	path = ip/cpdk
+	url = git@github.com:wulffern/cpdk.git
+[submodule "ip/tech_sky130A"]
+	path = ip/tech_sky130A
+	url = git@github.com:wulffern/tech_sky130A.git
+[submodule "ip/jnw_tr_sky130a"]
+	path = ip/jnw_tr_sky130a
+	url = git@github.com:analogicus/jnw_tr_sky130A.git
+[submodule "ip/jnw_atr_sky130a"]
+	path = ip/jnw_atr_sky130a
+	url = git@github.com:analogicus/jnw_atr_sky130A.git
+[submodule "ip/jnw_gr07_sky130a"]
+	path = ip/jnw_gr07_sky130a
+	url = git@github.com:analogicus/jnw_gr07_sky130A
+[submodule "ip/jnw_gr06_sky130a"]
+	path = ip/jnw_gr06_sky130a
+	url = git@github.com:analogicus/jnw_gr06_sky130A.git

@@ -1,0 +1,40 @@
+#-------------------------------------------------------
+# Options to cicconf
+#-------------------------------------------------------
+options:
+  template:
+    ip: tech_sky130A/cicconf/ip_template.yaml
+  project: jnw
+  technology: sky130A
+
+
+#- Carsten's PDK. Borders, symbols, loop stability
+cpdk:
+  remote: git@github.com:wulffern/cpdk.git
+  revision: main
+
+#- Technology library
+tech_sky130A:
+  remote: git@github.com:wulffern/tech_sky130A.git
+  revision: main
+
+#- Standard cells
+jnw_tr_sky130a:
+  remote: git@github.com:analogicus/jnw_tr_sky130A.git
+  revision: main
+
+#- Analog transistor library
+jnw_atr_sky130a:
+  remote: git@github.com:analogicus/jnw_atr_sky130A.git
+  revision: main
+
+#- Analog transistor library
+jnw_gr06_sky130a:
+  remote: git@github.com:analogicus/jnw_gr06_sky130A.git
+  revision: main
+
+
+#- Analog transistor library
+jnw_gr07_sky130a:
+  remote: git@github.com:analogicus/jnw_gr07_sky130A.git
+  revision: main
