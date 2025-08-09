@@ -19,8 +19,10 @@ CELLS = tt_um_jnw_wulffern
 
 include ../tech/make/core.make
 
+DATE = $(shell date "+%Y-%m-%d_%H%M")
+
 deliver:
-	cp ../../../gds/${CELL}.gds ../../../gds/${DATE}_${CELL}.gds
+	-cp ../../../gds/${CELL}.gds ../../../gds/${DATE}_${CELL}.gds
 	cp ant/${CELL}_ant.log ../../../reports/ant.log
 	cp drc/${CELL}_drc.log ../../../reports/drc.log
 	cp lvs/${CELL}_lvs.log ../../../reports/lvs.log

@@ -1,0 +1,2215 @@
+* NGSPICE file created from tt_um_jnw_wulffern.ext - technology: sky130A
+
+* Replacing the lpe port list (../tech/scripts/fixlpe)
+.subckt tt_um_jnw_wulffern VDPWR VGND ui_in<7> ui_in<6> ui_in<5> ui_in<4> ui_in<3> ui_in<2> ui_in<1> ui_in<0>
++ uo_out<7> uo_out<6> uo_out<5> uo_out<4> uo_out<3> uo_out<2> uo_out<1> uo_out<0> uio_in<7> uio_in<6> uio_in<5> uio_in<4> uio_in<3> uio_in<2> uio_in<1> uio_in<0>
++ uio_out<7> uio_out<6> uio_out<5> uio_out<4> uio_out<3> uio_out<2> uio_out<1> uio_out<0> ua<7> ua<6> ua<5> ua<4> ua<3> ua<2> ua<1> ua<0> ena clk rst_n
+*.subckt tt_um_jnw_wulffern clk ena rst_n ua[0] ua[1] ua[2] ua[3] ua[4] ua[5]
+*+ ua[6] ua[7] ui_in[0] ui_in[1] ui_in[2] ui_in[3] ui_in[4] ui_in[5] ui_in[6] ui_in[7]
+*+ uio_in[0] uio_in[1] uio_in[2] uio_in[3] uio_in[4] uio_in[5] uio_in[6] uio_in[7]
+*+ uio_oe[0] uio_oe[1] uio_oe[2] uio_oe[3] uio_oe[4] uio_oe[5] uio_oe[6] uio_oe[7]
+*+ uio_out[0] uio_out[1] uio_out[2] uio_out[3] uio_out[4] uio_out[5] uio_out[6] uio_out[7]
+*+ uo_out[0] uo_out[1] uo_out[2] uo_out[3] uo_out[4] uo_out[5] uo_out[6] uo_out[7]
+*+ VDPWR VGND
+X0 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.N a_24968_7186# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X1 JNW_GR07_0.x5.XA4.MP1.S JNW_GR07_0.x5.XA6.A JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.288 pd=1.54 as=0.468 ps=2.84 w=0.9 l=0.16
+X2 JNW_GR07_0.VSS JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X3 JNW_GR07_0.x11.amplifier_rev2_0.x5.D JNW_GR07_0.x11.x3.D JNW_GR07_0.x11.x2.A JNW_GR07_0.x11.amplifier_rev2_0.x5.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X4 a_23044_12624# a_23260_10704# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X5 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.OTA_0.IN- JNW_GR06_0.OUT JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X6 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X7 JNW_GR07_0.x11.x7.P a_6208_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X8 a_17316_8848# a_17532_6928# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X9 a_23012_5612# a_22796_3692# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X10 JNW_GR07_0.VSS JNW_GR07_0.VSS JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_8.Emitter sky130_fd_pr__pnp_05v5_W3p40L3p40
+**devattr s=462400,2720
+X11 a_19488_36478# a_19272_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X12 JNW_GR07_0.x11.amplifier_rev2_0.x5.D JNW_GR07_0.x11.x.D JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.x11.amplifier_rev2_0.x5.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X13 JNW_GR07_0.VDD JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X14 a_4264_36478# a_4048_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X15 a_2110_6320# a_2326_4400# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X16 JNW_GR07_0.VSS JNW_GR07_0.VSS JNW_GR07_0.x11.x7.N sky130_fd_pr__pnp_05v5_W3p40L3p40
+**devattr s=462400,2720
+X17 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter JNW_GR06_0.temp_affected_current_0.OTA_0.OUT JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X18 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.VDD JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X19 JNW_GR07_0.x4.x4.P a_20136_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X20 a_24752_9106# a_24536_7186# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X21 JNW_GR07_0.VSS JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X22 a_18624_36478# a_18840_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X23 a_17328_32878# a_17544_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X24 JNW_GR07_0.x11.x.D a_6208_27358# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X25 JNW_GR07_0.VSS JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X26 a_3006_13332# a_3222_11412# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X27 a_22612_12624# a_22828_10704# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X28 a_4282_9814# a_4498_7894# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X29 JNW_GR07_0.x4.VOUT JNW_GR07_0.x9.N JNW_GR07_0.x4.x5.D JNW_GR07_0.x4.x5.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X30 JNW_GR07_0.VDD JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X31 a_3832_25678# a_3616_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X32 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X33 JNW_GR07_0.VSS JNW_GR07_0.VSS JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_8.Emitter sky130_fd_pr__pnp_05v5_W3p40L3p40
+**devattr s=462400,2720
+X34 a_17316_8848# a_17100_6928# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X35 JNW_GR07_0.x11.x7.P a_7984_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X36 JNW_GR07_0.x5.XA7.MP1.S JNW_GR07_0.PWM JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.288 pd=1.54 as=0.288 ps=1.54 w=0.9 l=0.16
+X37 JNW_GR07_0.VSS JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X38 JNW_GR06_0.temp_affected_current_0.OUT JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.VDD JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X39 JNW_GR07_0.VSS JNW_GR07_0.x11.I_OUT sky130_fd_pr__cap_mim_m3_1 l=5 w=5
+X40 JNW_GR06_0.temp_affected_current_0.OTA_0.OUT JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X41 a_24320_9106# a_24536_7186# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X42 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.OTA_0.IN- JNW_GR06_0.OUT JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X43 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.VDD JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X44 a_5128_25678# a_4912_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X45 a_4696_32878# a_4912_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X46 a_3832_29278# a_3616_27358# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X47 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.VDD JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X48 a_21026_19102# a_21242_17182# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X49 JNW_GR07_0.x5.XA6.A JNW_GR07_0.x5.XA5.A JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.468 pd=2.84 as=0.468 ps=2.84 w=0.9 l=0.16
+X50 a_4270_6320# a_4054_4400# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X51 JNW_GR07_0.x11.I_OUT JNW_GR07_0.PWM JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.2784 pd=1.54 as=0.4704 ps=2.9 w=0.96 l=0.22
+X52 JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X53 a_8632_25678# a_8416_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X54 a_17328_36478# a_17544_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X55 JNW_GR07_0.VSS JNW_GR06_0.reset JNW_GR06_0.temp_affected_current_0.OUT JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.4704 pd=2.9 as=0.2784 ps=1.54 w=0.96 l=0.22
+X56 a_5992_32878# a_5776_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X57 JNW_GR07_0.VSS JNW_GR07_0.VSS JNW_GR07_0.x11.x3.D sky130_fd_pr__pnp_05v5_W3p40L3p40
+**devattr s=462400,2720
+X58 a_19056_32878# a_19272_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X59 JNW_GR07_0.x11.x.D JNW_GR07_0.x11.x2.A JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X60 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OUT JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X61 a_5128_29278# a_4912_27358# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X62 a_5992_32878# a_6208_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X63 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X64 JNW_GR07_0.x5.D JNW_GR07_0.x3.MP1.G JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.468 pd=2.84 as=0.288 ps=1.54 w=0.9 l=0.16
+X65 JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X66 a_24340_12624# a_24556_10704# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X67 JNW_GR07_0.PWM JNW_GR07_0.x5.QN JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.468 pd=2.84 as=0.468 ps=2.84 w=0.9 l=0.16
+X68 JNW_GR07_0.VDD JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X69 a_23024_9106# a_23240_7186# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X70 JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X71 JNW_GR07_0.VDD JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X72 a_2554_9814# a_2770_7894# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X73 a_5560_25678# a_5344_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X74 JNW_GR07_0.VSS JNW_GR07_0.VSS JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.468 pd=2.84 as=162.4304 ps=885.64001 w=0.9 l=0.16
+X75 JNW_GR07_0.VSS JNW_GR07_0.PWM JNW_GR07_0.x11.I_OUT JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.4704 pd=2.9 as=0.2784 ps=1.54 w=0.96 l=0.22
+X76 JNW_GR06_0.temp_affected_current_0.OTA_0.OUT JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X77 JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X78 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X79 a_22600_33878# a_22816_31958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X80 a_3838_6320# a_4054_4400# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X81 JNW_GR07_0.x5.QN JNW_GR07_0.x5.XA7.C JNW_GR07_0.x5.XA6.MP1.S JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.468 pd=2.84 as=0.288 ps=1.54 w=0.9 l=0.16
+X82 JNW_GR07_0.VSS JNW_GR07_0.VSS JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter sky130_fd_pr__pnp_05v5_W3p40L3p40
+**devattr s=462400,2720
+X83 JNW_GR07_0.VDD JNW_GR07_0.x11.x2.A JNW_GR07_0.x11.x.D JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X84 JNW_GR07_0.VDD JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X85 a_4696_36478# a_4912_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X86 JNW_GR07_0.VDD JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X87 a_4302_13332# a_4518_11412# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X88 a_5560_29278# a_5344_27358# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X89 a_3400_32878# a_3616_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X90 JNW_GR07_0.VDD JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X91 JNW_GR07_0.x5.XA3.MN1.S JNW_GR07_0.x5.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.288 pd=1.54 as=0.468 ps=2.84 w=0.9 l=0.16
+X92 JNW_GR07_0.VSS JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X93 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X94 a_10360_25678# a_10576_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X95 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.N a_21964_10704# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X96 a_23024_9106# a_22808_7186# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X97 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.P a_24988_10704# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X98 a_2554_9814# a_2338_7894# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X99 a_3406_6320# a_3622_4400# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X100 a_5992_36478# a_5776_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X101 JNW_GR06_0.OUT JNW_GR06_0.OTA_0.IN- JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X102 JNW_GR07_0.VSS JNW_GR07_0.x11.I_OUT sky130_fd_pr__cap_mim_m3_1 l=5 w=5
+X103 JNW_GR07_0.x5.XA7.C JNW_GR07_0.VDD JNW_GR07_0.x5.XA1.MN1.S JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.468 pd=2.84 as=0.288 ps=1.54 w=0.9 l=0.16
+X104 a_19056_36478# a_19272_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X105 a_5992_36478# a_6208_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X106 a_4696_32878# a_4480_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X107 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X108 JNW_GR07_0.VDD JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X109 a_23876_5612# a_23660_3692# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X110 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.OTA_0.OUT JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X111 a_4264_25678# a_4048_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X112 a_1710_13332# a_1926_11412# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X113 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.OTA_0.IN- JNW_GR06_0.OUT JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X114 JNW_GR07_0.x11.amplifier_rev2_0.x5.D JNW_GR07_0.x11.x3.D JNW_GR07_0.x11.x2.A JNW_GR07_0.x11.amplifier_rev2_0.x5.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X115 JNW_GR07_0.x11.x7.N a_11008_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X116 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X117 a_22612_12624# a_22396_10704# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X118 JNW_GR07_0.x5.XA4.MN1.S JNW_GR07_0.x5.XA6.A JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.288 pd=1.54 as=0.468 ps=2.84 w=0.9 l=0.16
+X119 a_22600_37478# a_22816_35558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X120 a_2122_9814# a_2338_7894# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X121 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.VDD JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X122 a_9928_25678# a_9712_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X123 JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X124 a_23144_19118# a_22928_17198# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X125 a_3406_6320# a_3190_4400# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X126 JNW_GR06_0.temp_affected_current_0.OUT JNW_GR06_0.reset JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.2784 pd=1.54 as=0.4704 ps=2.9 w=0.96 l=0.22
+X127 JNW_GR07_0.VDD JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X128 JNW_GR07_0.VSS JNW_GR07_0.x11.x2.A sky130_fd_pr__cap_mim_m3_1 l=5 w=5
+X129 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X130 a_3400_36478# a_3616_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X131 JNW_GR07_0.VSS JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.x11.x2.A JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X132 JNW_GR07_0.VSS JNW_GR07_0.x4.VOUT JNW_GR07_0.x3.MP1.G JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.288 pd=1.54 as=0.468 ps=2.84 w=0.9 l=0.16
+X133 a_4264_29278# a_4048_27358# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X134 a_5128_32878# a_5344_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X135 a_22580_5612# a_22364_3692# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X136 a_23476_12624# a_23692_10704# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X137 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.P JNW_GR06_0.VDD JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X138 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.VDD JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X139 JNW_GR06_0.VDD JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.P JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X140 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.VDD JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X141 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X142 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.temp_affected_current_0.OUT JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X143 a_22600_41078# a_22816_39158# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X144 a_1678_6320# a_1894_4400# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X145 a_19920_32878# a_19704_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X146 a_1690_9814# a_1906_7894# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X147 a_4696_36478# a_4480_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X148 JNW_GR07_0.x4.VOUT JNW_GR07_0.x9.N JNW_GR07_0.x4.x5.D JNW_GR07_0.x4.x5.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X149 a_9064_25678# a_8848_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X150 JNW_GR07_0.VDD JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X151 JNW_GR07_0.VSS JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.x11.x2.A JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X152 JNW_GR07_0.VDD JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X153 JNW_GR07_0.x4.x5.D JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X154 JNW_GR07_0.VDD JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X155 JNW_GR07_0.x5.XA7.C JNW_GR07_0.CLK JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.288 pd=1.54 as=0.468 ps=2.84 w=0.9 l=0.16
+X156 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OUT JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X157 a_2110_6320# a_1894_4400# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X158 JNW_GR07_0.x4.x5.D JNW_GR07_0.x11.I_OUT JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.x4.x5.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X159 JNW_GR06_0.OUT JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X160 a_17760_32878# a_17976_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X161 a_3438_13332# a_3654_11412# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X162 a_16884_8848# a_16668_6928# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X163 JNW_GR07_0.VSS JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X164 JNW_GR07_0.x4.VOUT JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X165 a_22148_5612# a_22364_3692# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X166 JNW_GR07_0.x5.XA7.MP1.S JNW_GR07_0.PWM JNW_GR07_0.x5.XA7.MN0.S JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.288 pd=1.54 as=0.288 ps=1.54 w=0.9 l=0.16
+X167 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X168 a_24340_12624# a_24124_10704# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X169 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X170 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.P JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.P JNW_GR06_0.VDD JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X171 a_1678_6320# a_1462_4400# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X172 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X173 a_4282_9814# a_4066_7894# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X174 JNW_GR07_0.VDD JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.D JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X175 JNW_GR06_0.VDD JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.P JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.P JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X176 JNW_GR07_0.x5.D JNW_GR07_0.x3.MP1.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.468 pd=2.84 as=0.288 ps=1.54 w=0.9 l=0.16
+X177 JNW_GR07_0.VDD JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X178 a_16884_8848# a_17100_6928# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X179 a_5128_36478# a_5344_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X180 JNW_GR07_0.VSS JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X181 JNW_GR07_0.x5.XA6.A JNW_GR07_0.x5.XA5.A JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.468 pd=2.84 as=0.468 ps=2.84 w=0.9 l=0.16
+X182 JNW_GR07_0.x4.VOUT JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X183 a_3832_32878# a_4048_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X184 JNW_GR06_0.OUT JNW_GR06_0.OTA_0.IN- JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X185 a_22600_33878# a_22384_31958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X186 JNW_GR07_0.VSS a_21932_3692# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X187 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X188 a_22180_12624# a_22396_10704# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X189 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter JNW_GR06_0.temp_affected_current_0.OTA_0.OUT JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X190 a_19920_36478# a_19704_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X191 JNW_GR07_0.VSS JNW_GR07_0.x11.I_OUT sky130_fd_pr__cap_mim_m3_1 l=5 w=5
+X192 JNW_GR07_0.x5.XA7.CN JNW_GR07_0.x5.XA7.C JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.468 pd=2.84 as=0.468 ps=2.84 w=0.9 l=0.16
+X193 JNW_GR07_0.x11.x3.D JNW_GR07_0.x11.x2.A JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X194 a_19920_32878# a_20136_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X195 a_24320_9106# a_24104_7186# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X196 a_18624_32878# a_18408_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X197 JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X198 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.OTA_0.OUT JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X199 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OUT JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X200 a_3850_9814# a_3634_7894# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X201 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.VDD JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X202 a_3400_32878# a_3184_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X203 JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X204 JNW_GR06_0.temp_affected_current_0.JNWTR_RPPO8_0.N a_16668_6928# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X205 a_4302_13332# a_4086_11412# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X206 JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X207 a_22148_5612# a_21932_3692# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X208 a_23908_12624# a_23692_10704# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X209 a_10360_25678# a_10144_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X210 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X211 JNW_GR07_0.VSS JNW_GR07_0.VSS JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_8.Emitter sky130_fd_pr__pnp_05v5_W3p40L3p40
+**devattr s=462400,2720
+X212 JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X213 JNW_GR06_0.VDD a_18676_17166# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X214 JNW_GR07_0.PWM JNW_GR07_0.x5.QN JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.468 pd=2.84 as=0.468 ps=2.84 w=0.9 l=0.16
+X215 a_4696_25678# a_4912_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X216 JNW_GR07_0.x11.amplifier_rev2_0.x5.D JNW_GR07_0.x11.x.D JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.x11.amplifier_rev2_0.x5.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X217 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X218 a_3850_9814# a_4066_7894# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X219 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter JNW_GR06_0.temp_affected_current_0.OTA_0.OUT JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X220 a_17760_36478# a_17976_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X221 JNW_GR06_0.temp_affected_current_0.OTA_0.OUT JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X222 a_23888_9106# a_23672_7186# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X223 a_4264_32878# a_4480_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X224 JNW_GR07_0.x11.I_OUT JNW_GR07_0.x11.x2.A JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X225 a_24772_12624# a_24988_10704# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X226 a_2142_13332# a_2358_11412# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X227 JNW_GR07_0.VSS JNW_GR07_0.VSS JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_8.Emitter sky130_fd_pr__pnp_05v5_W3p40L3p40
+**devattr s=462400,2720
+X228 JNW_GR07_0.VSS JNW_GR07_0.VSS JNW_GR07_0.x11.x7.N sky130_fd_pr__pnp_05v5_W3p40L3p40
+**devattr s=462400,2720
+X229 JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.x11.I_OUT JNW_GR07_0.x4.x5.D JNW_GR07_0.x4.x5.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X230 JNW_GR07_0.VDD JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X231 a_23044_12624# a_22828_10704# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X232 a_5992_25678# a_5776_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X233 JNW_GR07_0.x5.QN JNW_GR07_0.x5.XA7.CN JNW_GR07_0.x5.XA6.MN1.S JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.468 pd=2.84 as=0.288 ps=1.54 w=0.9 l=0.16
+X234 JNW_GR07_0.VDD JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X235 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X236 JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X237 a_5992_25678# a_6208_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X238 a_23888_9106# a_24104_7186# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X239 a_4696_29278# a_4912_27358# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X240 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.temp_affected_current_0.OUT JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X241 a_3418_9814# a_3634_7894# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X242 a_1710_13332# a_1494_11412# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X243 a_3832_36478# a_4048_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X244 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_1.P a_4486_4400# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X245 JNW_GR06_0.JNWTR_RPPO4_2.N a_19108_17166# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X246 a_22600_37478# a_22384_35558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X247 JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X248 JNW_GR07_0.VSS JNW_GR07_0.VSS JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_8.Emitter sky130_fd_pr__pnp_05v5_W3p40L3p40
+**devattr s=462400,2720
+X249 a_9496_25678# a_9712_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X250 a_19920_36478# a_20136_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X251 a_22592_9106# a_22376_7186# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X252 a_18624_36478# a_18408_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X253 a_24740_5612# a_24956_3692# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X254 a_5992_29278# a_5776_27358# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X255 a_3400_36478# a_3184_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X256 a_2574_13332# a_2790_11412# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X257 a_17328_32878# a_17112_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X258 a_5992_29278# a_6208_27358# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X259 JNW_GR07_0.VSS JNW_GR07_0.VSS JNW_GR07_0.x11.x7.N sky130_fd_pr__pnp_05v5_W3p40L3p40
+**devattr s=462400,2720
+X260 JNW_GR07_0.VDD JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X261 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X262 JNW_GR07_0.x4.x5.D JNW_GR07_0.x9.N JNW_GR07_0.x4.VOUT JNW_GR07_0.x4.x5.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X263 a_3006_13332# a_2790_11412# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X264 a_23876_5612# a_24092_3692# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X265 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X266 JNW_GR07_0.VDD JNW_GR07_0.x4.VOUT JNW_GR07_0.x3.MP1.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.288 pd=1.54 as=0.468 ps=2.84 w=0.9 l=0.16
+X267 JNW_GR07_0.x5.XA5.A JNW_GR07_0.x5.XA7.CN JNW_GR07_0.x5.XA3.MP1.S JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.468 pd=2.84 as=0.288 ps=1.54 w=0.9 l=0.16
+X268 JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X269 JNW_GR07_0.x11.x2.A JNW_GR07_0.x11.x3.D JNW_GR07_0.x11.amplifier_rev2_0.x5.D JNW_GR07_0.x11.amplifier_rev2_0.x5.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X270 a_3400_25678# a_3616_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X271 JNW_GR07_0.x10.N a_22384_31958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X272 a_22600_41078# a_22384_39158# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X273 a_3418_9814# a_3202_7894# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X274 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X275 a_4264_36478# a_4480_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X276 JNW_GR07_0.VSS JNW_GR07_0.x11.I_OUT sky130_fd_pr__cap_mim_m3_1 l=5 w=5
+X277 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X278 JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.x11.x.D JNW_GR07_0.x11.amplifier_rev2_0.x5.D JNW_GR07_0.x11.amplifier_rev2_0.x5.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X279 JNW_GR07_0.x11.amplifier_rev2_0.x4.P a_3184_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X280 JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X281 a_3870_13332# a_4086_11412# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X282 a_22600_30278# a_22816_28358# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X283 JNW_GR07_0.x11.I_OUT JNW_GR07_0.PWM JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.2784 pd=1.54 as=0.4704 ps=2.9 w=0.96 l=0.22
+X284 JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X285 a_22160_9106# a_22376_7186# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X286 a_23444_5612# a_23660_3692# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X287 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X288 a_4696_25678# a_4480_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X289 a_17760_32878# a_17544_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X290 JNW_GR06_0.temp_affected_current_0.OTA_0.OUT JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X291 JNW_GR07_0.VSS JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X292 JNW_GR07_0.x5.XA6.MP1.S JNW_GR07_0.x5.XA6.A JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.288 pd=1.54 as=0.468 ps=2.84 w=0.9 l=0.16
+X293 a_3400_29278# a_3616_27358# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X294 a_21026_19102# a_20810_17182# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X295 a_2974_6320# a_2758_4400# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X296 JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X297 JNW_GR06_0.temp_affected_current_0.OTA_0.OUT JNW_GR06_0.VDD sky130_fd_pr__cap_mim_m3_1 l=5 w=5
+X298 JNW_GR07_0.VDD JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X299 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.OTA_0.OUT JNW_GR06_0.VDD JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X300 JNW_GR07_0.VSS a_23360_17198# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X301 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.OUT JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X302 a_2122_9814# a_1906_7894# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X303 JNW_GR07_0.x9.N a_22816_31958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X304 JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X305 a_8200_25678# a_8416_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X306 JNW_GR07_0.VDD JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X307 JNW_GR07_0.x5.XA5.A JNW_GR07_0.x5.XA7.C JNW_GR07_0.x5.XA4.MP1.S JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.468 pd=2.84 as=0.288 ps=1.54 w=0.9 l=0.16
+X308 a_17328_36478# a_17112_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X309 JNW_GR07_0.VSS JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X310 a_4696_29278# a_4480_27358# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X311 a_5560_32878# a_5776_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X312 JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X313 JNW_GR06_0.OTA_0.JNWTR_RPPO16_1.P a_21944_7186# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X314 a_19056_32878# a_18840_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X315 JNW_GR07_0.VDD JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X316 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.N a_1494_11412# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X317 JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X318 JNW_GR07_0.x5.XA1.MN1.S JNW_GR07_0.CLK JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.288 pd=1.54 as=0.468 ps=2.84 w=0.9 l=0.16
+X319 a_22180_12624# a_21964_10704# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X320 a_17748_8848# a_17964_6928# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X321 JNW_GR07_0.x10.N a_22384_35558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X322 a_23444_5612# a_23228_3692# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X323 a_5128_25678# a_5344_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X324 JNW_GR07_0.VDD JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X325 a_9496_25678# a_9280_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X326 a_2542_6320# a_2758_4400# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X327 JNW_GR07_0.x11.amplifier_rev2_0.x4.P a_3184_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X328 JNW_GR07_0.VDD JNW_GR07_0.VDD JNW_GR07_0.x5.XA7.MP1.S JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.288 pd=1.54 as=0.468 ps=2.84 w=0.9 l=0.16
+X329 JNW_GR07_0.VSS JNW_GR07_0.VSS JNW_GR07_0.x11.x7.N sky130_fd_pr__pnp_05v5_W3p40L3p40
+**devattr s=462400,2720
+X330 JNW_GR07_0.VDD JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X331 JNW_GR07_0.VSS JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X332 a_17760_36478# a_17544_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X333 JNW_GR07_0.VDD a_22384_39158# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X334 JNW_GR07_0.VSS JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X335 JNW_GR07_0.VSS a_6208_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X336 a_5128_29278# a_5344_27358# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X337 a_2142_13332# a_1926_11412# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X338 a_24772_12624# a_24556_10704# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X339 a_17748_8848# a_17532_6928# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X340 a_23012_5612# a_23228_3692# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X341 JNW_GR07_0.x5.QN JNW_GR07_0.x5.XA7.CN JNW_GR07_0.x5.XA7.MP1.S JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.468 pd=2.84 as=0.288 ps=1.54 w=0.9 l=0.16
+X342 JNW_GR07_0.x10.P a_22816_35558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X343 JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X344 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.OTA_0.IN- JNW_GR06_0.OUT JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X345 JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X346 JNW_GR07_0.x5.XA7.CN JNW_GR07_0.x5.XA7.C JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.468 pd=2.84 as=0.468 ps=2.84 w=0.9 l=0.16
+X347 JNW_GR07_0.VSS JNW_GR07_0.VSS JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_8.Emitter sky130_fd_pr__pnp_05v5_W3p40L3p40
+**devattr s=462400,2720
+X348 JNW_GR07_0.VSS a_1462_4400# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X349 a_5560_36478# a_5776_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X350 a_19056_36478# a_18840_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X351 JNW_GR07_0.VSS JNW_GR07_0.VSS JNW_GR07_0.x11.x7.N sky130_fd_pr__pnp_05v5_W3p40L3p40
+**devattr s=462400,2720
+X352 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.VDD JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X353 a_24752_9106# a_24968_7186# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X354 a_3832_25678# a_4048_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X355 JNW_GR07_0.x10.P a_22816_39158# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X356 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.P a_4518_11412# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X357 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.VDD JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X358 a_3832_32878# a_3616_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X359 a_10792_25678# a_10576_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X360 JNW_GR07_0.VSS a_17112_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X361 JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X362 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X363 a_10792_25678# a_11008_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X364 JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X365 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.N a_4498_7894# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X366 JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ JNW_GR06_0.temp_affected_current_0.OTA_0.OUT JNW_GR06_0.VDD JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X367 a_3400_25678# a_3184_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X368 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_6208_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X369 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.P JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X370 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X371 JNW_GR07_0.VSS JNW_GR07_0.VSS JNW_GR07_0.x11.x7.N sky130_fd_pr__pnp_05v5_W3p40L3p40
+**devattr s=462400,2720
+X372 a_18192_32878# a_17976_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X373 a_23456_9106# a_23672_7186# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X374 a_3832_29278# a_4048_27358# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X375 a_5128_32878# a_4912_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X376 JNW_GR07_0.VSS JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X377 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OUT JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X378 a_23476_12624# a_23260_10704# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X379 a_22600_30278# a_22384_28358# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X380 JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X381 JNW_GR06_0.OTA_0.JNWTR_RPPO16_1.P a_24956_3692# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X382 a_4264_25678# a_4480_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X383 JNW_GR07_0.x4.x5.D JNW_GR07_0.x9.N JNW_GR07_0.x4.VOUT JNW_GR07_0.x4.x5.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X384 a_19488_32878# a_19704_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X385 a_3400_29278# a_3184_27358# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X386 JNW_GR06_0.OUT JNW_GR06_0.OTA_0.IN- JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X387 JNW_GR07_0.x11.x2.A JNW_GR07_0.x11.x3.D JNW_GR07_0.x11.amplifier_rev2_0.x5.D JNW_GR07_0.x11.amplifier_rev2_0.x5.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X388 a_4270_6320# a_4486_4400# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X389 JNW_GR06_0.temp_affected_current_0.JNWTR_RPPO8_0.N a_15146_6944# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X390 JNW_GR07_0.x11.amplifier_rev2_0.x5.D JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X391 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter JNW_GR06_0.temp_affected_current_0.OTA_0.OUT JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X392 a_23144_19118# a_23360_17198# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X393 JNW_GR07_0.x5.XA5.A JNW_GR07_0.x5.XA7.C JNW_GR07_0.x5.XA3.MN1.S JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.468 pd=2.84 as=0.288 ps=1.54 w=0.9 l=0.16
+X394 JNW_GR07_0.VSS JNW_GR07_0.VSS JNW_GR07_0.x11.x7.N sky130_fd_pr__pnp_05v5_W3p40L3p40
+**devattr s=462400,2720
+X395 JNW_GR07_0.VSS JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.x4.VOUT JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X396 a_3832_36478# a_3616_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X397 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X398 JNW_GR07_0.VSS JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X399 a_8200_25678# a_7984_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X400 JNW_GR07_0.x4.x5.G a_17112_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X401 a_5560_32878# a_5344_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X402 JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X403 a_3438_13332# a_3222_11412# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X404 a_4264_29278# a_4480_27358# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X405 a_24740_5612# a_24524_3692# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X406 a_23456_9106# a_23240_7186# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X407 a_2986_9814# a_2770_7894# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X408 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.P JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.P JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X409 JNW_GR07_0.x11.x2.A JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X410 JNW_GR07_0.VSS JNW_GR07_0.VSS JNW_GR07_0.x11.x7.N sky130_fd_pr__pnp_05v5_W3p40L3p40
+**devattr s=462400,2720
+X411 a_23908_12624# a_24124_10704# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X412 a_14930_8864# a_14714_6944# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X413 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.P JNW_GR06_0.VDD JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X414 JNW_GR07_0.VDD JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.D JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X415 a_9064_25678# a_9280_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X416 JNW_GR07_0.x5.XA6.MN1.S JNW_GR07_0.x5.XA6.A JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.288 pd=1.54 as=0.468 ps=2.84 w=0.9 l=0.16
+X417 JNW_GR07_0.VSS JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.x4.VOUT JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X418 a_2974_6320# a_3190_4400# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X419 JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X420 a_18192_36478# a_17976_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X421 a_5128_36478# a_4912_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X422 JNW_GR07_0.VSS JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.OUT JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X423 a_2986_9814# a_3202_7894# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X424 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X425 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.OTA_0.OUT JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X426 a_14930_8864# a_15146_6944# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X427 JNW_GR06_0.OTA_0.IN- a_22928_17198# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X428 JNW_GR07_0.x11.x2.A JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X429 JNW_GR07_0.VSS JNW_GR06_0.temp_affected_current_0.OUT sky130_fd_pr__cap_mim_m3_1 l=5 w=5
+X430 JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X431 JNW_GR07_0.VDD JNW_GR07_0.x11.x2.A JNW_GR07_0.x11.x3.D JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X432 JNW_GR06_0.OUT JNW_GR06_0.OTA_0.IN- JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X433 JNW_GR07_0.VDD JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X434 JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X435 JNW_GR07_0.VDD JNW_GR07_0.VDD JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.468 pd=2.84 as=55.016 ps=281.64001 w=0.9 l=0.16
+X436 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X437 a_19488_36478# a_19704_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X438 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.temp_affected_current_0.OUT JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X439 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X440 JNW_GR07_0.x11.x6.P a_3184_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X441 JNW_GR07_0.x5.XA5.A JNW_GR07_0.x5.XA7.CN JNW_GR07_0.x5.XA4.MN1.S JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.468 pd=2.84 as=0.288 ps=1.54 w=0.9 l=0.16
+X442 JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.x11.I_OUT JNW_GR07_0.x4.x5.D JNW_GR07_0.x4.x5.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X443 a_22160_9106# a_21944_7186# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X444 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X445 a_3870_13332# a_3654_11412# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X446 JNW_GR06_0.OTA_0.IN- a_21242_17182# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X447 a_18192_32878# a_18408_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X448 JNW_GR07_0.VSS JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X449 JNW_GR07_0.VDD JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X450 a_24308_5612# a_24524_3692# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X451 a_1690_9814# a_1474_7894# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X452 a_9928_25678# a_10144_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X453 JNW_GR07_0.VSS JNW_GR07_0.VSS JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_8.Emitter sky130_fd_pr__pnp_05v5_W3p40L3p40
+**devattr s=462400,2720
+X454 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X455 JNW_GR07_0.VSS JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.temp_affected_current_0.OTA_0.OUT JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X456 JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_8.Emitter a_17964_6928# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X457 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.VDD JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X458 JNW_GR07_0.VDD JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X459 a_3838_6320# a_3622_4400# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X460 JNW_GR07_0.VSS a_22384_28358# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X461 JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ a_14714_6944# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X462 JNW_GR06_0.JNWTR_RPPO4_2.N a_20810_17182# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X463 a_8632_25678# a_8848_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X464 JNW_GR07_0.VDD JNW_GR07_0.x11.x2.A JNW_GR07_0.x11.I_OUT JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X465 a_5560_36478# a_5344_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X466 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.P JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.P JNW_GR06_0.VDD JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X467 a_19488_32878# a_19272_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X468 JNW_GR07_0.x5.XA3.MP1.S JNW_GR07_0.x5.D JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.288 pd=1.54 as=0.468 ps=2.84 w=0.9 l=0.16
+X469 JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x5.G JNW_GR07_0.VDD JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X470 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X471 JNW_GR07_0.x4.x5.D JNW_GR07_0.x11.I_OUT JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.x4.x5.D sky130_fd_pr__pfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X472 JNW_GR07_0.x5.XA7.MN0.S JNW_GR07_0.VDD JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.288 pd=1.54 as=0.468 ps=2.84 w=0.9 l=0.16
+X473 JNW_GR07_0.x11.x6.P a_3184_27358# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X474 a_4264_32878# a_4048_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X475 JNW_GR07_0.VSS JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X476 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR07_0.VSS JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X477 a_22592_9106# a_22808_7186# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X478 a_5560_25678# a_5776_23758# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X479 JNW_GR07_0.x4.x4.P a_20136_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X480 JNW_GR06_0.temp_affected_current_0.OTA_0.OUT JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X481 a_18624_32878# a_18840_30958# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X482 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_1.P a_1474_7894# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X483 JNW_GR07_0.VDD JNW_GR07_0.VDD JNW_GR07_0.x5.XA7.C JNW_GR07_0.VDD sky130_fd_pr__pfet_01v8 ad=0.468 pd=2.84 as=0.288 ps=1.54 w=0.9 l=0.16
+X484 a_24308_5612# a_24092_3692# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X485 JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter JNW_GR06_0.temp_affected_current_0.OTA_0.OUT JNW_GR06_0.VDD JNW_GR06_0.VDD sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X486 a_18892_19086# a_18676_17166# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X487 JNW_GR07_0.VSS JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X488 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.temp_affected_current_0.OUT JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X489 a_2542_6320# a_2326_4400# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X490 a_18892_19086# a_19108_17166# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X491 JNW_GR07_0.x9.N a_22816_28358# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X492 JNW_GR07_0.x5.QN JNW_GR07_0.x5.XA7.C JNW_GR07_0.x5.XA7.MP1.S JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.468 pd=2.84 as=0.288 ps=1.54 w=0.9 l=0.16
+X493 JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.x11.x.D JNW_GR07_0.x11.amplifier_rev2_0.x5.D JNW_GR07_0.x11.amplifier_rev2_0.x5.D sky130_fd_pr__pfet_01v8 ad=0.528 pd=2.26 as=0.848 ps=4.26 w=1.6 l=0.94
+X494 JNW_GR07_0.VSS JNW_GR07_0.PWM JNW_GR07_0.x11.I_OUT JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.4704 pd=2.9 as=0.2784 ps=1.54 w=0.96 l=0.22
+X495 JNW_GR07_0.VSS JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR07_0.VSS sky130_fd_pr__nfet_01v8 ad=0.848 pd=4.26 as=0.528 ps=2.26 w=1.6 l=0.94
+X496 JNW_GR07_0.VSS JNW_GR07_0.VSS JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_8.Emitter sky130_fd_pr__pnp_05v5_W3p40L3p40
+**devattr s=462400,2720
+X497 a_18192_36478# a_18408_34558# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X498 a_22580_5612# a_22796_3692# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X499 a_5560_29278# a_5776_27358# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+X500 a_2574_13332# a_2358_11412# JNW_GR07_0.VSS sky130_fd_pr__res_high_po w=0.36 l=7.36
+C0 a_10576_23758# a_11008_23758# 0.14233f
+C1 JNW_GR07_0.VDD JNW_GR07_0.x4.x5.D 2.95271f
+C2 uio_in[6] uio_in[5] 0.03102f
+C3 a_18892_19086# JNW_GR06_0.JNWTR_RPPO4_2.N 0.21972f
+C4 JNW_GR07_0.x5.XA7.CN a_13664_29762# 0.02572f
+C5 JNW_GR07_0.x5.XA7.C JNW_GR07_0.x5.XA6.MN1.S 0.01275f
+C6 a_4066_7894# a_4498_7894# 0.14233f
+C7 JNW_GR06_0.OTA_0.IN- JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.N 0.60701f
+C8 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.N a_4930_7894# 0.01799f
+C9 JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_8.Emitter 0.18537f
+C10 JNW_GR07_0.VDD a_22600_41078# 0.22658f
+C11 a_18628_40984# a_18628_40384# 0.02394f
+C12 a_17544_34558# a_17976_34558# 0.14233f
+C13 a_4696_29278# a_5128_29278# 0.21349f
+C14 a_1494_11412# a_1926_11412# 0.14233f
+C15 JNW_GR06_0.VDD a_12296_7708# 0.69441f
+C16 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D a_6058_7996# 0.04922f
+C17 a_22828_10704# a_23260_10704# 0.14233f
+C18 a_2968_23758# a_3184_23758# 0.01515f
+C19 JNW_GR07_0.VDD JNW_GR07_0.x11.amplifier_rev2_0.x5.D 2.57695f
+C20 a_18460_17166# a_19540_17166# 0.0381f
+C21 JNW_GR07_0.x5.XA7.CN a_12824_29762# 0.06325f
+C22 JNW_GR07_0.x5.XA7.C a_13664_29762# 0.06949f
+C23 JNW_GR07_0.x5.XA7.MP1.S JNW_GR07_0.x5.XA7.MN0.S 0.05173f
+C24 JNW_GR07_0.x5.QN JNW_GR07_0.x5.XA6.MP1.S 0.04373f
+C25 JNW_GR07_0.x11.I_OUT a_15028_36484# 0.08054f
+C26 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.N 0.02864f
+C27 a_1246_4400# a_1462_4400# 0.01515f
+C28 JNW_GR06_0.OTA_0.JNWTR_RPPO16_1.P a_25388_3692# 0.01865f
+C29 JNW_GR06_0.VDD a_12296_8508# 0.51684f
+C30 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_8040_8004# 0.47974f
+C31 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D a_6058_8796# 0.04414f
+C32 JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ a_6058_7996# 0.07044f
+C33 JNW_GR07_0.x5.D a_12984_31262# 0.01755f
+C34 uio_in[7] uio_in[6] 0.03102f
+C35 a_5560_36478# a_5992_36478# 0.21349f
+C36 a_18676_17166# a_19108_17166# 0.14233f
+C37 JNW_GR07_0.x9.N a_22600_33878# 0.25411f
+C38 JNW_GR07_0.x5.XA7.C a_12824_29762# 0.01225f
+C39 JNW_GR07_0.x5.QN JNW_GR07_0.x5.XA6.A 0.0312f
+C40 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.N 0.01793f
+C41 JNW_GR07_0.x11.I_OUT JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D 0.91539f
+C42 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.OTA_0.JNWTR_RPPO16_1.P 0.01973f
+C43 a_7010_12892# a_7014_12688# 0.0828f
+C44 JNW_GR07_0.x4.x5.G a_20428_39584# 0.11635f
+C45 a_4480_27358# a_4912_27358# 0.14233f
+C46 JNW_GR07_0.x5.D JNW_GR07_0.x3.MP1.G 0.13421f
+C47 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.N a_1926_11412# 0.30165f
+C48 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_8040_8804# 0.6801f
+C49 JNW_GR06_0.OTA_0.IN- a_24752_9106# 0.07102f
+C50 JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ a_6058_8796# 0.14715f
+C51 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_1.P a_4270_6320# 0.22545f
+C52 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.N a_24124_10704# 0.30003f
+C53 a_22160_9106# a_22592_9106# 0.21349f
+C54 JNW_GR07_0.x5.XA7.CN JNW_GR07_0.x5.XA7.MP1.S 0.07161f
+C55 JNW_GR07_0.PWM JNW_GR07_0.x5.XA6.A 0.01707f
+C56 JNW_GR07_0.x5.QN JNW_GR07_0.x5.XA6.MN1.S 0.05588f
+C57 JNW_GR07_0.x11.I_OUT a_15028_37284# 0.08865f
+C58 a_22168_39158# a_22384_39158# 0.01515f
+C59 JNW_GR07_0.x4.x5.G JNW_GR07_0.x9.N 6.55826f
+C60 JNW_GR07_0.VDD a_13664_27202# 0.40215f
+C61 a_22816_35558# a_23248_35558# 0.01515f
+C62 JNW_GR07_0.x11.x7.P a_8200_25678# 0.22658f
+C63 JNW_GR06_0.OUT a_28510_7296# 0.04465f
+C64 JNW_GR07_0.VDD a_22168_39158# 0.05714f
+C65 JNW_GR07_0.x4.x5.G a_20428_40384# 0.11703f
+C66 JNW_GR07_0.x9.N a_19920_36478# 0.01696f
+C67 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_6058_7996# 0.47977f
+C68 a_13824_31742# JNW_GR07_0.x3.MP1.G 0.06171f
+C69 uo_out[0] uio_in[7] 0.03102f
+C70 a_5344_34558# a_5776_34558# 0.14233f
+C71 JNW_GR07_0.x5.XA7.C JNW_GR07_0.x5.XA7.MP1.S 0.04215f
+C72 JNW_GR07_0.x5.QN a_13664_29762# 0.02097f
+C73 a_24308_5612# a_24740_5612# 0.21349f
+C74 JNW_GR07_0.VDD a_12824_27202# 0.01089f
+C75 JNW_GR06_0.OUT a_28510_8096# 0.04408f
+C76 a_6640_23758# a_7768_23758# 0.03636f
+C77 JNW_GR07_0.x4.x5.G a_18628_39584# 0.11686f
+C78 a_16828_40984# a_16828_40384# 0.02394f
+C79 JNW_GR07_0.VDD a_20428_38984# 0.51078f
+C80 JNW_GR07_0.x11.x2.A JNW_GR07_0.x11.x7.N 0.04437f
+C81 a_12984_31742# JNW_GR07_0.x3.MP1.G 0.06187f
+C82 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_6058_8796# 0.68039f
+C83 a_21944_7186# a_22376_7186# 0.14233f
+C84 JNW_GR07_0.x5.XA7.C JNW_GR07_0.x5.XA7.CN 0.48352f
+C85 JNW_GR07_0.x5.QN a_12824_29762# 0.03052f
+C86 JNW_GR07_0.x11.I_OUT JNW_GR07_0.x4.VOUT 0.01578f
+C87 JNW_GR07_0.VDD JNW_GR07_0.CLK 0.63764f
+C88 JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D a_15028_32384# 0.08343f
+C89 JNW_GR07_0.x4.VOUT JNW_GR07_0.x5.D 0.0729f
+C90 JNW_GR06_0.VDD a_15088_15110# 0.7007f
+C91 a_15028_34984# a_15028_34184# 0.01761f
+C92 a_18192_32878# a_18624_32878# 0.21349f
+C93 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.P a_7014_11888# 0.07045f
+C94 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.N a_4282_9814# 0.22831f
+C95 JNW_GR07_0.x4.x5.G a_18628_40384# 0.11686f
+C96 JNW_GR07_0.VDD a_18628_38184# 0.59993f
+C97 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.N a_1710_13332# 0.24429f
+C98 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_8040_9626# 0.7493f
+C99 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_26530_10570# 0.5348f
+C100 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D a_11166_11630# 0.01377f
+C101 a_10360_25678# a_10792_25678# 0.21349f
+C102 uo_out[1] uo_out[0] 0.03102f
+C103 a_3850_9814# a_4282_9814# 0.21349f
+C104 a_13664_30402# JNW_GR07_0.x5.XA7.CN 0.06207f
+C105 JNW_GR07_0.x5.QN JNW_GR07_0.x5.XA7.MN0.S 0.01878f
+C106 a_24092_3692# a_24524_3692# 0.14233f
+C107 JNW_GR07_0.x11.I_OUT JNW_GR07_0.x9.N 1.76885f
+C108 JNW_GR07_0.x11.x2.A JNW_GR07_0.x4.VOUT 0.01663f
+C109 JNW_GR07_0.VDD JNW_GR07_0.x5.XA1.MN1.S 0.01079f
+C110 JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D a_15028_33184# 0.10922f
+C111 JNW_GR07_0.x4.VOUT a_13824_31742# 0.01479f
+C112 JNW_GR07_0.x11.x7.P a_7768_23758# 0.01523f
+C113 JNW_GR06_0.OTA_0.JNWTR_RPPO16_1.P a_24740_5612# 0.22545f
+C114 JNW_GR07_0.x4.x5.G a_16828_39584# 0.11635f
+C115 JNW_GR07_0.VDD a_18628_38984# 0.51212f
+C116 a_17328_36478# a_17760_36478# 0.21349f
+C117 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.N a_1494_11412# 0.33712f
+C118 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_27484_11180# 0.06793f
+C119 a_22612_12624# a_23044_12624# 0.21349f
+C120 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.N a_23692_10704# 0.29973f
+C121 JNW_GR06_0.OTA_0.IN- a_24320_9106# 0.07102f
+C122 JNW_GR07_0.CLK a_13664_27202# 0.06129f
+C123 JNW_GR07_0.x5.QN JNW_GR07_0.x5.XA7.MP1.S 0.33356f
+C124 JNW_GR06_0.VDD a_15088_15910# 0.72602f
+C125 JNW_GR07_0.x4.x5.D a_16896_34558# 0.03003f
+C126 JNW_GR07_0.VDD a_13664_27682# 0.38728f
+C127 JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D a_13228_32384# 0.07043f
+C128 JNW_GR07_0.x11.x7.N a_11440_23758# 0.01566f
+C129 a_17976_30958# a_18408_30958# 0.14233f
+C130 JNW_GR07_0.x11.amplifier_rev2_0.x4.P VGND 0.01995f
+C131 JNW_GR06_0.OUT a_28510_8918# 0.05057f
+C132 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_7748_38184# 0.13066f
+C133 JNW_GR07_0.x4.x5.G a_16828_40384# 0.11635f
+C134 JNW_GR07_0.VDD a_16828_38184# 0.59993f
+C135 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D a_12866_12316# 0.1809f
+C136 a_1278_11412# a_1494_11412# 0.01515f
+C137 JNW_GR07_0.x9.N a_19488_36478# 0.01316f
+C138 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_27484_11980# 0.01346f
+C139 JNW_GR07_0.CLK a_12824_27202# 0.05912f
+C140 uo_out[2] uo_out[1] 0.03102f
+C141 a_6208_30958# a_6640_30958# 0.01515f
+C142 a_18460_17166# a_18676_17166# 0.01515f
+C143 a_12824_30402# JNW_GR07_0.x5.XA7.C 0.06698f
+C144 JNW_GR07_0.x5.QN JNW_GR07_0.x5.XA7.CN 0.07755f
+C145 a_3634_7894# a_4066_7894# 0.14233f
+C146 JNW_GR07_0.PWM JNW_GR07_0.x5.XA7.MP1.S 0.08173f
+C147 JNW_GR07_0.x4.x5.D a_15028_34984# 0.59855f
+C148 JNW_GR07_0.VDD a_12824_27682# 0.07004f
+C149 JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D a_13228_33184# 0.07641f
+C150 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.P a_7014_12688# 0.07964f
+C151 JNW_GR06_0.OUT a_28512_9756# 0.04366f
+C152 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_7748_38984# 0.11687f
+C153 JNW_GR07_0.x4.x5.G a_15028_39584# 0.1164f
+C154 a_15028_40984# a_15028_40384# 0.02394f
+C155 JNW_GR07_0.VDD a_16828_38984# 0.51216f
+C156 a_17112_34558# a_17544_34558# 0.14233f
+C157 JNW_GR06_0.VDD a_27484_11180# 0.47941f
+C158 a_4264_29278# a_4696_29278# 0.21349f
+C159 a_22396_10704# a_22828_10704# 0.14233f
+C160 JNW_GR07_0.x5.QN JNW_GR07_0.x5.XA7.C 0.22209f
+C161 JNW_GR07_0.PWM JNW_GR07_0.x5.XA7.CN 0.26383f
+C162 JNW_GR06_0.VDD a_15088_16742# 0.58726f
+C163 JNW_GR07_0.x11.x2.A a_9548_36384# 0.03899f
+C164 JNW_GR07_0.x4.x5.D a_15028_35784# 0.50966f
+C165 JNW_GR07_0.VDD a_13664_28002# 0.31282f
+C166 a_22384_35558# a_22816_35558# 0.14233f
+C167 a_13228_34984# a_13228_34184# 0.01761f
+C168 JNW_GR06_0.OTA_0.IN- JNW_GR06_0.temp_affected_current_0.OUT 0.45975f
+C169 JNW_GR07_0.x11.x7.P a_6640_23758# 0.01523f
+C170 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D a_26528_7288# 0.04922f
+C171 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_5948_38184# 0.1327f
+C172 JNW_GR07_0.x4.x5.G a_15028_40384# 0.11618f
+C173 JNW_GR07_0.VDD a_15028_38184# 0.5997f
+C174 a_1278_11412# JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.N 0.27831f
+C175 JNW_GR06_0.VDD a_27484_11980# 0.53397f
+C176 JNW_GR06_0.OTA_0.JNWTR_RPPO16_1.P a_22160_9106# 0.24608f
+C177 uo_out[3] uo_out[2] 0.03102f
+C178 a_5128_36478# a_5560_36478# 0.21349f
+C179 JNW_GR07_0.x5.QN a_13664_30402# 0.07954f
+C180 JNW_GR07_0.PWM JNW_GR07_0.x5.XA7.C 0.24209f
+C181 JNW_GR07_0.x11.x2.A a_9548_37184# 0.01494f
+C182 JNW_GR07_0.x4.x5.D a_13228_34984# 0.59855f
+C183 JNW_GR07_0.x4.VOUT a_13228_32384# 0.02338f
+C184 a_22168_35558# a_23248_35558# 0.0381f
+C185 a_28512_10578# JNW_GR06_0.OUT 0.013f
+C186 a_6208_23758# a_6640_23758# 0.01515f
+C187 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D a_26528_8088# 0.04414f
+C188 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_5948_38984# 0.11685f
+C189 JNW_GR07_0.x4.x5.G a_13228_39584# 0.08011f
+C190 JNW_GR07_0.VDD a_15028_38984# 0.51193f
+C191 JNW_GR06_0.VDD a_27480_12184# 0.53447f
+C192 a_4048_27358# a_4480_27358# 0.14233f
+C193 JNW_GR07_0.x11.amplifier_rev2_0.x5.G VGND 0.05668f
+C194 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.N a_23260_10704# 0.29978f
+C195 JNW_GR06_0.OTA_0.IN- a_23888_9106# 0.07102f
+C196 JNW_GR07_0.PWM a_13664_30402# 0.01876f
+C197 JNW_GR07_0.x5.QN a_12824_30402# 0.11329f
+C198 JNW_GR07_0.x4.x5.D a_13228_35784# 0.51097f
+C199 JNW_GR07_0.x4.VOUT a_13228_33184# 0.03382f
+C200 JNW_GR07_0.x5.D JNW_GR07_0.x5.XA5.A 0.02339f
+C201 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.P a_7010_12892# 0.09015f
+C202 a_2110_6320# VGND 0.01022f
+C203 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_4148_38184# 0.13066f
+C204 JNW_GR07_0.x4.x5.G a_13228_40384# 0.07057f
+C205 JNW_GR07_0.x11.amplifier_rev2_0.x5.D JNW_GR07_0.x11.x3.D 6.03035f
+C206 JNW_GR07_0.VDD a_11348_38184# 0.60168f
+C207 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D a_12866_13116# 0.19286f
+C208 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G a_15090_12626# 0.19707f
+C209 JNW_GR07_0.x9.N a_19056_36478# 0.01316f
+C210 JNW_GR06_0.VDD a_27480_12984# 0.52273f
+C211 a_21728_7186# a_21944_7186# 0.01515f
+C212 uo_out[4] uo_out[3] 0.03102f
+C213 a_4912_34558# a_5344_34558# 0.14233f
+C214 a_13664_30722# a_13664_30402# 0.01f
+C215 a_4486_4400# a_4918_4400# 0.01515f
+C216 a_23876_5612# a_24308_5612# 0.21349f
+C217 JNW_GR07_0.x11.x2.A JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D 0.80666f
+C218 JNW_GR07_0.x11.x7.N a_10792_25678# 0.22817f
+C219 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.P a_7010_13692# 0.12167f
+C220 a_1894_4400# VGND 0.01047f
+C221 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_4148_38984# 0.11731f
+C222 JNW_GR07_0.VDD JNW_GR07_0.x11.x3.D 1.58612f
+C223 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.P 0.42482f
+C224 JNW_GR07_0.PWM JNW_GR07_0.x5.QN 0.22575f
+C225 JNW_GR07_0.x11.amplifier_rev2_0.x5.D a_9548_34984# 0.59855f
+C226 a_9548_34984# a_9548_34184# 0.01761f
+C227 JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D a_15028_33384# 0.10934f
+C228 a_17760_32878# a_18192_32878# 0.21349f
+C229 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.OUT 0.4094f
+C230 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_2348_38184# 0.13063f
+C231 JNW_GR07_0.VDD a_11348_38984# 0.51939f
+C232 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G a_15090_13426# 0.19259f
+C233 a_21728_7186# JNW_GR06_0.OTA_0.JNWTR_RPPO16_1.P 0.17524f
+C234 uo_out[5] uo_out[4] 0.03102f
+C235 a_5776_30958# a_6208_30958# 0.14233f
+C236 a_12824_30722# a_12824_30402# 0.01f
+C237 a_13664_30722# JNW_GR07_0.x5.QN 0.05912f
+C238 a_3418_9814# a_3850_9814# 0.21349f
+C239 JNW_GR06_0.temp_affected_current_0.OUT a_19376_4408# 0.01052f
+C240 a_23660_3692# a_24092_3692# 0.14233f
+C241 JNW_GR07_0.x11.amplifier_rev2_0.x5.D a_9548_35784# 0.51097f
+C242 JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D a_15028_34184# 0.12854f
+C243 JNW_GR07_0.x10.N a_22600_37478# 0.23341f
+C244 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_2348_38984# 0.11685f
+C245 JNW_GR07_0.VDD a_7748_38184# 0.5997f
+C246 JNW_GR06_0.VDD JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.P 6.31352f
+C247 a_16896_34558# a_17112_34558# 0.01515f
+C248 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D a_12862_13944# 0.17938f
+C249 JNW_GR06_0.VDD VGND 2.77347f
+C250 a_22180_12624# a_22612_12624# 0.21349f
+C251 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.N a_22828_10704# 0.30013f
+C252 JNW_GR06_0.OTA_0.IN- a_23456_9106# 0.07178f
+C253 a_13664_28002# a_13664_27682# 0.01f
+C254 a_12824_30722# JNW_GR07_0.x5.QN 0.06477f
+C255 a_13664_30722# JNW_GR07_0.PWM 0.03769f
+C256 JNW_GR06_0.temp_affected_current_0.OUT a_19376_4568# 0.02808f
+C257 JNW_GR07_0.x11.amplifier_rev2_0.x5.D a_7748_34984# 0.59855f
+C258 JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D a_13228_33384# 0.07643f
+C259 JNW_GR07_0.x10.N a_22384_35558# 0.02939f
+C260 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.P a_4950_11412# 0.01495f
+C261 JNW_GR07_0.x5.D JNW_GR07_0.x5.XA6.A 0.04432f
+C262 a_17544_30958# a_17976_30958# 0.14233f
+C263 a_5992_25678# JNW_GR07_0.x11.x7.P 0.2259f
+C264 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D a_26528_8910# 0.05056f
+C265 a_1678_6320# VGND 0.01675f
+C266 JNW_GR07_0.VDD a_7748_38984# 0.51193f
+C267 JNW_GR07_0.x9.N a_18624_36478# 0.01316f
+C268 JNW_GR06_0.VDD VDPWR 1.63681f
+C269 uo_out[6] uo_out[5] 0.03102f
+C270 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D a_12858_17194# 0.17823f
+C271 a_12824_30722# JNW_GR07_0.PWM 0.04108f
+C272 a_3202_7894# a_3634_7894# 0.14233f
+C273 JNW_GR06_0.temp_affected_current_0.OUT JNW_GR06_0.reset 0.51503f
+C274 JNW_GR07_0.x11.amplifier_rev2_0.x5.D a_7748_35784# 0.50966f
+C275 JNW_GR07_0.x4.x5.D a_15028_36484# 0.51045f
+C276 a_4518_11412# a_4950_11412# 0.01515f
+C277 JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D a_13228_34184# 0.08347f
+C278 a_22168_35558# a_22384_35558# 0.01515f
+C279 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D a_26530_9748# 0.04392f
+C280 a_1462_4400# VGND 0.01508f
+C281 JNW_GR07_0.x11.x2.A a_11348_39584# 0.07805f
+C282 a_11348_40984# a_11348_40384# 0.02394f
+C283 JNW_GR07_0.VDD a_5948_38184# 0.59993f
+C284 JNW_GR07_0.x11.I_OUT JNW_GR07_0.x11.x.D 0.06834f
+C285 a_3832_29278# a_4264_29278# 0.21349f
+C286 a_21964_10704# a_22396_10704# 0.14233f
+C287 a_12824_28002# a_12824_27682# 0.01f
+C288 JNW_GR06_0.temp_affected_current_0.OUT a_19376_5048# 0.02882f
+C289 JNW_GR07_0.x4.x5.D JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D 2.38155f
+C290 a_7748_34984# a_7748_34184# 0.01761f
+C291 a_5776_23758# a_6208_23758# 0.14233f
+C292 JNW_GR07_0.x11.x2.A JNW_GR07_0.x11.x.D 1.04524f
+C293 JNW_GR07_0.x11.I_OUT a_11348_40384# 0.01064f
+C294 JNW_GR07_0.VDD a_5948_38984# 0.51216f
+C295 JNW_GR07_0.VDD a_13824_31262# 0.01134f
+C296 JNW_GR07_0.VDD VGND 0.16224f
+C297 uo_out[7] uo_out[6] 0.03102f
+C298 a_4696_36478# a_5128_36478# 0.21349f
+C299 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D a_12858_17994# 0.19319f
+C300 JNW_GR06_0.temp_affected_current_0.OUT a_19376_5208# 0.03985f
+C301 a_1710_13332# VGND 0.01617f
+C302 a_4054_4400# a_4486_4400# 0.14233f
+C303 JNW_GR07_0.x4.x5.D a_15028_37284# 0.59563f
+C304 JNW_GR07_0.x4.VOUT a_13228_33384# 0.03378f
+C305 JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D a_9548_32384# 0.07043f
+C306 a_22168_35558# JNW_GR07_0.x10.N 0.27873f
+C307 JNW_GR07_0.x11.x2.A a_11348_40384# 0.07805f
+C308 JNW_GR07_0.VDD a_4148_38184# 0.59993f
+C309 JNW_GR07_0.VDD a_12984_31262# 0.2823f
+C310 a_3616_27358# a_4048_27358# 0.14233f
+C311 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G a_15092_14284# 0.19579f
+C312 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.N a_22396_10704# 0.30165f
+C313 JNW_GR06_0.OTA_0.IN- a_23024_9106# 0.07263f
+C314 JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_8.Emitter a_18396_6928# 0.298f
+C315 JNW_GR07_0.x4.x5.D a_13228_36384# 0.51152f
+C316 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.OTA_0.IN- 10.0419f
+C317 JNW_GR07_0.x4.VOUT a_13228_34184# 0.03883f
+C318 JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D a_9548_33184# 0.07641f
+C319 JNW_GR07_0.VDD a_4148_38984# 0.51212f
+C320 JNW_GR07_0.VDD JNW_GR07_0.x3.MP1.G 0.52279f
+C321 JNW_GR07_0.x9.N a_18192_36478# 0.01316f
+C322 a_17964_6928# a_18396_6928# 0.01515f
+C323 uio_out[0] uo_out[7] 0.03102f
+C324 a_4480_34558# a_4912_34558# 0.14233f
+C325 a_5560_32878# a_5992_32878# 0.21349f
+C326 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G a_15088_17542# 0.19666f
+C327 a_11166_11630# JNW_GR06_0.temp_affected_current_0.OTA_0.OUT 0.07138f
+C328 JNW_GR07_0.x4.x5.D JNW_GR07_0.x4.VOUT 1.66371f
+C329 a_23444_5612# a_23876_5612# 0.21349f
+C330 JNW_GR07_0.VDD JNW_GR07_0.x5.XA3.MP1.S 0.09448f
+C331 JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D a_7748_32384# 0.08343f
+C332 a_20568_34558# a_22168_35558# 0.01466f
+C333 JNW_GR07_0.x5.D JNW_GR07_0.x5.XA7.MP1.S 0.01012f
+C334 JNW_GR07_0.VDD a_2348_38184# 0.59855f
+C335 JNW_GR07_0.VDD JNW_GR07_0.x11.x7.N 0.15016f
+C336 a_12860_18820# JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D 0.08352f
+C337 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.N VGND 0.22838f
+C338 JNW_GR07_0.x4.x5.D JNW_GR07_0.x9.N 6.20837f
+C339 JNW_GR06_0.VDD JNW_GR06_0.OTA_0.IN- 0.13514f
+C340 JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D a_7748_33184# 0.10922f
+C341 JNW_GR07_0.x4.x4.P JNW_GR07_0.x10.N 0.11416f
+C342 a_17328_32878# a_17760_32878# 0.21349f
+C343 a_4302_13332# JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.P 0.22461f
+C344 JNW_GR07_0.x5.D JNW_GR07_0.x5.XA7.CN 0.26812f
+C345 a_24968_7186# a_25400_7186# 0.01515f
+C346 JNW_GR07_0.VDD a_2348_38984# 0.51078f
+C347 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.N a_22180_12624# 0.24429f
+C348 a_17964_6928# JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_8.Emitter 0.05604f
+C349 uio_out[1] uio_out[0] 0.03102f
+C350 a_5344_30958# a_5776_30958# 0.14233f
+C351 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G a_15088_18372# 0.18143f
+C352 a_22816_31958# a_23248_31958# 0.01515f
+C353 a_2986_9814# a_3418_9814# 0.21349f
+C354 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_1.P JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D 0.03518f
+C355 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.N a_25400_7186# 0.01799f
+C356 JNW_GR06_0.temp_affected_current_0.OUT a_26528_7288# 0.07044f
+C357 JNW_GR06_0.temp_affected_current_0.OTA_0.OUT a_8044_6442# 0.01388f
+C358 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.N VDPWR 0.03231f
+C359 JNW_GR07_0.x11.x3.D a_11348_38184# 0.04475f
+C360 JNW_GR07_0.VDD JNW_GR07_0.x4.VOUT 1.35478f
+C361 JNW_GR07_0.x4.x5.D a_13228_37184# 0.54572f
+C362 a_23228_3692# a_23660_3692# 0.14233f
+C363 JNW_GR07_0.x11.I_OUT JNW_GR07_0.x5.XA7.C 0.03396f
+C364 JNW_GR07_0.VDD a_13664_28482# 0.31513f
+C365 JNW_GR07_0.x5.D JNW_GR07_0.x5.XA7.C 0.84832f
+C366 JNW_GR07_0.VDD a_20428_39584# 0.5107f
+C367 JNW_GR07_0.x11.amplifier_rev2_0.x4.P a_3400_32878# 0.22658f
+C368 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.N a_21964_10704# 0.33712f
+C369 JNW_GR06_0.OTA_0.IN- a_22592_9106# 0.07603f
+C370 a_22816_28358# a_23248_28358# 0.01515f
+C371 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D 0.64271f
+C372 JNW_GR07_0.PWM a_12248_25044# 0.08076f
+C373 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_1.P JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ 0.04923f
+C374 JNW_GR06_0.temp_affected_current_0.OUT a_26528_8088# 0.14651f
+C375 JNW_GR07_0.VDD JNW_GR07_0.x9.N 2.34519f
+C376 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_6640_34558# 0.0157f
+C377 JNW_GR07_0.x4.x4.P a_20568_34558# 0.19779f
+C378 a_17112_30958# a_17544_30958# 0.14233f
+C379 a_4086_11412# a_4518_11412# 0.14233f
+C380 JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ JNW_GR06_0.temp_affected_current_0.JNWTR_RPPO8_0.N 0.01373f
+C381 a_5560_25678# a_5992_25678# 0.21349f
+C382 JNW_GR07_0.VDD a_20428_40384# 0.50936f
+C383 JNW_GR07_0.x9.N a_17760_36478# 0.01316f
+C384 JNW_GR07_0.x10.N a_22600_33878# 0.22461f
+C385 a_21748_10704# a_21964_10704# 0.01515f
+C386 uio_out[2] uio_out[1] 0.03102f
+C387 JNW_GR07_0.PWM a_12248_25524# 0.08127f
+C388 a_6060_11278# JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D 0.01302f
+C389 a_2770_7894# a_3202_7894# 0.14233f
+C390 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_1.P a_4930_7894# 0.17388f
+C391 a_10144_23758# a_10576_23758# 0.14233f
+C392 a_3838_6320# a_4270_6320# 0.21349f
+C393 a_11348_38984# JNW_GR07_0.x11.x3.D 0.01403f
+C394 JNW_GR07_0.x11.amplifier_rev2_0.x5.D a_9548_36384# 0.51152f
+C395 JNW_GR07_0.VDD JNW_GR07_0.x5.XA4.MP1.S 0.09506f
+C396 a_20136_34558# a_20568_34558# 0.01515f
+C397 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D a_15080_10690# 0.07615f
+C398 a_27480_12184# a_27484_11980# 0.0828f
+C399 a_7748_40984# a_7748_40384# 0.02394f
+C400 JNW_GR07_0.VDD a_18628_39584# 0.51205f
+C401 a_12824_26882# a_12248_26644# 0.01056f
+C402 a_3400_29278# a_3832_29278# 0.21349f
+C403 a_17748_8848# JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_8.Emitter 0.22964f
+C404 JNW_GR07_0.x11.x3.D a_9548_34984# 0.07312f
+C405 JNW_GR07_0.x4.x5.G JNW_GR07_0.x10.N 0.0396f
+C406 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G a_15088_19172# 0.19659f
+C407 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_1.P 0.01973f
+C408 a_6060_11278# JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ 0.07172f
+C409 a_20428_39584# a_20428_38984# 0.02394f
+C410 JNW_GR07_0.x11.amplifier_rev2_0.x5.D a_9548_37184# 0.54572f
+C411 JNW_GR07_0.x5.D JNW_GR07_0.x5.QN 0.03209f
+C412 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D a_15080_11490# 0.07053f
+C413 a_5344_23758# a_5776_23758# 0.14233f
+C414 JNW_GR06_0.temp_affected_current_0.OTA_0.OUT a_12298_6884# 0.08557f
+C415 JNW_GR07_0.x4.x5.G a_20428_41084# 0.11706f
+C416 JNW_GR07_0.VDD a_18628_40384# 0.51204f
+C417 JNW_GR07_0.x11.amplifier_rev2_0.x4.P a_2968_30958# 0.01523f
+C418 a_21748_10704# JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.N 0.27831f
+C419 uio_out[3] uio_out[2] 0.03102f
+C420 JNW_GR07_0.x11.x3.D a_9548_35784# 0.08057f
+C421 a_4264_36478# a_4696_36478# 0.21349f
+C422 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_1.P a_4498_7894# 0.17458f
+C423 a_3622_4400# a_4054_4400# 0.14233f
+C424 a_28510_7296# a_28514_6534# 0.01845f
+C425 JNW_GR07_0.x11.amplifier_rev2_0.x5.D a_7748_36484# 0.51045f
+C426 JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D a_9548_33384# 0.07643f
+C427 JNW_GR07_0.VDD a_13664_28962# 0.31059f
+C428 a_20136_34558# JNW_GR07_0.x4.x4.P 0.01676f
+C429 JNW_GR07_0.x11.I_OUT JNW_GR07_0.PWM 0.33979f
+C430 JNW_GR07_0.x5.D JNW_GR07_0.PWM 0.15862f
+C431 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D a_12866_10692# 0.11089f
+C432 JNW_GR06_0.temp_affected_current_0.OTA_0.OUT a_8044_7242# 0.04609f
+C433 JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter a_12298_6884# 0.04717f
+C434 JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.x.D 0.30021f
+C435 JNW_GR07_0.x4.x5.G a_20428_41884# 0.08343f
+C436 JNW_GR07_0.VDD a_16828_39584# 0.51209f
+C437 JNW_GR07_0.x10.N a_22168_31958# 0.01528f
+C438 a_3184_27358# a_3616_27358# 0.14233f
+C439 a_23360_17198# a_23792_17198# 0.01515f
+C440 JNW_GR06_0.OTA_0.IN- a_22160_9106# 0.07698f
+C441 a_17532_6928# a_17964_6928# 0.14233f
+C442 a_15092_20004# JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G 0.08348f
+C443 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_6060_11278# 0.5348f
+C444 JNW_GR07_0.PWM a_12248_26004# 0.08135f
+C445 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.N a_24752_9106# 0.22831f
+C446 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D a_8044_6442# 0.07043f
+C447 JNW_GR07_0.x11.amplifier_rev2_0.x5.D JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D 2.38155f
+C448 JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D a_9548_34184# 0.08347f
+C449 JNW_GR07_0.x5.D a_13664_30722# 0.01207f
+C450 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G a_15080_10690# 0.01376f
+C451 JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ a_14930_8864# 0.21898f
+C452 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.P a_27484_11180# 0.07045f
+C453 a_24536_7186# a_24968_7186# 0.14233f
+C454 JNW_GR07_0.x4.x5.G a_18628_40984# 0.11684f
+C455 JNW_GR07_0.VDD a_16828_40384# 0.51208f
+C456 JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D a_15028_34984# 0.05322f
+C457 a_15028_36484# a_15028_35784# 0.02029f
+C458 JNW_GR07_0.x9.N a_17328_36478# 0.01316f
+C459 uio_out[4] uio_out[3] 0.03102f
+C460 a_4048_34558# a_4480_34558# 0.14233f
+C461 a_15028_38184# a_15028_37284# 0.01555f
+C462 JNW_GR07_0.PWM a_12248_26484# 0.08166f
+C463 a_5128_32878# a_5560_32878# 0.21349f
+C464 a_22168_31958# a_23248_31958# 0.0381f
+C465 a_22384_31958# a_22816_31958# 0.14233f
+C466 JNW_GR06_0.temp_affected_current_0.OUT a_26528_8910# 0.14893f
+C467 a_23012_5612# a_23444_5612# 0.21349f
+C468 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_5992_36478# 0.23544f
+C469 JNW_GR07_0.x11.amplifier_rev2_0.x5.D a_7748_37284# 0.59563f
+C470 JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D a_7748_33384# 0.10934f
+C471 JNW_GR07_0.VDD JNW_GR07_0.x5.XA5.A 0.75365f
+C472 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D a_12866_11492# 0.19346f
+C473 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G a_15080_11490# 0.06461f
+C474 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.P a_27484_11980# 0.07964f
+C475 JNW_GR07_0.x4.x5.D a_13228_39584# 0.02894f
+C476 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_9548_39584# 0.08011f
+C477 JNW_GR07_0.x4.x5.G a_18628_41784# 0.08363f
+C478 a_5948_40984# a_5948_40384# 0.02394f
+C479 JNW_GR07_0.VDD a_15028_39584# 0.51209f
+C480 JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D a_15028_35784# 0.03917f
+C481 a_22168_28358# a_23248_28358# 0.0381f
+C482 a_22384_28358# a_22816_28358# 0.14233f
+C483 JNW_GR07_0.x4.x5.G JNW_GR07_0.x4.x4.P 0.06463f
+C484 JNW_GR06_0.VDD a_11166_11630# 0.544f
+C485 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_7014_11888# 0.06793f
+C486 JNW_GR07_0.PWM a_12248_26644# 0.01328f
+C487 JNW_GR06_0.temp_affected_current_0.OUT a_26530_9748# 0.14617f
+C488 JNW_GR07_0.x11.amplifier_rev2_0.x5.D a_6640_34558# 0.02792f
+C489 a_18628_39584# a_18628_38984# 0.02394f
+C490 a_3870_13332# a_4302_13332# 0.21349f
+C491 JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D a_7748_34184# 0.12854f
+C492 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D a_11166_10830# 0.03901f
+C493 JNW_GR07_0.VDD a_13664_29282# 0.31097f
+C494 a_19920_36478# JNW_GR07_0.x4.x4.P 0.23125f
+C495 a_16896_30958# a_17112_30958# 0.01515f
+C496 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.P a_27480_12184# 0.09015f
+C497 JNW_GR07_0.x4.x5.D a_13228_40384# 0.013f
+C498 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_9548_40384# 0.07057f
+C499 JNW_GR07_0.x4.x5.G a_16828_40984# 0.11632f
+C500 JNW_GR07_0.VDD a_15028_40384# 0.51221f
+C501 JNW_GR06_0.OTA_0.IN- JNW_GR06_0.OTA_0.JNWTR_RPPO16_1.P 0.01515f
+C502 uio_out[5] uio_out[4] 0.03102f
+C503 JNW_GR06_0.VDD a_7014_11888# 0.47953f
+C504 a_4912_30958# a_5344_30958# 0.14233f
+C505 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_28510_7296# 0.47974f
+C506 a_2554_9814# a_2986_9814# 0.21349f
+C507 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_1.P a_4066_7894# 0.01169f
+C508 a_9928_25678# a_10360_25678# 0.21349f
+C509 JNW_GR06_0.temp_affected_current_0.OUT JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D 1.50314f
+C510 a_26528_7288# a_26530_6536# 0.01876f
+C511 a_22796_3692# a_23228_3692# 0.14233f
+C512 JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ a_14498_6944# 0.01718f
+C513 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.P a_27480_12984# 0.12167f
+C514 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_7748_39584# 0.1164f
+C515 JNW_GR07_0.x4.x5.G a_16828_41784# 0.08343f
+C516 JNW_GR07_0.VDD a_13228_39584# 0.62831f
+C517 a_12248_25044# a_12248_24884# 0.0971f
+C518 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_28510_8096# 0.6801f
+C519 JNW_GR06_0.temp_affected_current_0.OUT a_25400_7186# 0.04518f
+C520 JNW_GR06_0.OUT a_28514_5734# 0.01323f
+C521 JNW_GR06_0.VDD JNW_GR06_0.JNWTR_RPPO4_2.N 0.13636f
+C522 JNW_GR07_0.VDD JNW_GR07_0.x5.XA6.MP1.S 0.08534f
+C523 a_3654_11412# a_4086_11412# 0.14233f
+C524 JNW_GR07_0.x11.x3.D JNW_GR07_0.x11.x7.N 1.32921f
+C525 a_19704_34558# a_20136_34558# 0.14233f
+C526 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D a_8044_7242# 0.08263f
+C527 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.P a_25420_10704# 0.01495f
+C528 a_5128_25678# a_5560_25678# 0.21349f
+C529 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_7748_40384# 0.11618f
+C530 JNW_GR07_0.x4.x5.G a_15028_40984# 0.11616f
+C531 JNW_GR07_0.VDD a_13228_40384# 0.6083f
+C532 JNW_GR07_0.x10.P a_23248_35558# 0.01543f
+C533 JNW_GR07_0.x4.x4.P a_20568_30958# 0.01523f
+C534 JNW_GR07_0.x11.x6.P a_3400_29278# 0.23341f
+C535 uio_out[6] uio_out[5] 0.03102f
+C536 JNW_GR06_0.VDD a_15090_12626# 0.72617f
+C537 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_7014_12688# 0.01346f
+C538 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_26528_7288# 0.47977f
+C539 a_2338_7894# a_2770_7894# 0.14233f
+C540 a_3406_6320# a_3838_6320# 0.21349f
+C541 a_9712_23758# a_10144_23758# 0.14233f
+C542 JNW_GR06_0.OUT a_28514_6534# 0.04577f
+C543 JNW_GR07_0.VDD JNW_GR07_0.x5.XA6.A 1.35656f
+C544 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.N JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_1.P 0.02263f
+C545 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D a_6060_6444# 0.08392f
+C546 a_24988_10704# a_25420_10704# 0.01515f
+C547 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_5948_39584# 0.11635f
+C548 a_4148_40984# a_4148_40384# 0.02394f
+C549 JNW_GR07_0.x11.amplifier_rev2_0.x5.D JNW_GR07_0.x11.x.D 6.09527f
+C550 JNW_GR07_0.VDD a_11348_39584# 0.51426f
+C551 JNW_GR07_0.x4.VOUT a_13228_34984# 0.03525f
+C552 a_13228_36384# a_13228_35784# 0.02394f
+C553 a_22712_17198# a_23792_17198# 0.0381f
+C554 a_22928_17198# a_23360_17198# 0.14233f
+C555 JNW_GR07_0.x11.x6.P a_3184_27358# 0.0298f
+C556 JNW_GR07_0.x9.N a_23248_28358# 0.01516f
+C557 a_17316_8848# a_17748_8848# 0.21349f
+C558 JNW_GR06_0.VDD a_7014_12688# 0.53412f
+C559 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_26528_8088# 0.68039f
+C560 a_16828_39584# a_16828_38984# 0.02394f
+C561 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G a_16964_11794# 0.08219f
+C562 JNW_GR06_0.VDD a_14498_6944# 0.01248f
+C563 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D a_6060_7244# 0.13385f
+C564 a_4912_23758# a_5344_23758# 0.14233f
+C565 a_24320_9106# a_24752_9106# 0.21349f
+C566 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_5948_40384# 0.11635f
+C567 a_15028_41784# JNW_GR07_0.x4.x5.G 0.08343f
+C568 JNW_GR07_0.VDD JNW_GR07_0.x11.x.D 2.39145f
+C569 JNW_GR07_0.x9.N a_13228_34984# 0.07043f
+C570 JNW_GR07_0.x4.VOUT a_13228_35784# 0.03828f
+C571 a_2968_27358# a_3184_27358# 0.01515f
+C572 JNW_GR06_0.temp_affected_current_0.OUT JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.N 0.04963f
+C573 uio_out[7] uio_out[6] 0.03102f
+C574 JNW_GR06_0.VDD a_15090_13426# 0.70066f
+C575 a_3832_36478# a_4264_36478# 0.21349f
+C576 JNW_GR07_0.x11.x3.D JNW_GR07_0.x9.N 0.0185f
+C577 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_28510_8918# 0.7493f
+C578 a_3190_4400# a_3622_4400# 0.14233f
+C579 a_22168_31958# a_22384_31958# 0.01515f
+C580 JNW_GR07_0.VDD a_13664_29762# 0.36284f
+C581 JNW_GR07_0.x11.I_OUT a_12248_24884# 0.01029f
+C582 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR06_0.temp_affected_current_0.OUT 0.39853f
+C583 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.OTA_0.OUT 0.63685f
+C584 JNW_GR06_0.VDD a_12298_6884# 0.47945f
+C585 VDPWR VGND 12.9181f
+C586 JNW_GR07_0.x11.amplifier_rev2_0.x5.D a_9548_39584# 0.02894f
+C587 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_4148_39584# 0.11686f
+C588 JNW_GR07_0.VDD a_11348_40384# 0.51973f
+C589 JNW_GR07_0.x9.N a_13228_35784# 0.07845f
+C590 a_22168_28358# a_22384_28358# 0.01515f
+C591 a_17100_6928# a_17532_6928# 0.14233f
+C592 a_12248_25684# a_12248_25524# 0.0971f
+C593 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_28512_9756# 0.68133f
+C594 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D a_28514_5734# 0.07043f
+C595 JNW_GR07_0.x11.I_OUT a_12248_25044# 0.02813f
+C596 JNW_GR06_0.VDD a_18892_19086# 0.22641f
+C597 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G a_16964_12594# 0.07055f
+C598 JNW_GR07_0.VDD a_12824_29762# 0.0691f
+C599 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter 0.03876f
+C600 JNW_GR07_0.x3.MP1.G a_13824_31262# 0.02377f
+C601 a_24104_7186# a_24536_7186# 0.14233f
+C602 JNW_GR07_0.x11.I_OUT JNW_GR07_0.x4.x5.G 0.36866f
+C603 JNW_GR07_0.x11.amplifier_rev2_0.x5.D a_9548_40384# 0.013f
+C604 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_4148_40384# 0.11686f
+C605 JNW_GR07_0.VDD a_9548_39584# 0.62787f
+C606 JNW_GR07_0.x11.x.D a_6640_30958# 0.01067f
+C607 JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D a_15028_36484# 0.03864f
+C608 a_2968_27358# JNW_GR07_0.x11.x6.P 0.27873f
+C609 uio_oe[0] uio_out[7] 0.03102f
+C610 JNW_GR06_0.VDD a_7010_12892# 0.53459f
+C611 JNW_GR07_0.x11.x3.D a_9548_36384# 0.0812f
+C612 a_3616_34558# a_4048_34558# 0.14233f
+C613 a_4696_32878# a_5128_32878# 0.21349f
+C614 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.OUT 2.31426f
+C615 JNW_GR06_0.temp_affected_current_0.OUT a_24752_9106# 0.02677f
+C616 a_22580_5612# a_23012_5612# 0.21349f
+C617 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D a_28514_6534# 0.08263f
+C618 JNW_GR07_0.VDD JNW_GR07_0.x5.XA7.MN0.S 0.01211f
+C619 JNW_GR07_0.x11.I_OUT a_12248_25524# 0.02914f
+C620 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G a_15094_11794# 0.14142f
+C621 JNW_GR07_0.x3.MP1.G a_12984_31262# 0.01772f
+C622 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_2348_39584# 0.11635f
+C623 a_2348_41084# a_2348_40384# 0.02029f
+C624 JNW_GR07_0.VDD a_9548_40384# 0.6071f
+C625 JNW_GR07_0.x10.P a_22600_37478# 0.22658f
+C626 JNW_GR07_0.x4.x4.P a_19920_32878# 0.22658f
+C627 JNW_GR07_0.x11.x3.D a_9548_37184# 0.08952f
+C628 a_12248_25844# a_12248_25684# 0.0971f
+C629 JNW_GR06_0.VDD a_7010_13692# 0.52404f
+C630 a_20568_30958# a_22168_31958# 0.01466f
+C631 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_28512_10578# 0.53558f
+C632 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D a_26530_5736# 0.08392f
+C633 JNW_GR07_0.x11.I_OUT a_12248_25684# 0.02585f
+C634 a_15028_39584# a_15028_38984# 0.02394f
+C635 JNW_GR07_0.VDD JNW_GR07_0.x5.XA7.MP1.S 0.33243f
+C636 a_3438_13332# a_3870_13332# 0.21349f
+C637 a_19488_36478# a_19920_36478# 0.21349f
+C638 a_24772_12624# JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.P 0.22461f
+C639 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_2348_40384# 0.11703f
+C640 JNW_GR07_0.x11.I_OUT a_11348_40984# 0.03929f
+C641 JNW_GR07_0.VDD a_7748_39584# 0.51209f
+C642 a_15028_37284# JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D 0.013f
+C643 JNW_GR07_0.x9.N a_22600_30278# 0.22461f
+C644 a_2122_9814# VGND 0.01008f
+C645 uio_oe[1] uio_oe[0] 0.03102f
+C646 JNW_GR07_0.VDD a_13664_26882# 0.3862f
+C647 JNW_GR07_0.x4.VOUT a_13824_31262# 0.06196f
+C648 a_4480_30958# a_4912_30958# 0.14233f
+C649 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_26528_8910# 0.74931f
+C650 a_2122_9814# a_2554_9814# 0.21349f
+C651 a_22364_3692# a_22796_3692# 0.14233f
+C652 a_9496_25678# a_9928_25678# 0.21349f
+C653 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D a_26530_6536# 0.13385f
+C654 JNW_GR07_0.x11.I_OUT a_12248_25844# 0.02603f
+C655 JNW_GR06_0.VDD a_18460_17166# 0.06766f
+C656 JNW_GR07_0.VDD JNW_GR07_0.x5.XA7.CN 1.61396f
+C657 clk ena 0.03102f
+C658 JNW_GR07_0.x11.x2.A a_11348_40984# 0.07805f
+C659 JNW_GR07_0.VDD a_7748_40384# 0.51221f
+C660 a_22712_17198# a_22928_17198# 0.01515f
+C661 JNW_GR07_0.x11.I_OUT JNW_GR07_0.x5.D 0.01124f
+C662 a_9548_36384# a_9548_35784# 0.02394f
+C663 a_15094_11794# a_15080_11490# 0.05034f
+C664 a_1906_7894# VGND 0.01033f
+C665 JNW_GR07_0.x11.x3.D JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D 0.60673f
+C666 JNW_GR07_0.VDD a_12824_26882# 0.02703f
+C667 JNW_GR07_0.x4.VOUT a_12984_31262# 0.05945f
+C668 a_12248_26004# a_12248_25844# 0.0971f
+C669 JNW_GR06_0.VDD a_15092_14284# 0.72454f
+C670 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_26530_9748# 0.68099f
+C671 JNW_GR07_0.x11.I_OUT a_12248_26004# 0.02978f
+C672 a_3222_11412# a_3654_11412# 0.14233f
+C673 JNW_GR07_0.VDD JNW_GR07_0.x5.XA7.C 3.21715f
+C674 a_19272_34558# a_19704_34558# 0.14233f
+C675 a_24556_10704# a_24988_10704# 0.14233f
+C676 a_13664_27202# a_13664_26882# 0.01f
+C677 a_4696_25678# a_5128_25678# 0.21349f
+C678 JNW_GR07_0.x11.x2.A JNW_GR07_0.x11.I_OUT 0.42917f
+C679 JNW_GR07_0.VDD a_5948_39584# 0.51209f
+C680 JNW_GR07_0.x4.VOUT JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D 0.8262f
+C681 JNW_GR07_0.x10.P JNW_GR07_0.x10.N 0.01971f
+C682 a_13824_31742# JNW_GR07_0.x5.D 0.01788f
+C683 uio_oe[2] uio_oe[1] 0.03102f
+C684 a_1906_7894# a_2338_7894# 0.14233f
+C685 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D 2.39325f
+C686 JNW_GR07_0.x4.VOUT JNW_GR07_0.x3.MP1.G 0.38363f
+C687 a_2974_6320# a_3406_6320# 0.21349f
+C688 JNW_GR06_0.temp_affected_current_0.OUT a_24320_9106# 0.02635f
+C689 a_20136_30958# a_20568_30958# 0.01515f
+C690 a_9280_23758# a_9712_23758# 0.14233f
+C691 JNW_GR07_0.x11.I_OUT a_12248_26484# 0.0359f
+C692 JNW_GR06_0.VDD a_15088_17542# 0.72898f
+C693 JNW_GR07_0.VDD a_13664_30402# 0.31365f
+C694 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ 0.9074f
+C695 JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_8.Emitter JNW_GR06_0.reset 0.29455f
+C696 a_11348_41784# JNW_GR07_0.x11.I_OUT 0.01375f
+C697 JNW_GR07_0.VDD a_5948_40384# 0.51208f
+C698 rst_n clk 0.03102f
+C699 JNW_GR06_0.OTA_0.IN- a_23144_19118# 0.22095f
+C700 JNW_GR07_0.x9.N JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D 0.10108f
+C701 a_12984_31742# JNW_GR07_0.x5.D 0.02882f
+C702 a_16884_8848# a_17316_8848# 0.21349f
+C703 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.P 0.42482f
+C704 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_25400_7186# 0.03543f
+C705 JNW_GR07_0.x11.I_OUT a_12248_26644# 0.01655f
+C706 a_23888_9106# a_24320_9106# 0.21349f
+C707 a_12824_27202# a_12824_26882# 0.01f
+C708 a_4480_23758# a_4912_23758# 0.14233f
+C709 a_11348_41784# JNW_GR07_0.x11.x2.A 0.07043f
+C710 JNW_GR07_0.VDD a_4148_39584# 0.51205f
+C711 JNW_GR07_0.x4.VOUT a_13228_36384# 0.03811f
+C712 a_21674_17182# a_22712_17198# 0.03949f
+C713 JNW_GR06_0.temp_affected_current_0.OUT a_16964_11794# 0.04251f
+C714 JNW_GR06_0.temp_affected_current_0.OTA_0.OUT a_8042_10464# 0.04366f
+C715 a_1690_9814# VGND 0.01653f
+C716 uio_oe[3] uio_oe[2] 0.03102f
+C717 a_3400_36478# a_3832_36478# 0.21349f
+C718 a_7748_38184# a_7748_37284# 0.01555f
+C719 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.P 6.49946f
+C720 a_8040_8004# a_8044_7242# 0.01845f
+C721 a_2758_4400# a_3190_4400# 0.14233f
+C722 JNW_GR06_0.VDD a_15088_18372# 0.59925f
+C723 JNW_GR07_0.VDD JNW_GR07_0.x5.QN 0.70649f
+C724 JNW_GR07_0.VDD a_4148_40384# 0.51204f
+C725 ui_in[0] rst_n 0.03102f
+C726 JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D a_7748_34984# 0.05322f
+C727 JNW_GR07_0.x9.N a_13228_36384# 0.07908f
+C728 a_7748_36484# a_7748_35784# 0.02029f
+C729 JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter a_8042_10464# 0.14609f
+C730 JNW_GR07_0.x5.XA7.C JNW_GR07_0.CLK 0.08542f
+C731 a_1474_7894# VGND 0.01644f
+C732 a_16668_6928# a_17100_6928# 0.14233f
+C733 a_12248_26644# a_12248_26484# 0.0971f
+C734 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D 0.87122f
+C735 JNW_GR07_0.VDD JNW_GR07_0.PWM 1.28709f
+C736 a_6208_27358# a_6640_27358# 0.01515f
+C737 a_23672_7186# a_24104_7186# 0.14233f
+C738 JNW_GR07_0.VDD a_2348_39584# 0.5107f
+C739 JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D a_7748_35784# 0.03917f
+C740 JNW_GR07_0.x9.N JNW_GR07_0.x4.VOUT 0.78371f
+C741 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.N 0.02864f
+C742 JNW_GR06_0.OTA_0.IN- a_22712_17198# 0.04219f
+C743 JNW_GR07_0.x5.XA7.C JNW_GR07_0.x5.XA1.MN1.S 0.07714f
+C744 JNW_GR06_0.temp_affected_current_0.OTA_0.OUT a_11166_10830# 0.08921f
+C745 a_16964_12594# JNW_GR06_0.temp_affected_current_0.OUT 0.01308f
+C746 uio_oe[4] uio_oe[3] 0.03102f
+C747 a_3184_34558# a_3616_34558# 0.14233f
+C748 a_4264_32878# a_4696_32878# 0.21349f
+C749 JNW_GR06_0.temp_affected_current_0.OUT a_23888_9106# 0.02635f
+C750 a_22148_5612# a_22580_5612# 0.21349f
+C751 JNW_GR07_0.x11.x.D JNW_GR07_0.x11.x3.D 3.81185f
+C752 JNW_GR07_0.x4.x5.G a_20428_38184# 0.13063f
+C753 a_11348_39584# a_11348_38984# 0.02394f
+C754 JNW_GR07_0.VDD a_13664_30722# 0.27311f
+C755 JNW_GR07_0.VDD a_2348_40384# 0.50936f
+C756 ui_in[1] ui_in[0] 0.03102f
+C757 JNW_GR06_0.OTA_0.IN- a_21674_17182# 0.04127f
+C758 a_13228_37184# JNW_GR07_0.x4.VOUT 0.013f
+C759 JNW_GR07_0.x5.XA7.C a_13664_27682# 0.1046f
+C760 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_1.P VGND 0.15657f
+C761 JNW_GR07_0.VDD JNW_GR07_0.x10.N 0.01174f
+C762 JNW_GR06_0.VDD a_15088_19172# 0.72659f
+C763 JNW_GR07_0.x11.x.D a_11348_38984# 0.01795f
+C764 a_19056_36478# a_19488_36478# 0.21349f
+C765 JNW_GR07_0.VDD a_12824_30722# 0.01222f
+C766 a_3006_13332# a_3438_13332# 0.21349f
+C767 a_24340_12624# a_24772_12624# 0.21349f
+C768 JNW_GR07_0.VDD a_20428_41084# 0.5104f
+C769 a_13228_37184# JNW_GR07_0.x9.N 0.09215f
+C770 a_21242_17182# a_21674_17182# 0.01515f
+C771 JNW_GR07_0.x5.XA7.CN a_13664_28002# 0.04767f
+C772 JNW_GR07_0.x5.XA7.C a_12824_27682# 0.09819f
+C773 a_1258_7894# VGND 0.01693f
+C774 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_1.P VDPWR 0.02067f
+C775 uio_oe[5] uio_oe[4] 0.03102f
+C776 a_1690_9814# a_2122_9814# 0.21349f
+C777 a_4048_30958# a_4480_30958# 0.14233f
+C778 a_6058_7996# a_6060_7244# 0.01876f
+C779 a_19704_30958# a_20136_30958# 0.14233f
+C780 a_21932_3692# a_22364_3692# 0.14233f
+C781 a_9064_25678# a_9496_25678# 0.21349f
+C782 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G 31.2892f
+C783 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.N a_4950_11412# 0.04592f
+C784 JNW_GR07_0.VDD a_20428_41884# 0.61293f
+C785 ui_in[2] ui_in[1] 0.03102f
+C786 JNW_GR07_0.x11.x2.A a_9548_32384# 0.013f
+C787 JNW_GR07_0.x5.XA7.CN a_12824_28002# 0.04737f
+C788 JNW_GR07_0.x5.XA7.C a_13664_28002# 0.06257f
+C789 JNW_GR07_0.x5.XA5.A JNW_GR07_0.x5.XA3.MP1.S 0.04373f
+C790 JNW_GR06_0.VDD a_15092_20004# 0.52619f
+C791 a_18840_34558# a_19272_34558# 0.14233f
+C792 a_2790_11412# a_3222_11412# 0.14233f
+C793 a_24124_10704# a_24556_10704# 0.14233f
+C794 a_4264_25678# a_4696_25678# 0.21349f
+C795 JNW_GR07_0.VDD a_18628_40984# 0.51289f
+C796 JNW_GR07_0.x11.x2.A a_9548_33184# 0.0325f
+C797 JNW_GR07_0.x5.XA7.C a_12824_28002# 0.07264f
+C798 JNW_GR07_0.x5.XA5.A JNW_GR07_0.x5.XA3.MN1.S 0.04373f
+C799 uio_oe[6] uio_oe[5] 0.03102f
+C800 JNW_GR07_0.x11.x.D a_7748_34984# 0.07043f
+C801 a_11008_23758# a_11440_23758# 0.01515f
+C802 a_1474_7894# a_1906_7894# 0.14233f
+C803 a_2542_6320# a_2974_6320# 0.21349f
+C804 JNW_GR06_0.temp_affected_current_0.OUT a_23456_9106# 0.02635f
+C805 a_8848_23758# a_9280_23758# 0.14233f
+C806 JNW_GR07_0.VDD a_18628_41784# 0.55768f
+C807 ui_in[3] ui_in[2] 0.03102f
+C808 JNW_GR06_0.VDD a_15080_11490# 0.03285f
+C809 JNW_GR07_0.x5.XA5.A a_13664_28482# 0.02049f
+C810 a_16452_6928# a_16668_6928# 0.01515f
+C811 JNW_GR07_0.x11.x.D a_7748_35784# 0.07821f
+C812 JNW_GR07_0.x11.amplifier_rev2_0.x4.P a_3400_36478# 0.23125f
+C813 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.N a_4518_11412# 0.33136f
+C814 a_5776_27358# a_6208_27358# 0.14233f
+C815 a_4048_23758# a_4480_23758# 0.14233f
+C816 a_23456_9106# a_23888_9106# 0.21349f
+C817 JNW_GR07_0.VDD a_16828_40984# 0.51261f
+C818 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_8042_10464# 0.68133f
+C819 JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter JNW_GR06_0.temp_affected_current_0.OTA_0.OUT 3.25987f
+C820 JNW_GR07_0.x5.XA5.A a_12824_28482# 0.02736f
+C821 uio_oe[7] uio_oe[6] 0.03102f
+C822 JNW_GR07_0.x11.amplifier_rev2_0.x4.P a_3184_34558# 0.01676f
+C823 a_2326_4400# a_2758_4400# 0.14233f
+C824 JNW_GR06_0.OTA_0.JNWTR_RPPO16_1.P JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D 0.03518f
+C825 JNW_GR07_0.x4.x5.D JNW_GR07_0.x4.x5.G 0.91912f
+C826 JNW_GR07_0.VDD a_16828_41784# 0.55738f
+C827 ui_in[4] ui_in[3] 0.03102f
+C828 a_21026_19102# JNW_GR06_0.OTA_0.IN- 0.22076f
+C829 a_8042_11286# JNW_GR06_0.temp_affected_current_0.OTA_0.OUT 0.013f
+C830 JNW_GR07_0.x5.XA5.A JNW_GR07_0.x5.XA4.MP1.S 0.05173f
+C831 JNW_GR06_0.temp_affected_current_0.JNWTR_RPPO8_0.N a_16884_8848# 0.21856f
+C832 a_2968_34558# a_3184_34558# 0.01515f
+C833 JNW_GR07_0.x11.x6.P a_3400_25678# 0.22857f
+C834 a_7748_39584# a_7748_38984# 0.02394f
+C835 JNW_GR06_0.OTA_0.JNWTR_RPPO16_1.P a_25400_7186# 0.17388f
+C836 a_23240_7186# a_23672_7186# 0.14233f
+C837 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_7748_40984# 0.11616f
+C838 JNW_GR07_0.VDD a_15028_40984# 0.51251f
+C839 a_20594_17182# a_21674_17182# 0.0381f
+C840 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D a_12862_14744# 0.19289f
+C841 a_8042_11286# JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter 0.07043f
+C842 JNW_GR07_0.x5.XA5.A JNW_GR07_0.x5.XA4.MN1.S 0.07879f
+C843 a_3832_32878# a_4264_32878# 0.21349f
+C844 JNW_GR06_0.temp_affected_current_0.OUT a_23024_9106# 0.02635f
+C845 a_19488_32878# a_19920_32878# 0.21349f
+C846 a_21716_3692# a_21932_3692# 0.01515f
+C847 JNW_GR07_0.x11.x.D JNW_GR07_0.x11.x7.N 0.24102f
+C848 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_7748_41784# 0.08343f
+C849 JNW_GR07_0.VDD JNW_GR07_0.x4.x5.G 47.4869f
+C850 ui_in[5] ui_in[4] 0.03102f
+C851 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OUT 9.298f
+C852 JNW_GR06_0.VDD a_11166_10830# 0.48073f
+C853 a_20810_17182# a_21242_17182# 0.14233f
+C854 JNW_GR07_0.x5.XA5.A a_13664_28962# 0.07964f
+C855 JNW_GR07_0.x5.XA6.A a_13664_28482# 0.06533f
+C856 a_2968_34558# JNW_GR07_0.x11.amplifier_rev2_0.x4.P 0.19779f
+C857 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_1.P a_1690_9814# 0.24608f
+C858 JNW_GR07_0.x11.x.D a_6640_27358# 0.01495f
+C859 a_18624_36478# a_19056_36478# 0.21349f
+C860 a_2574_13332# a_3006_13332# 0.21349f
+C861 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.N a_4086_11412# 0.30142f
+C862 a_23908_12624# a_24340_12624# 0.21349f
+C863 JNW_GR06_0.OTA_0.JNWTR_RPPO16_1.P a_24968_7186# 0.17458f
+C864 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_5948_40984# 0.11632f
+C865 JNW_GR07_0.x4.x5.D JNW_GR07_0.x11.I_OUT 6.29411f
+C866 JNW_GR07_0.VDD a_15028_41784# 0.55715f
+C867 JNW_GR06_0.VDD a_16964_11794# 0.48014f
+C868 JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D a_7748_36484# 0.03864f
+C869 a_15028_33384# a_15028_33184# 0.08533f
+C870 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D a_12862_15568# 0.18094f
+C871 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.temp_affected_current_0.OTA_0.OUT 0.41251f
+C872 a_13664_29282# a_13664_28962# 0.01f
+C873 JNW_GR07_0.x5.XA5.A a_12824_28962# 0.09561f
+C874 JNW_GR07_0.x5.XA6.A a_12824_28482# 0.05912f
+C875 a_26530_10570# JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D 0.01302f
+C876 JNW_GR06_0.temp_affected_current_0.JNWTR_RPPO8_0.N a_16452_6928# 0.01898f
+C877 a_3616_30958# a_4048_30958# 0.14233f
+C878 JNW_GR07_0.x11.x3.D JNW_GR07_0.PWM 0.03069f
+C879 JNW_GR07_0.x11.x6.P a_2968_23758# 0.01645f
+C880 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.N JNW_GR06_0.OTA_0.JNWTR_RPPO16_1.P 0.02263f
+C881 a_19272_30958# a_19704_30958# 0.14233f
+C882 a_8632_25678# a_9064_25678# 0.21349f
+C883 JNW_GR07_0.x4.x5.G a_22168_39158# 0.01609f
+C884 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_5948_41784# 0.08343f
+C885 JNW_GR07_0.VDD a_11348_40984# 0.51437f
+C886 ui_in[6] ui_in[5] 0.03102f
+C887 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.OUT 0.60012f
+C888 JNW_GR07_0.x11.x2.A a_9548_33384# 0.03328f
+C889 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter 0.12297f
+C890 JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ JNW_GR06_0.temp_affected_current_0.OTA_0.OUT 0.74651f
+C891 JNW_GR07_0.x5.XA6.A JNW_GR07_0.x5.XA4.MP1.S 0.01889f
+C892 JNW_GR06_0.temp_affected_current_0.JNWTR_RPPO8_0.N a_15578_6944# 0.01522f
+C893 a_1258_7894# a_1474_7894# 0.01515f
+C894 JNW_GR07_0.x4.x5.G a_20428_38984# 0.11685f
+C895 a_5948_39584# a_5948_38984# 0.02394f
+C896 JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.x11.amplifier_rev2_0.x4.P 0.06463f
+C897 a_18408_34558# a_18840_34558# 0.14233f
+C898 a_2358_11412# a_2790_11412# 0.14233f
+C899 a_23692_10704# a_24124_10704# 0.14233f
+C900 a_5560_29278# a_5992_29278# 0.21349f
+C901 a_3832_25678# a_4264_25678# 0.21349f
+C902 JNW_GR07_0.x11.amplifier_rev2_0.x5.D JNW_GR07_0.x11.x2.A 2.14581f
+C903 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_4148_40984# 0.11684f
+C904 JNW_GR07_0.VDD JNW_GR07_0.x11.I_OUT 4.03073f
+C905 JNW_GR06_0.VDD a_16964_12594# 0.52521f
+C906 JNW_GR07_0.x11.x2.A a_9548_34184# 0.03894f
+C907 JNW_GR07_0.VDD JNW_GR07_0.x5.D 1.89982f
+C908 a_7748_37284# JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D 0.013f
+C909 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D a_12862_16368# 0.19288f
+C910 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G a_15088_15110# 0.19313f
+C911 JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter 1.4089f
+C912 a_12824_29282# a_12824_28962# 0.01f
+C913 a_13664_29282# JNW_GR07_0.x5.XA5.A 0.05912f
+C914 a_15146_6944# a_15578_6944# 0.01515f
+C915 a_2110_6320# a_2542_6320# 0.21349f
+C916 JNW_GR06_0.temp_affected_current_0.OUT a_22592_9106# 0.02635f
+C917 a_8416_23758# a_8848_23758# 0.14233f
+C918 JNW_GR07_0.x4.x5.G a_18628_38184# 0.13066f
+C919 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_4148_41784# 0.08363f
+C920 JNW_GR07_0.VDD JNW_GR07_0.x11.x2.A 8.46818f
+C921 ui_in[7] ui_in[6] 0.03102f
+C922 JNW_GR06_0.JNWTR_RPPO4_2.N JNW_GR06_0.OTA_0.IN- 0.01425f
+C923 JNW_GR06_0.VDD a_15094_11794# 0.47983f
+C924 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OTA_0.OUT 2.30643f
+C925 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D a_6058_9618# 0.05056f
+C926 JNW_GR07_0.x5.XA6.A a_13664_28962# 0.01281f
+C927 JNW_GR07_0.x5.XA7.CN JNW_GR07_0.x5.XA3.MP1.S 0.03112f
+C928 a_12824_29282# JNW_GR07_0.x5.XA5.A 0.06582f
+C929 JNW_GR07_0.x4.x5.G a_17328_36478# 0.23544f
+C930 a_1258_7894# JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_1.P 0.17524f
+C931 a_19376_4568# a_19376_4408# 0.0971f
+C932 JNW_GR07_0.x4.x5.G a_18628_38984# 0.11731f
+C933 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.N a_3654_11412# 0.30003f
+C934 JNW_GR06_0.OTA_0.IN- a_28510_7296# 0.07044f
+C935 a_5344_27358# a_5776_27358# 0.14233f
+C936 a_3616_23758# a_4048_23758# 0.14233f
+C937 a_23024_9106# a_23456_9106# 0.21349f
+C938 JNW_GR06_0.OTA_0.JNWTR_RPPO16_1.P a_24536_7186# 0.01169f
+C939 JNW_GR07_0.x11.amplifier_rev2_0.x5.G a_2348_41084# 0.11706f
+C940 JNW_GR07_0.VDD a_11348_41784# 0.56127f
+C941 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.OTA_0.OUT 10.7622f
+C942 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter 9.78747f
+C943 JNW_GR07_0.VDD a_12984_31742# 0.30186f
+C944 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G a_15088_15910# 0.19662f
+C945 a_13228_33384# a_13228_33184# 0.08533f
+C946 JNW_GR07_0.x5.XA7.CN JNW_GR07_0.x5.XA3.MN1.S 0.0238f
+C947 JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ a_6058_9618# 0.15451f
+C948 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D a_6060_10456# 0.04392f
+C949 a_1894_4400# a_2326_4400# 0.14233f
+C950 JNW_GR07_0.VDD a_12248_26644# 0.01146f
+C951 JNW_GR07_0.x4.x5.G a_16828_38184# 0.13366f
+C952 JNW_GR07_0.x11.x.D a_5992_29278# 0.22461f
+C953 JNW_GR06_0.OTA_0.IN- a_28510_8096# 0.14643f
+C954 JNW_GR07_0.VDD a_7748_40984# 0.51251f
+C955 uio_in[0] ui_in[7] 0.03102f
+C956 a_20594_17182# a_20810_17182# 0.01515f
+C957 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_8042_11286# 0.53558f
+C958 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter 2.26372f
+C959 JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ a_6060_10456# 0.15376f
+C960 JNW_GR07_0.x5.XA6.A JNW_GR07_0.x5.XA5.A 0.22909f
+C961 JNW_GR07_0.x5.XA7.CN a_13664_28482# 0.08626f
+C962 JNW_GR07_0.x5.XA7.C JNW_GR07_0.x5.XA3.MN1.S 0.01916f
+C963 JNW_GR07_0.x11.x.D a_7748_36484# 0.07908f
+C964 JNW_GR06_0.reset a_19376_4568# 0.08074f
+C965 JNW_GR07_0.x4.x5.G a_16828_38984# 0.11685f
+C966 a_4148_39584# a_4148_38984# 0.02394f
+C967 a_22808_7186# a_23240_7186# 0.14233f
+C968 a_2348_41884# JNW_GR07_0.x11.amplifier_rev2_0.x5.G 0.08343f
+C969 JNW_GR07_0.VDD a_7748_41784# 0.55715f
+C970 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_6058_9618# 0.74931f
+C971 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G a_15088_16742# 0.17801f
+C972 JNW_GR07_0.x5.XA6.A a_13664_29282# 0.09795f
+C973 JNW_GR07_0.x5.XA7.CN a_12824_28482# 0.02602f
+C974 JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D 1.71579f
+C975 JNW_GR07_0.x4.x5.G a_16896_34558# 0.01583f
+C976 JNW_GR07_0.x11.I_OUT a_17328_36478# 0.01234f
+C977 JNW_GR07_0.x11.x.D JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D 0.87584f
+C978 JNW_GR07_0.x10.P a_23248_39158# 0.26395f
+C979 a_3400_32878# a_3832_32878# 0.21349f
+C980 a_13824_31262# a_13664_30722# 0.01386f
+C981 a_19056_32878# a_19488_32878# 0.21349f
+C982 JNW_GR06_0.temp_affected_current_0.OUT a_22160_9106# 0.02917f
+C983 JNW_GR07_0.x4.x5.G a_15028_38184# 0.13066f
+C984 JNW_GR07_0.x11.I_OUT a_17976_30958# 0.01245f
+C985 JNW_GR07_0.x9.N a_22816_35558# 0.01904f
+C986 JNW_GR07_0.VDD a_5948_40984# 0.51261f
+C987 uio_in[1] uio_in[0] 0.03102f
+C988 a_6208_34558# a_6640_34558# 0.01515f
+C989 JNW_GR06_0.JNWTR_RPPO4_2.N a_21026_19102# 0.21915f
+C990 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_6060_10456# 0.68099f
+C991 JNW_GR07_0.x5.XA6.A a_12824_29282# 0.0777f
+C992 JNW_GR07_0.x5.XA7.C a_12824_28482# 0.06576f
+C993 JNW_GR07_0.x5.XA7.CN JNW_GR07_0.x5.XA4.MP1.S 0.02318f
+C994 a_14930_8864# JNW_GR06_0.temp_affected_current_0.JNWTR_RPPO8_0.N 0.21913f
+C995 JNW_GR07_0.x11.x.D a_7748_37284# 0.08331f
+C996 a_22816_39158# a_23248_39158# 0.01515f
+C997 JNW_GR07_0.x11.I_OUT a_17112_34558# 0.0135f
+C998 JNW_GR07_0.x3.MP1.G JNW_GR07_0.PWM 0.02758f
+C999 a_19376_5048# JNW_GR06_0.reset 0.08096f
+C1000 JNW_GR07_0.x4.x5.G a_15028_38984# 0.11687f
+C1001 a_18192_36478# a_18624_36478# 0.21349f
+C1002 a_2142_13332# a_2574_13332# 0.21349f
+C1003 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.N a_3222_11412# 0.29973f
+C1004 a_23476_12624# a_23908_12624# 0.21349f
+C1005 JNW_GR06_0.OTA_0.IN- a_28510_8918# 0.15059f
+C1006 JNW_GR07_0.VDD a_5948_41784# 0.55738f
+C1007 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D 2.39165f
+C1008 a_9548_33384# a_9548_33184# 0.08533f
+C1009 a_19540_17166# a_20594_17182# 0.03884f
+C1010 JNW_GR07_0.x5.XA7.CN JNW_GR07_0.x5.XA4.MN1.S 0.03049f
+C1011 a_4930_7894# JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ 0.02711f
+C1012 a_14498_6944# a_15578_6944# 0.0381f
+C1013 JNW_GR07_0.x11.x.D a_6640_34558# 0.01345f
+C1014 a_3184_30958# a_3616_30958# 0.14233f
+C1015 a_12984_31262# a_12824_30722# 0.01386f
+C1016 a_18840_30958# a_19272_30958# 0.14233f
+C1017 JNW_GR07_0.x11.x7.N JNW_GR07_0.PWM 0.11838f
+C1018 a_8200_25678# a_8632_25678# 0.21349f
+C1019 a_19376_5208# JNW_GR06_0.reset 0.01705f
+C1020 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.N a_25420_10704# 0.04592f
+C1021 JNW_GR06_0.OTA_0.IN- a_28512_9756# 0.14767f
+C1022 JNW_GR06_0.temp_affected_current_0.OTA_0.OUT a_12296_7708# 0.14913f
+C1023 JNW_GR07_0.VDD a_4148_40984# 0.51289f
+C1024 uio_in[2] uio_in[1] 0.03102f
+C1025 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ 10.2746f
+C1026 JNW_GR07_0.x5.XA7.CN a_13664_28962# 0.02605f
+C1027 a_14714_6944# a_15146_6944# 0.14233f
+C1028 a_24956_3692# a_25388_3692# 0.01515f
+C1029 JNW_GR07_0.x11.I_OUT a_16896_34558# 0.05181f
+C1030 a_22816_39158# JNW_GR07_0.x10.P 0.02598f
+C1031 JNW_GR07_0.x5.D a_13664_28002# 0.07491f
+C1032 JNW_GR06_0.temp_affected_current_0.OUT JNW_GR06_0.OTA_0.JNWTR_RPPO16_1.P 0.36726f
+C1033 a_19376_5208# a_19376_5048# 0.0971f
+C1034 a_2348_39584# a_2348_38984# 0.02394f
+C1035 a_17976_34558# a_18408_34558# 0.14233f
+C1036 a_1926_11412# a_2358_11412# 0.14233f
+C1037 a_5128_29278# a_5560_29278# 0.21349f
+C1038 a_23260_10704# a_23692_10704# 0.14233f
+C1039 a_3400_25678# a_3832_25678# 0.21349f
+C1040 JNW_GR06_0.OTA_0.IN- JNW_GR06_0.OUT 1.49418f
+C1041 JNW_GR06_0.temp_affected_current_0.OTA_0.OUT a_12296_8508# 0.07197f
+C1042 JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter a_12296_7708# 0.01892f
+C1043 JNW_GR07_0.VDD a_4148_41784# 0.55768f
+C1044 JNW_GR06_0.JNWTR_RPPO4_2.N a_20594_17182# 0.01495f
+C1045 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D a_4930_7894# 0.03543f
+C1046 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ 2.15665f
+C1047 JNW_GR07_0.x4.VOUT JNW_GR07_0.PWM 0.01698f
+C1048 JNW_GR07_0.x5.XA7.CN a_12824_28962# 0.08881f
+C1049 JNW_GR07_0.x5.XA7.C a_13664_28962# 0.06702f
+C1050 JNW_GR07_0.x11.I_OUT a_15028_34984# 0.07302f
+C1051 JNW_GR06_0.OTA_0.IN- a_22612_12624# 0.02337f
+C1052 JNW_GR07_0.x5.D a_12824_28002# 0.06004f
+C1053 JNW_GR06_0.temp_affected_current_0.OUT a_21728_7186# 0.01713f
+C1054 a_1678_6320# a_2110_6320# 0.21349f
+C1055 a_7984_23758# a_8416_23758# 0.14233f
+C1056 JNW_GR07_0.x11.x.D a_11348_39584# 0.04241f
+C1057 JNW_GR07_0.VDD a_20428_38184# 0.59855f
+C1058 JNW_GR07_0.x11.I_OUT a_17544_30958# 0.01668f
+C1059 JNW_GR07_0.x9.N a_22384_35558# 0.02217f
+C1060 JNW_GR06_0.OTA_0.IN- a_28512_10578# 0.07043f
+C1061 JNW_GR06_0.temp_affected_current_0.OTA_0.OUT a_8040_8004# 0.04442f
+C1062 JNW_GR07_0.x11.amplifier_rev2_0.x5.D JNW_GR07_0.x11.amplifier_rev2_0.x5.G 0.91912f
+C1063 JNW_GR07_0.VDD a_2348_41084# 0.51031f
+C1064 JNW_GR06_0.VDD JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D 0.73195f
+C1065 uio_in[3] uio_in[2] 0.03102f
+C1066 JNW_GR06_0.JNWTR_RPPO4_2.N a_19540_17166# 0.01495f
+C1067 a_4498_7894# a_4930_7894# 0.01515f
+C1068 JNW_GR07_0.x5.XA7.CN JNW_GR07_0.x5.XA5.A 0.38708f
+C1069 JNW_GR07_0.x11.I_OUT a_15028_35784# 0.07961f
+C1070 JNW_GR06_0.OTA_0.IN- a_22396_10704# 0.02218f
+C1071 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.N a_2790_11412# 0.29978f
+C1072 a_4912_27358# a_5344_27358# 0.14233f
+C1073 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.N a_24988_10704# 0.33136f
+C1074 a_3184_23758# a_3616_23758# 0.14233f
+C1075 JNW_GR06_0.temp_affected_current_0.OTA_0.OUT a_8040_8804# 0.04408f
+C1076 JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter a_8040_8004# 0.07044f
+C1077 a_22592_9106# a_23024_9106# 0.21349f
+C1078 JNW_GR07_0.VDD JNW_GR07_0.x11.amplifier_rev2_0.x5.G 47.4611f
+C1079 JNW_GR06_0.VDD JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D 1.20445f
+C1080 a_19108_17166# a_19540_17166# 0.01515f
+C1081 a_7748_33384# a_7748_33184# 0.08533f
+C1082 JNW_GR07_0.x5.XA7.CN a_13664_29282# 0.026f
+C1083 JNW_GR07_0.x5.XA7.C JNW_GR07_0.x5.XA5.A 0.09288f
+C1084 a_22600_41078# JNW_GR07_0.x10.P 0.23287f
+C1085 a_1462_4400# a_1894_4400# 0.14233f
+C1086 JNW_GR07_0.x11.x2.A a_11348_38184# 0.08069f
+C1087 a_11348_40384# JNW_GR07_0.x11.x.D 0.0135f
+C1088 JNW_GR07_0.x11.I_OUT JNW_GR07_0.x11.x3.D 0.02865f
+C1089 JNW_GR07_0.x9.N JNW_GR07_0.x10.N 0.54649f
+C1090 JNW_GR06_0.temp_affected_current_0.OUT a_26530_10570# 0.07043f
+C1091 JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter a_8040_8804# 0.14726f
+C1092 JNW_GR06_0.OTA_0.IN- a_26530_9748# 0.01086f
+C1093 JNW_GR07_0.VDD a_2348_41884# 0.60747f
+C1094 a_5776_34558# a_6208_34558# 0.14233f
+C1095 uio_in[4] uio_in[3] 0.03102f
+C1096 JNW_GR07_0.x5.XA7.CN a_12824_29282# 0.02661f
+C1097 a_22168_39158# a_23248_39158# 0.0381f
+C1098 JNW_GR06_0.temp_affected_current_0.OUT JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_8.Emitter 0.02267f
+C1099 JNW_GR07_0.x11.x2.A JNW_GR07_0.x11.x3.D 4.77949f
+C1100 a_20428_41084# a_20428_40384# 0.02029f
+C1101 JNW_GR07_0.VDD JNW_GR07_0.x10.P 0.01966f
+C1102 JNW_GR07_0.x11.I_OUT a_17328_32878# 0.01146f
+C1103 JNW_GR06_0.OTA_0.IN- JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D 0.32714f
+C1104 a_22376_7186# a_22808_7186# 0.14233f
+C1105 JNW_GR07_0.x9.N a_23248_31958# 0.26514f
+C1106 JNW_GR07_0.x5.XA7.CN JNW_GR07_0.x5.XA6.MP1.S 0.02377f
+C1107 a_22384_39158# a_22816_39158# 0.14233f
+C1108 a_2968_30958# a_3184_30958# 0.01515f
+C1109 JNW_GR06_0.OTA_0.IN- a_22180_12624# 0.10958f
+C1110 a_18624_32878# a_19056_32878# 0.21349f
+C1111 JNW_GR07_0.x11.x2.A a_11348_38984# 0.07805f
+C1112 JNW_GR07_0.x11.I_OUT a_17112_30958# 0.01478f
+C1113 JNW_GR07_0.x9.N a_20568_34558# 0.0114f
+C1114 JNW_GR06_0.temp_affected_current_0.OTA_0.OUT a_8040_9626# 0.05057f
+C1115 JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ a_12296_7708# 0.01608f
+C1116 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_1.P a_4918_4400# 0.01865f
+C1117 uio_in[5] uio_in[4] 0.03102f
+C1118 JNW_GR07_0.x5.XA7.CN JNW_GR07_0.x5.XA6.A 0.66396f
+C1119 JNW_GR07_0.x5.XA7.C JNW_GR07_0.x5.XA6.MP1.S 0.02158f
+C1120 a_14498_6944# a_14714_6944# 0.01515f
+C1121 a_24524_3692# a_24956_3692# 0.14233f
+C1122 JNW_GR07_0.x11.x2.A a_9548_34984# 0.03668f
+C1123 JNW_GR06_0.OTA_0.IN- a_21964_10704# 0.03617f
+C1124 a_17760_36478# a_18192_36478# 0.21349f
+C1125 a_1710_13332# a_2142_13332# 0.21349f
+C1126 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.N a_2358_11412# 0.30013f
+C1127 a_23044_12624# a_23476_12624# 0.21349f
+C1128 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.N a_24556_10704# 0.30142f
+C1129 JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter a_8040_9626# 0.15433f
+C1130 JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ a_12296_8508# 0.03883f
+C1131 JNW_GR07_0.x9.N a_22816_31958# 0.02576f
+C1132 JNW_GR07_0.x5.XA7.C JNW_GR07_0.x5.XA6.A 0.59045f
+C1133 JNW_GR07_0.x5.XA7.CN JNW_GR07_0.x5.XA6.MN1.S 0.03056f
+C1134 JNW_GR07_0.x5.XA7.MP1.S a_13664_29762# 0.0183f
+C1135 JNW_GR07_0.x11.x2.A a_9548_35784# 0.03916f
+C1136 a_18408_30958# a_18840_30958# 0.14233f
+C1137 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.N JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ 0.03206f
+C1138 a_7768_23758# a_7984_23758# 0.01515f
+C1139 JNW_GR07_0.x11.I_OUT a_16896_30958# 0.02754f
+C1140 JNW_GR07_0.x9.N JNW_GR07_0.x4.x4.P 0.07073f
+C1141 ua[0] JNW_GR07_0.VSS 0.14739f
+C1142 ua[1] JNW_GR07_0.VSS 0.14739f
+C1143 ua[2] JNW_GR07_0.VSS 0.14739f
+C1144 ua[3] JNW_GR07_0.VSS 0.14739f
+C1145 ua[4] JNW_GR07_0.VSS 0.14739f
+C1146 ua[5] JNW_GR07_0.VSS 0.14739f
+C1147 ua[6] JNW_GR07_0.VSS 0.14739f
+C1148 ua[7] JNW_GR07_0.VSS 0.14739f
+C1149 VGND JNW_GR07_0.VSS 11.2611f
+C1150 VDPWR JNW_GR07_0.VSS 12.3541f
+C1151 ena JNW_GR07_0.VSS 0.07038f
+C1152 clk JNW_GR07_0.VSS 0.04288f
+C1153 rst_n JNW_GR07_0.VSS 0.04288f
+C1154 ui_in[0] JNW_GR07_0.VSS 0.04288f
+C1155 ui_in[1] JNW_GR07_0.VSS 0.04288f
+C1156 ui_in[2] JNW_GR07_0.VSS 0.04288f
+C1157 ui_in[3] JNW_GR07_0.VSS 0.04288f
+C1158 ui_in[4] JNW_GR07_0.VSS 0.04288f
+C1159 ui_in[5] JNW_GR07_0.VSS 0.04288f
+C1160 ui_in[6] JNW_GR07_0.VSS 0.04288f
+C1161 ui_in[7] JNW_GR07_0.VSS 0.04288f
+C1162 uio_in[0] JNW_GR07_0.VSS 0.04288f
+C1163 uio_in[1] JNW_GR07_0.VSS 0.04288f
+C1164 uio_in[2] JNW_GR07_0.VSS 0.04288f
+C1165 uio_in[3] JNW_GR07_0.VSS 0.04288f
+C1166 uio_in[4] JNW_GR07_0.VSS 0.04288f
+C1167 uio_in[5] JNW_GR07_0.VSS 0.04288f
+C1168 uio_in[6] JNW_GR07_0.VSS 0.04288f
+C1169 uio_in[7] JNW_GR07_0.VSS 0.04288f
+C1170 uo_out[0] JNW_GR07_0.VSS 0.04288f
+C1171 uo_out[1] JNW_GR07_0.VSS 0.04288f
+C1172 uo_out[2] JNW_GR07_0.VSS 0.04288f
+C1173 uo_out[3] JNW_GR07_0.VSS 0.04288f
+C1174 uo_out[4] JNW_GR07_0.VSS 0.04288f
+C1175 uo_out[5] JNW_GR07_0.VSS 0.04288f
+C1176 uo_out[6] JNW_GR07_0.VSS 0.04288f
+C1177 uo_out[7] JNW_GR07_0.VSS 0.04288f
+C1178 uio_out[0] JNW_GR07_0.VSS 0.04288f
+C1179 uio_out[1] JNW_GR07_0.VSS 0.04288f
+C1180 uio_out[2] JNW_GR07_0.VSS 0.04288f
+C1181 uio_out[3] JNW_GR07_0.VSS 0.04288f
+C1182 uio_out[4] JNW_GR07_0.VSS 0.04288f
+C1183 uio_out[5] JNW_GR07_0.VSS 0.04288f
+C1184 uio_out[6] JNW_GR07_0.VSS 0.04288f
+C1185 uio_out[7] JNW_GR07_0.VSS 0.04288f
+C1186 uio_oe[0] JNW_GR07_0.VSS 0.04288f
+C1187 uio_oe[1] JNW_GR07_0.VSS 0.04288f
+C1188 uio_oe[2] JNW_GR07_0.VSS 0.04288f
+C1189 uio_oe[3] JNW_GR07_0.VSS 0.04288f
+C1190 uio_oe[4] JNW_GR07_0.VSS 0.04288f
+C1191 uio_oe[5] JNW_GR07_0.VSS 0.04288f
+C1192 uio_oe[6] JNW_GR07_0.VSS 0.04288f
+C1193 uio_oe[7] JNW_GR07_0.VSS 0.07038f
+C1194 a_28514_5734# JNW_GR07_0.VSS 0.63318f $ **FLOATING
+C1195 a_28514_6534# JNW_GR07_0.VSS 0.5679f $ **FLOATING
+C1196 a_26530_5736# JNW_GR07_0.VSS 0.63127f $ **FLOATING
+C1197 a_26530_6536# JNW_GR07_0.VSS 0.56735f $ **FLOATING
+C1198 a_25388_3692# JNW_GR07_0.VSS 1.9065f $ **FLOATING
+C1199 a_24956_3692# JNW_GR07_0.VSS 0.53669f
+C1200 a_24740_5612# JNW_GR07_0.VSS 0.63171f
+C1201 a_24524_3692# JNW_GR07_0.VSS 0.4428f
+C1202 a_24308_5612# JNW_GR07_0.VSS 0.63171f
+C1203 a_24092_3692# JNW_GR07_0.VSS 0.4428f
+C1204 a_23876_5612# JNW_GR07_0.VSS 0.63171f
+C1205 a_23660_3692# JNW_GR07_0.VSS 0.4428f
+C1206 a_23444_5612# JNW_GR07_0.VSS 0.63228f
+C1207 a_23228_3692# JNW_GR07_0.VSS 0.44395f
+C1208 a_23012_5612# JNW_GR07_0.VSS 0.63373f
+C1209 a_22796_3692# JNW_GR07_0.VSS 0.4452f
+C1210 a_22580_5612# JNW_GR07_0.VSS 0.63677f
+C1211 a_22364_3692# JNW_GR07_0.VSS 0.45071f
+C1212 a_22148_5612# JNW_GR07_0.VSS 0.88283f
+C1213 a_21932_3692# JNW_GR07_0.VSS 0.68434f
+C1214 a_21716_3692# JNW_GR07_0.VSS 2.22025f $ **FLOATING
+C1215 a_19376_4408# JNW_GR07_0.VSS 0.4801f $ **FLOATING
+C1216 a_19376_4568# JNW_GR07_0.VSS 0.41739f $ **FLOATING
+C1217 JNW_GR06_0.reset JNW_GR07_0.VSS 4.38134f
+C1218 a_19376_5048# JNW_GR07_0.VSS 0.41512f $ **FLOATING
+C1219 a_19376_5208# JNW_GR07_0.VSS 0.44506f $ **FLOATING
+C1220 a_8044_6442# JNW_GR07_0.VSS 0.63295f $ **FLOATING
+C1221 a_28510_7296# JNW_GR07_0.VSS 0.09184f $ **FLOATING
+C1222 a_26528_7288# JNW_GR07_0.VSS 0.09028f $ **FLOATING
+C1223 JNW_GR06_0.OUT JNW_GR07_0.VSS 4.12094f
+C1224 a_28512_10578# JNW_GR07_0.VSS 0.1061f $ **FLOATING
+C1225 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR07_0.VSS 6.89154f
+C1226 a_25400_7186# JNW_GR07_0.VSS 1.85621f $ **FLOATING
+C1227 a_24968_7186# JNW_GR07_0.VSS 0.52984f
+C1228 a_24752_9106# JNW_GR07_0.VSS 0.63171f
+C1229 a_24536_7186# JNW_GR07_0.VSS 0.43595f
+C1230 a_24320_9106# JNW_GR07_0.VSS 0.63171f
+C1231 a_24104_7186# JNW_GR07_0.VSS 0.43595f
+C1232 a_23888_9106# JNW_GR07_0.VSS 0.63171f
+C1233 a_23672_7186# JNW_GR07_0.VSS 0.43595f
+C1234 a_23456_9106# JNW_GR07_0.VSS 0.63171f
+C1235 a_23240_7186# JNW_GR07_0.VSS 0.43595f
+C1236 a_23024_9106# JNW_GR07_0.VSS 0.63171f
+C1237 a_22808_7186# JNW_GR07_0.VSS 0.43595f
+C1238 a_22592_9106# JNW_GR07_0.VSS 0.63171f
+C1239 a_22376_7186# JNW_GR07_0.VSS 0.43753f
+C1240 a_22160_9106# JNW_GR07_0.VSS 0.63171f
+C1241 a_21944_7186# JNW_GR07_0.VSS 0.53692f
+C1242 JNW_GR06_0.OTA_0.JNWTR_RPPO16_1.P JNW_GR07_0.VSS 4.70142f
+C1243 a_21728_7186# JNW_GR07_0.VSS 1.92783f $ **FLOATING
+C1244 a_18396_6928# JNW_GR07_0.VSS 1.89479f $ **FLOATING
+C1245 JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_8.Emitter JNW_GR07_0.VSS 24.4242f
+C1246 a_17964_6928# JNW_GR07_0.VSS 0.53007f
+C1247 a_17748_8848# JNW_GR07_0.VSS 0.63171f
+C1248 a_17532_6928# JNW_GR07_0.VSS 0.43595f
+C1249 a_17316_8848# JNW_GR07_0.VSS 0.63171f
+C1250 a_17100_6928# JNW_GR07_0.VSS 0.43595f
+C1251 a_16884_8848# JNW_GR07_0.VSS 0.63171f
+C1252 a_16668_6928# JNW_GR07_0.VSS 0.52984f
+C1253 a_16452_6928# JNW_GR07_0.VSS 1.90267f $ **FLOATING
+C1254 a_15578_6944# JNW_GR07_0.VSS 1.86436f $ **FLOATING
+C1255 JNW_GR06_0.temp_affected_current_0.JNWTR_RPPO8_0.N JNW_GR07_0.VSS 2.14331f
+C1256 a_15146_6944# JNW_GR07_0.VSS 0.52984f
+C1257 a_14930_8864# JNW_GR07_0.VSS 0.63466f
+C1258 a_14714_6944# JNW_GR07_0.VSS 0.52984f
+C1259 a_14498_6944# JNW_GR07_0.VSS 1.84683f $ **FLOATING
+C1260 a_12298_6884# JNW_GR07_0.VSS 0.13104f $ **FLOATING
+C1261 a_8044_7242# JNW_GR07_0.VSS 0.56767f $ **FLOATING
+C1262 a_6060_6444# JNW_GR07_0.VSS 0.63127f $ **FLOATING
+C1263 a_6060_7244# JNW_GR07_0.VSS 0.56735f $ **FLOATING
+C1264 a_4918_4400# JNW_GR07_0.VSS 1.90543f $ **FLOATING
+C1265 a_4486_4400# JNW_GR07_0.VSS 0.53418f
+C1266 a_4270_6320# JNW_GR07_0.VSS 0.63171f
+C1267 a_4054_4400# JNW_GR07_0.VSS 0.44028f
+C1268 a_3838_6320# JNW_GR07_0.VSS 0.63171f
+C1269 a_3622_4400# JNW_GR07_0.VSS 0.44028f
+C1270 a_3406_6320# JNW_GR07_0.VSS 0.63171f
+C1271 a_3190_4400# JNW_GR07_0.VSS 0.44028f
+C1272 a_2974_6320# JNW_GR07_0.VSS 0.63228f
+C1273 a_2758_4400# JNW_GR07_0.VSS 0.44143f
+C1274 a_2542_6320# JNW_GR07_0.VSS 0.63373f
+C1275 a_2326_4400# JNW_GR07_0.VSS 0.44268f
+C1276 a_2110_6320# JNW_GR07_0.VSS 0.63677f
+C1277 a_1894_4400# JNW_GR07_0.VSS 0.44812f
+C1278 a_1678_6320# JNW_GR07_0.VSS 0.87598f
+C1279 a_1462_4400# JNW_GR07_0.VSS 0.6813f
+C1280 a_1246_4400# JNW_GR07_0.VSS 2.25207f $ **FLOATING
+C1281 a_12296_8508# JNW_GR07_0.VSS 0.11124f $ **FLOATING
+C1282 a_8040_8004# JNW_GR07_0.VSS 0.09161f $ **FLOATING
+C1283 a_6058_7996# JNW_GR07_0.VSS 0.09028f $ **FLOATING
+C1284 a_26530_10570# JNW_GR07_0.VSS 0.10417f $ **FLOATING
+C1285 a_27484_11180# JNW_GR07_0.VSS 0.10109f $ **FLOATING
+C1286 a_27480_12984# JNW_GR07_0.VSS 0.11051f $ **FLOATING
+C1287 a_25420_10704# JNW_GR07_0.VSS 1.89233f $ **FLOATING
+C1288 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.P JNW_GR07_0.VSS 2.98118f
+C1289 a_24988_10704# JNW_GR07_0.VSS 0.52984f
+C1290 a_24772_12624# JNW_GR07_0.VSS 0.63171f
+C1291 a_24556_10704# JNW_GR07_0.VSS 0.43595f
+C1292 a_24340_12624# JNW_GR07_0.VSS 0.63171f
+C1293 a_24124_10704# JNW_GR07_0.VSS 0.43595f
+C1294 a_23908_12624# JNW_GR07_0.VSS 0.63171f
+C1295 a_23692_10704# JNW_GR07_0.VSS 0.43595f
+C1296 a_23476_12624# JNW_GR07_0.VSS 0.63171f
+C1297 a_23260_10704# JNW_GR07_0.VSS 0.43595f
+C1298 a_23044_12624# JNW_GR07_0.VSS 0.63171f
+C1299 a_22828_10704# JNW_GR07_0.VSS 0.43595f
+C1300 a_22612_12624# JNW_GR07_0.VSS 0.63171f
+C1301 a_22396_10704# JNW_GR07_0.VSS 0.43595f
+C1302 a_22180_12624# JNW_GR07_0.VSS 0.63171f
+C1303 a_21964_10704# JNW_GR07_0.VSS 0.52984f
+C1304 JNW_GR06_0.OTA_0.JNWTR_RPPO16_3.N JNW_GR07_0.VSS 4.32194f
+C1305 a_21748_10704# JNW_GR07_0.VSS 1.91852f $ **FLOATING
+C1306 a_15080_10690# JNW_GR07_0.VSS 0.6645f $ **FLOATING
+C1307 a_15080_11490# JNW_GR07_0.VSS 0.50975f $ **FLOATING
+C1308 a_12866_10692# JNW_GR07_0.VSS 0.65116f $ **FLOATING
+C1309 a_12866_11492# JNW_GR07_0.VSS 0.70339f $ **FLOATING
+C1310 a_11166_10830# JNW_GR07_0.VSS 0.13355f $ **FLOATING
+C1311 a_16964_11794# JNW_GR07_0.VSS 0.10959f $ **FLOATING
+C1312 JNW_GR06_0.temp_affected_current_0.OUT JNW_GR07_0.VSS 12.1866f
+C1313 a_16964_12594# JNW_GR07_0.VSS 0.10959f $ **FLOATING
+C1314 a_15094_11794# JNW_GR07_0.VSS 0.06171f $ **FLOATING
+C1315 JNW_GR06_0.temp_affected_current_0.OTA_0.OUT JNW_GR07_0.VSS 7.337f
+C1316 JNW_GR06_0.temp_affected_current_0.sky130_fd_pr__rf_pnp_05v5_W3p40L3p40_1.Emitter JNW_GR07_0.VSS 8.86137f
+C1317 a_8042_11286# JNW_GR07_0.VSS 0.10587f $ **FLOATING
+C1318 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_7.D JNW_GR07_0.VSS 6.88708f
+C1319 JNW_GR06_0.temp_affected_current_0.OTA_0.IN+ JNW_GR07_0.VSS 4.90896f
+C1320 a_4930_7894# JNW_GR07_0.VSS 1.85621f $ **FLOATING
+C1321 a_4498_7894# JNW_GR07_0.VSS 0.52984f
+C1322 a_4282_9814# JNW_GR07_0.VSS 0.63171f
+C1323 a_4066_7894# JNW_GR07_0.VSS 0.43595f
+C1324 a_3850_9814# JNW_GR07_0.VSS 0.63171f
+C1325 a_3634_7894# JNW_GR07_0.VSS 0.43595f
+C1326 a_3418_9814# JNW_GR07_0.VSS 0.63171f
+C1327 a_3202_7894# JNW_GR07_0.VSS 0.43595f
+C1328 a_2986_9814# JNW_GR07_0.VSS 0.63171f
+C1329 a_2770_7894# JNW_GR07_0.VSS 0.43595f
+C1330 a_2554_9814# JNW_GR07_0.VSS 0.63171f
+C1331 a_2338_7894# JNW_GR07_0.VSS 0.43595f
+C1332 a_2122_9814# JNW_GR07_0.VSS 0.63171f
+C1333 a_1906_7894# JNW_GR07_0.VSS 0.43595f
+C1334 a_1690_9814# JNW_GR07_0.VSS 0.63171f
+C1335 a_1474_7894# JNW_GR07_0.VSS 0.52986f
+C1336 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_1.P JNW_GR07_0.VSS 4.6804f
+C1337 a_1258_7894# JNW_GR07_0.VSS 1.95785f $ **FLOATING
+C1338 a_6060_11278# JNW_GR07_0.VSS 0.10417f $ **FLOATING
+C1339 a_11166_11630# JNW_GR07_0.VSS 0.11083f $ **FLOATING
+C1340 a_7014_11888# JNW_GR07_0.VSS 0.10109f $ **FLOATING
+C1341 a_12866_12316# JNW_GR07_0.VSS 0.59732f $ **FLOATING
+C1342 a_12866_13116# JNW_GR07_0.VSS 0.70393f $ **FLOATING
+C1343 a_7010_13692# JNW_GR07_0.VSS 0.11051f $ **FLOATING
+C1344 a_12862_13944# JNW_GR07_0.VSS 0.60121f $ **FLOATING
+C1345 a_4950_11412# JNW_GR07_0.VSS 1.89233f $ **FLOATING
+C1346 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.P JNW_GR07_0.VSS 2.78644f
+C1347 a_4518_11412# JNW_GR07_0.VSS 0.52984f
+C1348 a_4302_13332# JNW_GR07_0.VSS 0.63171f
+C1349 a_4086_11412# JNW_GR07_0.VSS 0.43595f
+C1350 a_3870_13332# JNW_GR07_0.VSS 0.63171f
+C1351 a_3654_11412# JNW_GR07_0.VSS 0.43595f
+C1352 a_3438_13332# JNW_GR07_0.VSS 0.63171f
+C1353 a_3222_11412# JNW_GR07_0.VSS 0.43595f
+C1354 a_3006_13332# JNW_GR07_0.VSS 0.63171f
+C1355 a_2790_11412# JNW_GR07_0.VSS 0.43595f
+C1356 a_2574_13332# JNW_GR07_0.VSS 0.63171f
+C1357 a_2358_11412# JNW_GR07_0.VSS 0.43595f
+C1358 a_2142_13332# JNW_GR07_0.VSS 0.63171f
+C1359 a_1926_11412# JNW_GR07_0.VSS 0.43595f
+C1360 a_1710_13332# JNW_GR07_0.VSS 0.63171f
+C1361 a_1494_11412# JNW_GR07_0.VSS 0.52971f
+C1362 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWTR_RPPO16_3.N JNW_GR07_0.VSS 4.26689f
+C1363 a_1278_11412# JNW_GR07_0.VSS 1.94265f $ **FLOATING
+C1364 a_12862_14744# JNW_GR07_0.VSS 0.70429f $ **FLOATING
+C1365 a_12862_15568# JNW_GR07_0.VSS 0.59763f $ **FLOATING
+C1366 a_12862_16368# JNW_GR07_0.VSS 0.70431f $ **FLOATING
+C1367 a_23792_17198# JNW_GR07_0.VSS 1.90926f $ **FLOATING
+C1368 a_23360_17198# JNW_GR07_0.VSS 0.53457f
+C1369 a_23144_19118# JNW_GR07_0.VSS 0.8523f
+C1370 a_22928_17198# JNW_GR07_0.VSS 0.53132f
+C1371 a_22712_17198# JNW_GR07_0.VSS 1.82286f $ **FLOATING
+C1372 a_21674_17182# JNW_GR07_0.VSS 1.82056f $ **FLOATING
+C1373 JNW_GR06_0.OTA_0.IN- JNW_GR07_0.VSS 9.45188f
+C1374 a_21242_17182# JNW_GR07_0.VSS 0.52984f
+C1375 a_21026_19102# JNW_GR07_0.VSS 0.63171f
+C1376 a_20810_17182# JNW_GR07_0.VSS 0.52984f
+C1377 a_20594_17182# JNW_GR07_0.VSS 1.82099f $ **FLOATING
+C1378 a_19540_17166# JNW_GR07_0.VSS 1.82101f $ **FLOATING
+C1379 JNW_GR06_0.JNWTR_RPPO4_2.N JNW_GR07_0.VSS 2.16935f
+C1380 a_19108_17166# JNW_GR07_0.VSS 0.52984f
+C1381 a_18892_19086# JNW_GR07_0.VSS 0.63171f
+C1382 a_18676_17166# JNW_GR07_0.VSS 0.52984f
+C1383 a_18460_17166# JNW_GR07_0.VSS 1.85643f $ **FLOATING
+C1384 a_12858_17194# JNW_GR07_0.VSS 0.59245f $ **FLOATING
+C1385 a_12858_17994# JNW_GR07_0.VSS 0.70499f $ **FLOATING
+C1386 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_13.D JNW_GR07_0.VSS 39.8503f
+C1387 a_12860_18820# JNW_GR07_0.VSS 0.58959f $ **FLOATING
+C1388 JNW_GR06_0.temp_affected_current_0.JNWATR_PCH_4C5F0_12.G JNW_GR07_0.VSS 5.02725f
+C1389 a_15092_20004# JNW_GR07_0.VSS 0.11051f $ **FLOATING
+C1390 a_12248_24884# JNW_GR07_0.VSS 0.57453f $ **FLOATING
+C1391 a_12248_25044# JNW_GR07_0.VSS 0.42645f $ **FLOATING
+C1392 a_12248_25524# JNW_GR07_0.VSS 0.41697f $ **FLOATING
+C1393 a_12248_25684# JNW_GR07_0.VSS 0.37528f $ **FLOATING
+C1394 a_12248_25844# JNW_GR07_0.VSS 0.37528f $ **FLOATING
+C1395 a_12248_26004# JNW_GR07_0.VSS 0.41732f $ **FLOATING
+C1396 a_12248_26484# JNW_GR07_0.VSS 0.42027f $ **FLOATING
+C1397 a_12248_26644# JNW_GR07_0.VSS 0.47617f $ **FLOATING
+C1398 a_11440_23758# JNW_GR07_0.VSS 1.92235f $ **FLOATING
+C1399 a_11008_23758# JNW_GR07_0.VSS 0.52984f
+C1400 a_10792_25678# JNW_GR07_0.VSS 0.63323f
+C1401 a_10576_23758# JNW_GR07_0.VSS 0.43595f
+C1402 a_10360_25678# JNW_GR07_0.VSS 0.63323f
+C1403 a_10144_23758# JNW_GR07_0.VSS 0.43595f
+C1404 a_9928_25678# JNW_GR07_0.VSS 0.63323f
+C1405 a_9712_23758# JNW_GR07_0.VSS 0.43595f
+C1406 a_9496_25678# JNW_GR07_0.VSS 0.63323f
+C1407 a_9280_23758# JNW_GR07_0.VSS 0.43595f
+C1408 a_9064_25678# JNW_GR07_0.VSS 0.63323f
+C1409 a_8848_23758# JNW_GR07_0.VSS 0.43595f
+C1410 a_8632_25678# JNW_GR07_0.VSS 0.63323f
+C1411 a_8416_23758# JNW_GR07_0.VSS 0.43595f
+C1412 a_8200_25678# JNW_GR07_0.VSS 0.63323f
+C1413 a_7984_23758# JNW_GR07_0.VSS 0.52984f
+C1414 a_7768_23758# JNW_GR07_0.VSS 1.88809f $ **FLOATING
+C1415 a_13664_26882# JNW_GR07_0.VSS 0.09759f $ **FLOATING
+C1416 a_12824_26882# JNW_GR07_0.VSS 0.44415f $ **FLOATING
+C1417 a_6640_23758# JNW_GR07_0.VSS 1.88689f $ **FLOATING
+C1418 JNW_GR07_0.x11.x7.P JNW_GR07_0.VSS 2.50231f
+C1419 a_6208_23758# JNW_GR07_0.VSS 0.52984f
+C1420 a_5992_25678# JNW_GR07_0.VSS 0.63323f
+C1421 a_5776_23758# JNW_GR07_0.VSS 0.43595f
+C1422 a_5560_25678# JNW_GR07_0.VSS 0.63323f
+C1423 a_5344_23758# JNW_GR07_0.VSS 0.43595f
+C1424 a_5128_25678# JNW_GR07_0.VSS 0.63323f
+C1425 a_4912_23758# JNW_GR07_0.VSS 0.43595f
+C1426 a_4696_25678# JNW_GR07_0.VSS 0.63323f
+C1427 a_4480_23758# JNW_GR07_0.VSS 0.43595f
+C1428 a_4264_25678# JNW_GR07_0.VSS 0.63323f
+C1429 a_4048_23758# JNW_GR07_0.VSS 0.43595f
+C1430 a_3832_25678# JNW_GR07_0.VSS 0.63323f
+C1431 a_3616_23758# JNW_GR07_0.VSS 0.43595f
+C1432 a_3400_25678# JNW_GR07_0.VSS 0.63323f
+C1433 a_3184_23758# JNW_GR07_0.VSS 0.52984f
+C1434 a_2968_23758# JNW_GR07_0.VSS 1.8947f $ **FLOATING
+C1435 a_12824_27202# JNW_GR07_0.VSS 0.40448f $ **FLOATING
+C1436 JNW_GR07_0.CLK JNW_GR07_0.VSS 0.43532f
+C1437 JNW_GR07_0.x5.XA1.MN1.S JNW_GR07_0.VSS 0.09688f
+C1438 a_12824_27682# JNW_GR07_0.VSS 0.31223f $ **FLOATING
+C1439 a_12824_28002# JNW_GR07_0.VSS 0.3149f $ **FLOATING
+C1440 a_23248_28358# JNW_GR07_0.VSS 1.87028f $ **FLOATING
+C1441 a_22816_28358# JNW_GR07_0.VSS 0.52984f
+C1442 a_22600_30278# JNW_GR07_0.VSS 0.8452f
+C1443 a_22384_28358# JNW_GR07_0.VSS 0.53109f
+C1444 a_22168_28358# JNW_GR07_0.VSS 1.9111f $ **FLOATING
+C1445 JNW_GR07_0.x5.XA3.MN1.S JNW_GR07_0.VSS 0.09448f
+C1446 a_12824_28482# JNW_GR07_0.VSS 0.3165f $ **FLOATING
+C1447 JNW_GR07_0.x5.XA4.MN1.S JNW_GR07_0.VSS 0.08682f
+C1448 a_12824_28962# JNW_GR07_0.VSS 0.31124f $ **FLOATING
+C1449 JNW_GR07_0.x5.XA5.A JNW_GR07_0.VSS 0.99863f
+C1450 a_12824_29282# JNW_GR07_0.VSS 0.31441f $ **FLOATING
+C1451 JNW_GR07_0.x5.XA6.A JNW_GR07_0.VSS 0.97857f
+C1452 JNW_GR07_0.x5.XA6.MN1.S JNW_GR07_0.VSS 0.08222f
+C1453 a_12824_29762# JNW_GR07_0.VSS 0.31669f $ **FLOATING
+C1454 JNW_GR07_0.x5.XA7.MN0.S JNW_GR07_0.VSS 0.0979f
+C1455 JNW_GR07_0.x5.XA7.MP1.S JNW_GR07_0.VSS 0.12134f
+C1456 JNW_GR07_0.x5.XA7.CN JNW_GR07_0.VSS 1.44837f
+C1457 JNW_GR07_0.x5.XA7.C JNW_GR07_0.VSS 2.47239f
+C1458 a_12824_30402# JNW_GR07_0.VSS 0.3129f $ **FLOATING
+C1459 JNW_GR07_0.x5.QN JNW_GR07_0.VSS 1.24176f
+C1460 JNW_GR07_0.PWM JNW_GR07_0.VSS 6.45084f
+C1461 a_13664_30722# JNW_GR07_0.VSS 0.06636f $ **FLOATING
+C1462 a_12824_30722# JNW_GR07_0.VSS 0.32673f $ **FLOATING
+C1463 a_23248_31958# JNW_GR07_0.VSS 1.86937f $ **FLOATING
+C1464 a_22816_31958# JNW_GR07_0.VSS 0.52984f
+C1465 a_22600_33878# JNW_GR07_0.VSS 0.63171f
+C1466 a_22384_31958# JNW_GR07_0.VSS 0.52984f
+C1467 a_22168_31958# JNW_GR07_0.VSS 1.88059f $ **FLOATING
+C1468 a_20568_30958# JNW_GR07_0.VSS 1.92426f $ **FLOATING
+C1469 a_20136_30958# JNW_GR07_0.VSS 0.54064f
+C1470 a_19920_32878# JNW_GR07_0.VSS 0.63171f
+C1471 a_19704_30958# JNW_GR07_0.VSS 0.45071f
+C1472 a_19488_32878# JNW_GR07_0.VSS 0.63171f
+C1473 a_19272_30958# JNW_GR07_0.VSS 0.44685f
+C1474 a_19056_32878# JNW_GR07_0.VSS 0.63171f
+C1475 a_18840_30958# JNW_GR07_0.VSS 0.44376f
+C1476 a_18624_32878# JNW_GR07_0.VSS 0.63171f
+C1477 a_18408_30958# JNW_GR07_0.VSS 0.44404f
+C1478 a_18192_32878# JNW_GR07_0.VSS 0.63171f
+C1479 a_17976_30958# JNW_GR07_0.VSS 0.446f
+C1480 a_17760_32878# JNW_GR07_0.VSS 0.63171f
+C1481 a_17544_30958# JNW_GR07_0.VSS 0.446f
+C1482 a_17328_32878# JNW_GR07_0.VSS 0.8452f
+C1483 a_17112_30958# JNW_GR07_0.VSS 0.53235f
+C1484 a_16896_30958# JNW_GR07_0.VSS 1.94259f $ **FLOATING
+C1485 a_13824_31262# JNW_GR07_0.VSS 0.35363f $ **FLOATING
+C1486 a_12984_31262# JNW_GR07_0.VSS 0.06311f $ **FLOATING
+C1487 JNW_GR07_0.x3.MP1.G JNW_GR07_0.VSS 0.7892f
+C1488 JNW_GR07_0.x11.x7.N JNW_GR07_0.VSS 21.4068f
+C1489 a_6640_27358# JNW_GR07_0.VSS 1.93324f $ **FLOATING
+C1490 a_6208_27358# JNW_GR07_0.VSS 0.52984f
+C1491 a_5992_29278# JNW_GR07_0.VSS 0.63323f
+C1492 a_5776_27358# JNW_GR07_0.VSS 0.43595f
+C1493 a_5560_29278# JNW_GR07_0.VSS 0.63323f
+C1494 a_5344_27358# JNW_GR07_0.VSS 0.43595f
+C1495 a_5128_29278# JNW_GR07_0.VSS 0.63323f
+C1496 a_4912_27358# JNW_GR07_0.VSS 0.43595f
+C1497 a_4696_29278# JNW_GR07_0.VSS 0.63323f
+C1498 a_4480_27358# JNW_GR07_0.VSS 0.43595f
+C1499 a_4264_29278# JNW_GR07_0.VSS 0.63323f
+C1500 a_4048_27358# JNW_GR07_0.VSS 0.43595f
+C1501 a_3832_29278# JNW_GR07_0.VSS 0.63323f
+C1502 a_3616_27358# JNW_GR07_0.VSS 0.43595f
+C1503 a_3400_29278# JNW_GR07_0.VSS 0.63323f
+C1504 a_3184_27358# JNW_GR07_0.VSS 0.52984f
+C1505 JNW_GR07_0.x11.x6.P JNW_GR07_0.VSS 4.26682f
+C1506 a_2968_27358# JNW_GR07_0.VSS 1.89476f $ **FLOATING
+C1507 JNW_GR07_0.x5.D JNW_GR07_0.VSS 1.68228f
+C1508 a_13824_31742# JNW_GR07_0.VSS 0.36405f $ **FLOATING
+C1509 a_12984_31742# JNW_GR07_0.VSS 0.07969f $ **FLOATING
+C1510 a_15028_32384# JNW_GR07_0.VSS 0.73955f $ **FLOATING
+C1511 a_15028_33184# JNW_GR07_0.VSS 0.5342f $ **FLOATING
+C1512 a_13228_32384# JNW_GR07_0.VSS 0.70684f $ **FLOATING
+C1513 a_13228_33184# JNW_GR07_0.VSS 0.53473f $ **FLOATING
+C1514 a_9548_32384# JNW_GR07_0.VSS 0.76048f $ **FLOATING
+C1515 a_9548_33184# JNW_GR07_0.VSS 0.5347f $ **FLOATING
+C1516 a_7748_32384# JNW_GR07_0.VSS 0.76852f $ **FLOATING
+C1517 a_7748_33184# JNW_GR07_0.VSS 0.5342f $ **FLOATING
+C1518 a_15028_33384# JNW_GR07_0.VSS 0.53467f $ **FLOATING
+C1519 a_15028_34184# JNW_GR07_0.VSS 0.60583f $ **FLOATING
+C1520 a_13228_33384# JNW_GR07_0.VSS 0.53455f $ **FLOATING
+C1521 a_13228_34184# JNW_GR07_0.VSS 0.60583f $ **FLOATING
+C1522 a_9548_33384# JNW_GR07_0.VSS 0.53455f $ **FLOATING
+C1523 a_9548_34184# JNW_GR07_0.VSS 0.60583f $ **FLOATING
+C1524 a_7748_33384# JNW_GR07_0.VSS 0.53467f $ **FLOATING
+C1525 a_7748_34184# JNW_GR07_0.VSS 0.60583f $ **FLOATING
+C1526 a_6640_30958# JNW_GR07_0.VSS 1.94669f $ **FLOATING
+C1527 a_6208_30958# JNW_GR07_0.VSS 0.53109f
+C1528 a_5992_32878# JNW_GR07_0.VSS 0.8452f
+C1529 a_5776_30958# JNW_GR07_0.VSS 0.43595f
+C1530 a_5560_32878# JNW_GR07_0.VSS 0.63171f
+C1531 a_5344_30958# JNW_GR07_0.VSS 0.43595f
+C1532 a_5128_32878# JNW_GR07_0.VSS 0.63171f
+C1533 a_4912_30958# JNW_GR07_0.VSS 0.43595f
+C1534 a_4696_32878# JNW_GR07_0.VSS 0.63171f
+C1535 a_4480_30958# JNW_GR07_0.VSS 0.43595f
+C1536 a_4264_32878# JNW_GR07_0.VSS 0.63171f
+C1537 a_4048_30958# JNW_GR07_0.VSS 0.43595f
+C1538 a_3832_32878# JNW_GR07_0.VSS 0.63171f
+C1539 a_3616_30958# JNW_GR07_0.VSS 0.43595f
+C1540 a_3400_32878# JNW_GR07_0.VSS 0.63171f
+C1541 a_3184_30958# JNW_GR07_0.VSS 0.52984f
+C1542 a_2968_30958# JNW_GR07_0.VSS 1.89474f $ **FLOATING
+C1543 a_23248_35558# JNW_GR07_0.VSS 1.86937f $ **FLOATING
+C1544 a_22816_35558# JNW_GR07_0.VSS 0.52984f
+C1545 a_22600_37478# JNW_GR07_0.VSS 0.63171f
+C1546 a_22384_35558# JNW_GR07_0.VSS 0.52984f
+C1547 JNW_GR07_0.x10.N JNW_GR07_0.VSS 3.89503f
+C1548 a_22168_35558# JNW_GR07_0.VSS 1.87555f $ **FLOATING
+C1549 a_20568_34558# JNW_GR07_0.VSS 1.91852f $ **FLOATING
+C1550 JNW_GR07_0.x4.x4.P JNW_GR07_0.VSS 4.94046f
+C1551 a_20136_34558# JNW_GR07_0.VSS 0.52984f
+C1552 a_19920_36478# JNW_GR07_0.VSS 0.63171f
+C1553 a_19704_34558# JNW_GR07_0.VSS 0.43595f
+C1554 a_19488_36478# JNW_GR07_0.VSS 0.63171f
+C1555 a_19272_34558# JNW_GR07_0.VSS 0.43595f
+C1556 a_19056_36478# JNW_GR07_0.VSS 0.63171f
+C1557 a_18840_34558# JNW_GR07_0.VSS 0.43595f
+C1558 a_18624_36478# JNW_GR07_0.VSS 0.63171f
+C1559 a_18408_34558# JNW_GR07_0.VSS 0.43595f
+C1560 a_18192_36478# JNW_GR07_0.VSS 0.63171f
+C1561 a_17976_34558# JNW_GR07_0.VSS 0.43595f
+C1562 a_17760_36478# JNW_GR07_0.VSS 0.63171f
+C1563 a_17544_34558# JNW_GR07_0.VSS 0.43595f
+C1564 a_17328_36478# JNW_GR07_0.VSS 0.63171f
+C1565 a_17112_34558# JNW_GR07_0.VSS 0.52984f
+C1566 a_16896_34558# JNW_GR07_0.VSS 1.87054f $ **FLOATING
+C1567 a_15028_34984# JNW_GR07_0.VSS 0.09581f $ **FLOATING
+C1568 a_15028_35784# JNW_GR07_0.VSS 0.08388f $ **FLOATING
+C1569 a_13228_34984# JNW_GR07_0.VSS 0.09676f $ **FLOATING
+C1570 a_13228_35784# JNW_GR07_0.VSS 0.07913f $ **FLOATING
+C1571 a_9548_34984# JNW_GR07_0.VSS 0.09676f $ **FLOATING
+C1572 a_9548_35784# JNW_GR07_0.VSS 0.07913f $ **FLOATING
+C1573 a_7748_34984# JNW_GR07_0.VSS 0.09585f $ **FLOATING
+C1574 a_7748_35784# JNW_GR07_0.VSS 0.08391f $ **FLOATING
+C1575 a_15028_36484# JNW_GR07_0.VSS 0.08433f $ **FLOATING
+C1576 JNW_GR07_0.x4.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.VSS 13.8746f
+C1577 a_15028_37284# JNW_GR07_0.VSS 0.09158f $ **FLOATING
+C1578 a_13228_36384# JNW_GR07_0.VSS 0.07958f $ **FLOATING
+C1579 JNW_GR07_0.x4.VOUT JNW_GR07_0.VSS 4.93076f
+C1580 JNW_GR07_0.x9.N JNW_GR07_0.VSS 10.2207f
+C1581 a_13228_37184# JNW_GR07_0.VSS 0.1098f $ **FLOATING
+C1582 a_9548_36384# JNW_GR07_0.VSS 0.07958f $ **FLOATING
+C1583 a_9548_37184# JNW_GR07_0.VSS 0.1098f $ **FLOATING
+C1584 a_7748_36484# JNW_GR07_0.VSS 0.08437f $ **FLOATING
+C1585 JNW_GR07_0.x11.amplifier_rev2_0.JNWATR_PCH_4C5F0_14.D JNW_GR07_0.VSS 13.8688f
+C1586 a_7748_37284# JNW_GR07_0.VSS 0.09161f $ **FLOATING
+C1587 a_6640_34558# JNW_GR07_0.VSS 1.87371f $ **FLOATING
+C1588 a_6208_34558# JNW_GR07_0.VSS 0.52984f
+C1589 a_5992_36478# JNW_GR07_0.VSS 0.63323f
+C1590 a_5776_34558# JNW_GR07_0.VSS 0.43595f
+C1591 a_5560_36478# JNW_GR07_0.VSS 0.63323f
+C1592 a_5344_34558# JNW_GR07_0.VSS 0.43595f
+C1593 a_5128_36478# JNW_GR07_0.VSS 0.63323f
+C1594 a_4912_34558# JNW_GR07_0.VSS 0.43595f
+C1595 a_4696_36478# JNW_GR07_0.VSS 0.63323f
+C1596 a_4480_34558# JNW_GR07_0.VSS 0.43595f
+C1597 a_4264_36478# JNW_GR07_0.VSS 0.63323f
+C1598 a_4048_34558# JNW_GR07_0.VSS 0.43595f
+C1599 a_3832_36478# JNW_GR07_0.VSS 0.63323f
+C1600 a_3616_34558# JNW_GR07_0.VSS 0.43595f
+C1601 a_3400_36478# JNW_GR07_0.VSS 0.63323f
+C1602 a_3184_34558# JNW_GR07_0.VSS 0.52984f
+C1603 JNW_GR07_0.x11.amplifier_rev2_0.x4.P JNW_GR07_0.VSS 5.03235f
+C1604 a_2968_34558# JNW_GR07_0.VSS 1.8945f $ **FLOATING
+C1605 a_20428_38184# JNW_GR07_0.VSS 0.11434f $ **FLOATING
+C1606 a_23248_39158# JNW_GR07_0.VSS 1.8702f $ **FLOATING
+C1607 JNW_GR07_0.x10.P JNW_GR07_0.VSS 4.44802f
+C1608 a_22816_39158# JNW_GR07_0.VSS 0.52984f
+C1609 a_22600_41078# JNW_GR07_0.VSS 0.63171f
+C1610 a_22384_39158# JNW_GR07_0.VSS 0.52984f
+C1611 a_22168_39158# JNW_GR07_0.VSS 1.82645f $ **FLOATING
+C1612 a_20428_38984# JNW_GR07_0.VSS 0.07941f $ **FLOATING
+C1613 a_18628_38184# JNW_GR07_0.VSS 0.11084f $ **FLOATING
+C1614 a_18628_38984# JNW_GR07_0.VSS 0.07797f $ **FLOATING
+C1615 a_16828_38184# JNW_GR07_0.VSS 0.10987f $ **FLOATING
+C1616 a_16828_38984# JNW_GR07_0.VSS 0.07797f $ **FLOATING
+C1617 a_15028_38184# JNW_GR07_0.VSS 0.09105f $ **FLOATING
+C1618 a_15028_38984# JNW_GR07_0.VSS 0.07913f $ **FLOATING
+C1619 a_11348_38184# JNW_GR07_0.VSS 0.11051f $ **FLOATING
+C1620 JNW_GR07_0.x11.x3.D JNW_GR07_0.VSS 8.7599f
+C1621 a_11348_38984# JNW_GR07_0.VSS 0.08029f $ **FLOATING
+C1622 a_7748_38184# JNW_GR07_0.VSS 0.09105f $ **FLOATING
+C1623 a_7748_38984# JNW_GR07_0.VSS 0.07913f $ **FLOATING
+C1624 a_5948_38184# JNW_GR07_0.VSS 0.1127f $ **FLOATING
+C1625 a_5948_38984# JNW_GR07_0.VSS 0.07797f $ **FLOATING
+C1626 a_4148_38184# JNW_GR07_0.VSS 0.11367f $ **FLOATING
+C1627 a_4148_38984# JNW_GR07_0.VSS 0.07797f $ **FLOATING
+C1628 a_2348_38184# JNW_GR07_0.VSS 0.11424f $ **FLOATING
+C1629 a_2348_38984# JNW_GR07_0.VSS 0.07913f $ **FLOATING
+C1630 a_20428_39584# JNW_GR07_0.VSS 0.07845f $ **FLOATING
+C1631 a_20428_40384# JNW_GR07_0.VSS 0.08383f $ **FLOATING
+C1632 a_18628_39584# JNW_GR07_0.VSS 0.07797f $ **FLOATING
+C1633 a_18628_40384# JNW_GR07_0.VSS 0.07797f $ **FLOATING
+C1634 a_16828_39584# JNW_GR07_0.VSS 0.07797f $ **FLOATING
+C1635 a_16828_40384# JNW_GR07_0.VSS 0.07797f $ **FLOATING
+C1636 a_15028_39584# JNW_GR07_0.VSS 0.07797f $ **FLOATING
+C1637 a_15028_40384# JNW_GR07_0.VSS 0.07797f $ **FLOATING
+C1638 a_13228_39584# JNW_GR07_0.VSS 0.10832f $ **FLOATING
+C1639 a_13228_40384# JNW_GR07_0.VSS 0.10832f $ **FLOATING
+C1640 a_11348_39584# JNW_GR07_0.VSS 0.0781f $ **FLOATING
+C1641 JNW_GR07_0.x11.x.D JNW_GR07_0.VSS 10.1578f
+C1642 a_11348_40384# JNW_GR07_0.VSS 0.0781f $ **FLOATING
+C1643 a_9548_39584# JNW_GR07_0.VSS 0.10819f $ **FLOATING
+C1644 a_9548_40384# JNW_GR07_0.VSS 0.10819f $ **FLOATING
+C1645 a_7748_39584# JNW_GR07_0.VSS 0.07797f $ **FLOATING
+C1646 a_7748_40384# JNW_GR07_0.VSS 0.07797f $ **FLOATING
+C1647 a_5948_39584# JNW_GR07_0.VSS 0.07797f $ **FLOATING
+C1648 a_5948_40384# JNW_GR07_0.VSS 0.07797f $ **FLOATING
+C1649 a_4148_39584# JNW_GR07_0.VSS 0.07797f $ **FLOATING
+C1650 a_4148_40384# JNW_GR07_0.VSS 0.07797f $ **FLOATING
+C1651 a_2348_39584# JNW_GR07_0.VSS 0.07913f $ **FLOATING
+C1652 a_2348_40384# JNW_GR07_0.VSS 0.0845f $ **FLOATING
+C1653 a_20428_41084# JNW_GR07_0.VSS 0.08429f $ **FLOATING
+C1654 a_20428_41884# JNW_GR07_0.VSS 0.10993f $ **FLOATING
+C1655 a_18628_40984# JNW_GR07_0.VSS 0.07842f $ **FLOATING
+C1656 a_18628_41784# JNW_GR07_0.VSS 0.10864f $ **FLOATING
+C1657 a_16828_40984# JNW_GR07_0.VSS 0.07797f $ **FLOATING
+C1658 a_16828_41784# JNW_GR07_0.VSS 0.10819f $ **FLOATING
+C1659 a_15028_40984# JNW_GR07_0.VSS 0.07913f $ **FLOATING
+C1660 JNW_GR07_0.x4.x5.G JNW_GR07_0.VSS 7.94353f
+C1661 a_15028_41784# JNW_GR07_0.VSS 0.10935f $ **FLOATING
+C1662 a_11348_40984# JNW_GR07_0.VSS 0.08029f $ **FLOATING
+C1663 JNW_GR07_0.x11.I_OUT JNW_GR07_0.VSS 26.5116f
+C1664 JNW_GR07_0.x11.x2.A JNW_GR07_0.VSS 9.31154f
+C1665 a_11348_41784# JNW_GR07_0.VSS 0.11051f $ **FLOATING
+C1666 a_7748_40984# JNW_GR07_0.VSS 0.07913f $ **FLOATING
+C1667 a_7748_41784# JNW_GR07_0.VSS 0.10935f $ **FLOATING
+C1668 a_5948_40984# JNW_GR07_0.VSS 0.07797f $ **FLOATING
+C1669 a_5948_41784# JNW_GR07_0.VSS 0.10819f $ **FLOATING
+C1670 a_4148_40984# JNW_GR07_0.VSS 0.07842f $ **FLOATING
+C1671 a_4148_41784# JNW_GR07_0.VSS 0.10864f $ **FLOATING
+C1672 a_2348_41084# JNW_GR07_0.VSS 0.08496f $ **FLOATING
+C1673 JNW_GR07_0.x11.amplifier_rev2_0.x5.G JNW_GR07_0.VSS 8.84795f
+C1674 a_2348_41884# JNW_GR07_0.VSS 0.1098f $ **FLOATING
+C1675 JNW_GR06_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR07_0.VSS 33.6479f
+C1676 JNW_GR06_0.temp_affected_current_0.OTA_0.JNWATR_PCH_4C5F0_8.D JNW_GR07_0.VSS 33.5998f
+C1677 JNW_GR06_0.VDD JNW_GR07_0.VSS 0.21065p
+C1678 JNW_GR07_0.x4.x5.D JNW_GR07_0.VSS 22.6525f
+C1679 JNW_GR07_0.x11.amplifier_rev2_0.x5.D JNW_GR07_0.VSS 22.6542f
+C1680 JNW_GR07_0.VDD JNW_GR07_0.VSS 0.20875p
+.ends
+
