@@ -1,8 +1,8 @@
 MACRO tt_um_jnw_wulffern
   CLASS BLOCK ;
   FOREIGN tt_um_jnw_wulffern ;
-  ORIGIN -0.580 -5.000 ;
-  SIZE 161.680 BY 220.760 ;
+  ORIGIN 0.000 0.000 ;
+  SIZE 161.000 BY 225.760 ;
   PIN clk
     DIRECTION INPUT ;
     USE SIGNAL ;
