@@ -1,6 +1,6 @@
 magic
 tech sky130A
-timestamp 1754756105
+timestamp 1754756592
 << metal4 >>
 rect 3067 22476 3097 22576
 rect 3343 22476 3373 22576
@@ -47,14 +47,6 @@ rect 14383 22476 14413 22576
 rect 14659 22476 14689 22576
 rect 100 500 300 22076
 rect 400 500 600 22076
-rect 1657 0 1747 100
-rect 3589 0 3679 100
-rect 5521 0 5611 100
-rect 7453 0 7543 100
-rect 9385 0 9475 100
-rect 11317 0 11407 100
-rect 13249 0 13339 100
-rect 15181 0 15271 100
 use JNW_GR07  JNW_GR07_0 ../JNW_GR07_SKY130A
 timestamp 1754755634
 transform 1 0 -998 0 1 15739
@@ -66,22 +58,6 @@ flabel metal4 s 14659 22476 14689 22576 0 FreeSans 240 90 0 0 ena
 port 1 nsew signal input
 flabel metal4 s 14107 22476 14137 22576 0 FreeSans 240 90 0 0 rst_n
 port 2 nsew signal input
-flabel metal4 s 15181 0 15271 100 0 FreeSans 480 0 0 0 ua[0]
-port 3 nsew signal bidirectional
-flabel metal4 s 13249 0 13339 100 0 FreeSans 480 0 0 0 ua[1]
-port 4 nsew signal bidirectional
-flabel metal4 s 11317 0 11407 100 0 FreeSans 480 0 0 0 ua[2]
-port 5 nsew signal bidirectional
-flabel metal4 s 9385 0 9475 100 0 FreeSans 480 0 0 0 ua[3]
-port 6 nsew signal bidirectional
-flabel metal4 s 7453 0 7543 100 0 FreeSans 480 0 0 0 ua[4]
-port 7 nsew signal bidirectional
-flabel metal4 s 5521 0 5611 100 0 FreeSans 480 0 0 0 ua[5]
-port 8 nsew signal bidirectional
-flabel metal4 s 3589 0 3679 100 0 FreeSans 480 0 0 0 ua[6]
-port 9 nsew signal bidirectional
-flabel metal4 s 1657 0 1747 100 0 FreeSans 480 0 0 0 ua[7]
-port 10 nsew signal bidirectional
 flabel metal4 s 13831 22476 13861 22576 0 FreeSans 240 90 0 0 ui_in[0]
 port 11 nsew signal input
 flabel metal4 s 13555 22476 13585 22576 0 FreeSans 240 90 0 0 ui_in[1]
