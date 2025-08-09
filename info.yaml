@@ -1,8 +1,8 @@
 # Tiny Tapeout project information
 project:
-  title:        "JNW-TEMPSENSE"      # Project title
+  title:        "JNW-TEMP"      # Project title
   author:       "Carsten Wulff"      # Your name
-  discord:      ""      # Your discord username, for communication and automatically assigning you a Tapeout role (optional)
+  discord:      "cwulffern"      # Your discord username, for communication and automatically assigning you a Tapeout role (optional)
   description:  "Two Temperature Sensors from NTNU students"      # One line description of what your project does
   language:     "Analog" # other examples include Verilog, Amaranth, VHDL, etc
   clock_hz:     0       # Clock frequency in Hz (or 0 if not applicable)
