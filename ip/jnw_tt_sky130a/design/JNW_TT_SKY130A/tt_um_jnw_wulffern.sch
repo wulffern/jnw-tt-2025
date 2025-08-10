@@ -42,7 +42,7 @@ N 250 -780 250 -750 {lab=VDPWR}
 N 250 -780 360 -780 {lab=VDPWR}
 N 250 -710 250 -680 {lab=VGND}
 N 250 -680 360 -680 {lab=VGND}
-N 400 -730 480 -730 {lab=#net2}
+N 400 -730 480 -730 {lab=TIE_L}
 N 540 -730 590 -730 {lab=uio_oe[7:0]}
 N 590 -730 660 -730 {lab=uio_oe[7:0]}
 N -420 -590 -380 -590 {lab=VDPWR}
@@ -50,8 +50,8 @@ N -420 -510 -420 -480 {lab=VGND}
 N -550 -550 -460 -550 {lab=clk}
 N 200 -250 200 -90 {lab=OUT06}
 N 200 -90 250 -90 {lab=OUT06}
-N -200 -110 250 -110 {lab=#net3}
-N -200 -110 -200 -90 {lab=#net3}
+N -200 -110 -200 -90 {lab=#net2}
+N 110 -110 250 -110 {lab=INT_RST_N}
 C {JNW_GR06_SKY130A/JNW_GR06.sym} 10 -230 0 0 {name=x1}
 C {JNW_GR07_SKY130A/JNW_GR07.sym} -70 -580 0 0 {name=x2}
 C {devices/ipin.sym} -720 -670 0 0 {name=p1 lab=VDPWR}
@@ -104,3 +104,6 @@ C {devices/lab_wire.sym} -420 -480 0 0 {name=p34 sig_type=std_logic lab=VGND}
 C {devices/lab_wire.sym} -280 -550 0 0 {name=p35 sig_type=std_logic lab=CLK_B
 }
 C {devices/lab_wire.sym} 200 -130 0 0 {name=p36 sig_type=std_logic lab=OUT06}
+C {devices/lab_wire.sym} 460 -730 0 0 {name=p7 sig_type=std_logic lab=TIE_L}
+C {devices/lab_wire.sym} 110 -110 0 0 {name=p37 sig_type=std_logic lab=RST
+}

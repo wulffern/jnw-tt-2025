@@ -1,0 +1,9 @@
+options:
+  useTmpDir: False
+  sha: True
+corner:
+  Lay: ''
+  Sch: ''
+ngspice:
+  library: JNW_TT_SKY130A
+  cell: tt_um_jnw_wulffern

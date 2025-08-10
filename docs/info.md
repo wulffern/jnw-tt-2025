@@ -12,8 +12,13 @@ You can also include images in this folder and reference them in the markdown. E
 JNW-TEMP contains two temperature sensors made by students at NTNU in the course
 Advanced Integrated Circuits TFE4188. 
 
+A detailed description by the students can be seen in chapters below. 
+
 ## How to test
 
+- GR07: Set the clk to as high as it goes. Monitor uo_out[0], the period will change with temperature
+- GR06: Set ui_in[0] high. When you set ui_in[0] low there will be a single pulse on uo_out[2] with a duration 
+that is inversly proportional to temperature.
 
 ## External hardware
 
@@ -45,7 +50,7 @@ In this schematic, the PTAT (1) is created inside the block called
 temp\_affected\_current. 
 The converting to digital happens with the OTA and the capasitor in the middle bottom. 
 
-![navn](images/JNW_GR06.svg)
+![Top level](images/JNW_GR06.svg)
 Nodes to remember: 
 V(cap) is at node CAP
 V(OUT) is at the node OUT
@@ -54,24 +59,24 @@ V(OUT) is at the node OUT
 ### 1. Creating the current
 
  The current is made by using the temperature dependencies of 
- diodes(implemented with bipolar transistors) and the size dufference
+ diodes (implemented with bipolar transistors) and the size difference
  between the single diode on the left side and the 8 on the right side. The
  voltage over the left side diode is 
  $V_{DL} = V_T ln\frac{I_D}{I_{L}}$ while the voltage over the diode on the
  right side is: 
  $V_{DR} = V_T ln\frac{I_D}{I_{SR}}$, where $I_D$ is the equal current in both
  branches. 
- This eqaual current comes from the OTA feedback, which makes the gate voltage for 
+ This equal current comes from the OTA feedback, which makes the gate voltage for 
  the two PMOS transistors, x2 and x1 . 
 
  An OTA would force the inputs, V(RIGHT_SIDE) and V(LEFT_SIDE) to be the same, 
  which means that the voltage drop on the left side, over diode $Q1$ is the same as the voltage drop over the resistor $R$ and the 8 diodes $Q2$. 
  This means that $V_R + V_{Q2} = V_{Q1}$ which imples $V_R = V_{Q1} -V_{Q1} = V_T ln\frac{I_D}{I_L} - V_T ln\frac{I_D}{I_R} = V_T ln\frac{I_R}{I_L}$. 
- Since the right side Diode $Q2$ is 8 times larger than the leftside diode $Q1$ we know that $I_R \approx 8 \cdot I_L$ which means that $V_R \approx V_T ln(8)$. 
- Knowing the voltagedrop over the resistor means we can find the current in the right branch: $I_R = \frac{V_R}{R} = \frac{kT}{q} ln(8)/R$, where T is 
+ Since the right side Diode $Q2$ is 8 times larger than the left side diode $Q1$ we know that $I_R \approx 8 \cdot I_L$ which means that $V_R \approx V_T ln(8)$. 
+ Knowing the voltage drop over the resistor means we can find the current in the right branch: $I_R = \frac{V_R}{R} = \frac{kT}{q} ln(8)/R$, where T is 
  temperature, meaning we got a current that increases with temperature. 
 
-![navn](images/temp_affected_current.svg)
+![PTAT current](images/temp_affected_current.svg)
 
 
 <br />
@@ -94,14 +99,11 @@ To turn this rising voltage into a digital signal, we use a comparator. The idea
 If the voltage across the capacitor, $V_{cap}$, is below 0.6V, the output is 0. if its above 0.6V, the output switches to 1. 
 This comparison is done using a comparator, and in this project a OTA is used.
 
-$0.6 = \frac{1}{c} \int_0^t I$ -> $0.6C = I * t$ -> $t = 0.6 \frac{C}{I} $
+$0.6 = \frac{1}{c} \int_0^t I \Rightarrow 0.6C = I * t \Rightarrow t = 0.6 \frac{C}{I}$
 
+To convert the rising voltage into a digital signal, we send it into the comparator that checks when it is larger than 0.6V. If the voltage across the capacitor, $V_{cap}$, is below 0.6V, the output remains 0. Once it surpasses 0.6V, the output switches to 1. This output is generated using a comparator, and in this design, an OTA is used as an comparator.
 
-To convert the rising voltage into a digital signal, we send it into the comparator that checks when it is larger than 0.6V.  
-If the voltage across the capacitor, $V_{cap}$, is below 0.6V, the output remains 0. Once it surpasses 0.6V, the output switches to 1. 
-This output is generated using a comparator, and in this design, an OTA is used as an comparator.
-
-After a certain period, which is going to be constnat, maybe 20us, the circuit's reset signal goes high, which shorts the capacitor and resets its voltage to 
+After a certain period, which is going to be constant, maybe 20 us, the circuit's reset signal goes high, which shorts the capacitor and resets its voltage to 
 $V_C = 0 + \text{charge injection}$
 From this point, the voltage starts increasing again, taking a time t  to reach the threshold.  
 Before the reset signal goes high, the output remains 1. When the circuit resets, the output switches to 0 and then returns 
@@ -111,26 +113,18 @@ output goes high again. The counter's output then provides a digital value corre
 
 
 
-In the picture below one can see how it is in the simulator. This is a very bad picture since the voltage over the 
-capacitor V(cap) is not increasing regularoly and is negativly affected by probobly charge injection, but it show that the 
-capacitor voltage (ornag) rises to about 0.6 before the output voltage (green) starts to rise. One can see the digital value 
-(red) increasing continiusly aswell, we get the digital value by sampling the counter when V(out) becomes high. One can also see that the 
-reset signal (blue) resets the counter and resets and messes with the capacitor voltage.
+In the picture below one can see how it is in the simulator. The capacitor voltage is the orange curve, the red is a counter value, the green the output voltage of the OTA. The blue is the reset signal.
 
-![navn3](images/sim.png)
-
+![Simulation](images/sim.png)
 
 
 ### Layout
-Layout for the top level:
+Layout of the top level:
 
-![layout](images/layout.png)
-On the left is the temperature to current circuit. In the middle/right one can see the capasitor that is 
-being charged. and on the right is the OTA comparator that creates the outputsignal. VDD is on metal1(orange) and VSS is on locali(Blue).
-
-A 3d picture of the layout:
-![layout](images/layout_3d.JPG)
-
+![Layout](images/layout.png)
+On the left is the temperature to current circuit. In the middle/right one can see the capacitor that is 
+being charged. On the right is the OTA comparator that creates the output signal. 
+VDD is on metal1(orange) and VSS is on locali(Blue).
 
 ## JNW\_GR07\_SKY130A
 
@@ -209,7 +203,7 @@ This gives $V^- = V_{ref}= V_{DD} \frac{R_3}{R_3+R_2}$. The voltage across the c
 1. $V_C(t=0) = 0$, the voltage starts at 0 when time is 0.
 2. $\frac{\partial T}{\partial t} = 0$, the temperature is not dependent on time.
 
-The oputput of the comparator is set to high at time $t_0$, when $V^- = V^+(t_0)$. Using the previous equations this can be written as $V_{ref} = \frac{t_0I(T)}{C}$.
+The output of the comparator is set to high at time $t_0$, when $V^- = V^+(t_0)$. Using the previous equations this can be written as $V_{ref} = \frac{t_0I(T)}{C}$.
 The time $t_0$ is thus given by $t_0 = \frac{V_{ref}C}{I(t)}$. The output of the comparator is buffered, then fed into a clocked register. The output of the register
 is the PWM signal, and is simultaneously used to reset the circuit. The reset is done by discharging the capacitor using an nmos, N1, connected to ground.
 
@@ -222,11 +216,7 @@ the figure below, where temperature $T1 > T0$.
 ### Layout of PWM circuit 
 
 The layout of the PWM circuit can be found in "**design/JNW_GR07_SKY130A/JNW_GR07.mag**", 
-and is depicted below (both with / without explanation, and a 3d render). Layout vs schematic (LVS) can be 
-tested by running "**make cdl lvs**" in the **work** folder. The layout succesfully completes the LVS test, and does not 
-experience any design rule errors (succesfully completes the drc, design rule check).
-
-**Layout with explanation:**
+and is depicted below 
 
 ![layout](images/LayoutDescription3.png)
 

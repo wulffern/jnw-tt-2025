@@ -1,0 +1,78 @@
+*TB_SUN_TR_SKY130NM/TB_NCM
+*----------------------------------------------------------------
+* Include
+*----------------------------------------------------------------
+#ifdef Lay
+.include ../../../work/lpe/tt_um_jnw_wulffern_lpe.spi
+#else
+.include ../../../work/xsch/tt_um_jnw_wulffern.spice
+#endif
+
+*-----------------------------------------------------------------
+* OPTIONS
+*-----------------------------------------------------------------
+.option TNOM=27 GMIN=1e-15 reltol=1e-3
+
+*-----------------------------------------------------------------
+* PARAMETERS
+*-----------------------------------------------------------------
+*----------------------------------------------------------------
+* PARAMETERS
+*----------------------------------------------------------------
+.param TRF = 10p
+
+*- Analog parameters
+.param AVDD = {vdda}
+
+*- 8 MHz clock frequency
+.param PERIOD_CLK = 1/50Meg
+
+*- 25% duty-cycle clock
+.param PW_CLK = PERIOD_CLK/2
+
+
+*----------------------------------------------------------------
+* Sources
+*----------------------------------------------------------------
+VSS  VGND 0 dc 0
+VDD  VDPWR VGND dc {AVDD}
+
+VCLK clk 0 dc 0 pulse (0 {AVDD} 0 {TRF} {TRF} {PW_CLK} {PERIOD_CLK})
+
+VGR6 ui_in<0> 0 dc 0 pwl (0 {AVDD} 0.99u {AVDD} 1u 0)
+
+
+* DUT
+*-----------------------------------------------------------------
+.include ../xdut.spi
+
+*----------------------------------------------------------------
+* PROBE
+*----------------------------------------------------------------
+.save all
+
+
+*----------------------------------------------------------------
+* NGSPICE control
+*----------------------------------------------------------------
+.control
+set num_threads=8
+set color0=white
+set color1=black
+unset askquit
+
+optran 0 0 0 1n 1u 0
+
+set fend = .raw
+foreach vtemp {temperatures}
+  option temp=$vtemp
+  tran 1n 15u
+  write {cicname}_$vtemp$fend
+end
+write
+quit
+
+
+.endc
+
+.end
