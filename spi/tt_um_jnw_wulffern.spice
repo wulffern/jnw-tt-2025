@@ -18,17 +18,17 @@ x3 ui_in<0> RST VDPWR VGND JNWTR_BFX1_CV
 x4 OUT06 uo_out<1> VDPWR VGND JNWTR_BFX1_CV
 x5 net1 uo_out<0> VDPWR VGND JNWTR_BFX1_CV
 x6 RST net2 VDPWR VGND JNWTR_IVX1_CV
-x7 OUT06 net2 uo_out<2> VDPWR VGND JNWTR_NRX1_CV
+x7 RST OUT06 uo_out<2> VDPWR VGND JNWTR_NRX1_CV
 x8 VDPWR VGND JNWTR_TAPCELLB_CV
-x9 net3 VDPWR VGND JNWTR_TIEL_CV
-R1<7> net3 uio_oe<7> sky130_fd_pr__res_generic_m4 W=0.3 L=0.3 m=1
-R1<6> net3 uio_oe<6> sky130_fd_pr__res_generic_m4 W=0.3 L=0.3 m=1
-R1<5> net3 uio_oe<5> sky130_fd_pr__res_generic_m4 W=0.3 L=0.3 m=1
-R1<4> net3 uio_oe<4> sky130_fd_pr__res_generic_m4 W=0.3 L=0.3 m=1
-R1<3> net3 uio_oe<3> sky130_fd_pr__res_generic_m4 W=0.3 L=0.3 m=1
-R1<2> net3 uio_oe<2> sky130_fd_pr__res_generic_m4 W=0.3 L=0.3 m=1
-R1<1> net3 uio_oe<1> sky130_fd_pr__res_generic_m4 W=0.3 L=0.3 m=1
-R1<0> net3 uio_oe<0> sky130_fd_pr__res_generic_m4 W=0.3 L=0.3 m=1
+x9 TIE_L VDPWR VGND JNWTR_TIEL_CV
+R1<7> TIE_L uio_oe<7> sky130_fd_pr__res_generic_m4 W=0.3 L=0.3 m=1
+R1<6> TIE_L uio_oe<6> sky130_fd_pr__res_generic_m4 W=0.3 L=0.3 m=1
+R1<5> TIE_L uio_oe<5> sky130_fd_pr__res_generic_m4 W=0.3 L=0.3 m=1
+R1<4> TIE_L uio_oe<4> sky130_fd_pr__res_generic_m4 W=0.3 L=0.3 m=1
+R1<3> TIE_L uio_oe<3> sky130_fd_pr__res_generic_m4 W=0.3 L=0.3 m=1
+R1<2> TIE_L uio_oe<2> sky130_fd_pr__res_generic_m4 W=0.3 L=0.3 m=1
+R1<1> TIE_L uio_oe<1> sky130_fd_pr__res_generic_m4 W=0.3 L=0.3 m=1
+R1<0> TIE_L uio_oe<0> sky130_fd_pr__res_generic_m4 W=0.3 L=0.3 m=1
 x10 clk CLK_B VDPWR VGND JNWTR_BFX1_CV
 .ends
 
