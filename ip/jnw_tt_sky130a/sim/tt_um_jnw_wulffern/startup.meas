@@ -1,0 +1,19 @@
+* Measure tt_um_jnw_wulffern
+.control
+
+
+echo "MEAS_START"
+
+set fend = .raw
+
+foreach vtemp {temperatures}
+
+load {cicname}_$vtemp$fend
+
+meas tran tgr06_$vtemp TRIG v(uo_out<2>) val=0.9 rise=1 TARG v(uo_out<2>) val=0.9 fall=1
+meas tran tgr07_$vtemp TRIG v(uo_out<0>) val=0.9 rise=1 TARG v(uo_out<0>) val=0.9 fall=1
+
+end
+
+echo "MEAS_END"
+.endc
