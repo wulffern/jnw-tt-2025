@@ -23,6 +23,15 @@ with open(DATA) as fh:
     d = json.load(fh)
 d["stamp"] = time.strftime("%Y-%m-%d %H:%M %Z")
 
+# The stimulus run (freeze spray + finger) is reduced separately by
+# build_event_data.py; fold it in if it has been generated.
+EVENTS = os.path.join(ROOT, "data", "event_data.json")
+if os.path.exists(EVENTS):
+    with open(EVENTS) as fh:
+        d["events"] = json.load(fh)
+else:
+    print(f"note: {EVENTS} missing - the stimulus slides will be empty")
+
 with open(TEMPLATE) as fh:
     html = fh.read()
 if "__DATA__" not in html:

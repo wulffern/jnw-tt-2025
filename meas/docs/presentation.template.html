@@ -16,6 +16,7 @@
     --ink-3:   #857c68;
     --gr07:    #2a78d6;
     --gr06:    #d1521f;
+    --rate:    #1baf7a;
     --gr07-15: rgba(42,120,214,.13);
     --gr06-15: rgba(209,82,31,.13);
     --shadow:  0 1px 2px rgba(27,24,17,.06), 0 8px 24px rgba(27,24,17,.05);
@@ -33,6 +34,7 @@
       --ink-3:   #8b8272;
       --gr07:    #3987e5;
       --gr06:    #e0662f;
+      --rate:    #199e70;
       --gr07-15: rgba(57,135,229,.16);
       --gr06-15: rgba(224,102,47,.16);
       --shadow:  0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.28);
@@ -50,6 +52,7 @@
     --ink-3:   #8b8272;
     --gr07:    #3987e5;
     --gr06:    #e0662f;
+    --rate:    #199e70;
     --gr07-15: rgba(57,135,229,.16);
     --gr06-15: rgba(224,102,47,.16);
     --shadow:  0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.28);
@@ -66,6 +69,7 @@
     --ink-3:   #857c68;
     --gr07:    #2a78d6;
     --gr06:    #d1521f;
+    --rate:    #1baf7a;
     --gr07-15: rgba(42,120,214,.13);
     --gr06-15: rgba(209,82,31,.13);
     --shadow:  0 1px 2px rgba(27,24,17,.06), 0 8px 24px rgba(27,24,17,.05);
@@ -128,6 +132,12 @@
   .grid { display: grid; gap: 18px; margin-top: 30px; }
   .g2 { grid-template-columns: repeat(2, 1fr); }
   .g3 { grid-template-columns: repeat(3, 1fr); }
+  .cut { display: grid; gap: 14px; grid-template-columns: repeat(3, 1fr); margin-top: 22px; }
+  @media (max-width: 980px) { .cut { grid-template-columns: 1fr; } }
+  .cut h3 { font-size: .98rem; margin-bottom: 2px; }
+  .cut .rate { font-family: var(--mono); font-size: 1.5rem; font-weight: 600;
+               letter-spacing: -.02em; }
+  .cut .sub { font-size: .84rem; color: var(--ink-3); }
   @media (max-width: 820px) { .g2, .g3 { grid-template-columns: 1fr; } }
 
   .card {
@@ -145,10 +155,11 @@
   .dot { width: 9px; height: 9px; border-radius: 2px; flex: none; }
   .dot.a { background: var(--gr07); }
   .dot.b { background: var(--gr06); }
+  .dot.c { background: var(--rate); }
 
   .stat { font-family: var(--mono); font-variant-numeric: tabular-nums; }
   .big { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 600; letter-spacing: -.02em; line-height: 1.1; }
-  .a { color: var(--gr07); } .b { color: var(--gr06); }
+  .a { color: var(--gr07); } .b { color: var(--gr06); } .c { color: var(--rate); }
 
   table { border-collapse: collapse; width: 100%; font-size: .93rem; }
   .scroll { overflow-x: auto; margin-top: 26px; }
@@ -552,7 +563,7 @@
       Nyquist exactly as that structure predicts.
     </p>
     <p>
-      This is also why outlier rejection had to be rebuilt — see slide 08.
+      This is also why outlier rejection had to be rebuilt — see slide 10.
     </p>
   </div>
 </section>
@@ -640,10 +651,125 @@
   </div>
 </section>
 
-<!-- ═══════════════ 08 · corrections ═══════════════ -->
+<!-- ═══════════════ 08 · stimulus ═══════════════ -->
 <section class="slide">
   <div class="wrap">
-    <span class="num"><b>08</b> / What I got wrong</span>
+    <span class="num"><b>08</b> / Provoking it</span>
+    <h2>A blast of freeze spray, then a fingertip</h2>
+    <p class="lede">
+      Quiet-room data only shows a sensor's noise. To see what it does with a
+      real thermal input: a can of freeze spray at <span class="stat" id="ev-spray-t">—</span>,
+      then a finger held on the package from
+      <span class="stat">88 s</span> to <span class="stat">122 s</span>.
+      Both sensors, one capture, 1 ms points.
+    </p>
+
+    <figure>
+      <div class="chartbox">
+        <div class="legend">
+          <span class="pill"><i class="dot a"></i>GR07</span>
+          <span class="pill"><i class="dot b"></i>GR06</span>
+          <span class="pill" style="margin-left:auto;color:var(--ink-3)">
+            gaps are dead time between captures</span>
+        </div>
+        <svg class="chart" id="chart-events" viewBox="0 0 980 340" role="img"
+             aria-label="Three minutes of both sensors, with freeze spray and finger-touch events"></svg>
+      </div>
+      <figcaption>
+        The whole run. Vertical marks are where the derivative says something
+        happened; the trace between captures is genuinely absent, not smoothed.
+      </figcaption>
+    </figure>
+
+    <div class="cut" id="cutouts"></div>
+
+    <p style="margin-top:28px" id="ev-comment">—</p>
+
+    <p>
+      A caveat on the absolute numbers. Both sensors are calibrated at a
+      <em>single</em> point, 23 °C, against the ideal PTAT line through the
+      origin — there is no offset term to absorb comparator delay or reset time.
+      At 8 °C that model is extrapolating 15 K beyond its only anchor, so the
+      <em>depth</em> carries a systematic uncertainty we cannot bound without a
+      second calibration temperature. The <em>rates</em> and the <em>timing</em>
+      are on much firmer ground: they depend on the slope of the trace, not on
+      where the zero sits.
+    </p>
+    <p>
+      And what is measured is the die, not the spray. The can is rated −55 °C,
+      but the sensor only ever sees its own silicon, reached through the
+      package: what the −37 K/s describes is how fast the die followed, not how
+      cold the propellant was.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════ 09 · what it settles ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>09</b> / What it settles</span>
+    <h2>A real event moves both sensors. Noise doesn't.</h2>
+    <p class="lede">
+      Slide 07 found the two sensors uncorrelated in a quiet room and concluded
+      the wander was sensor-local rather than ambient. This run is the control
+      that decides it.
+    </p>
+
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Phase</th><th>GR07 vs GR06 correlation</th><th>What is happening</th></tr></thead>
+        <tbody id="corr-rows"></tbody>
+      </table>
+    </div>
+
+    <p style="margin-top:24px">
+      When the die genuinely changes temperature the two sensors agree almost
+      perfectly, despite different circuits, different readout schemes and a
+      200× difference in events per point. When nothing is happening to the die
+      they drift apart. That is exactly the signature that the quiet-run wander
+      was <b>not</b> temperature — and it means these sensors are far better at
+      telling you that something changed than at telling you what the
+      temperature is.
+    </p>
+
+    <h3 style="margin-top:34px">The cost of re-timing: GR07 has dead zones</h3>
+    <p>
+      The stimulus run swept GR07 across 15 K, and its noise turned out to
+      depend strongly on <em>where</em> it sat. The period is re-timed by the
+      64 MHz clock, so what matters is where it falls between two clock edges:
+    </p>
+
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>Temperature</th><th>Period, in clock cycles</th>
+              <th>Distance to a whole cycle</th><th>Noise per 1 ms point</th></tr>
+        </thead>
+        <tbody id="dead-rows"></tbody>
+      </table>
+    </div>
+
+    <p style="margin-top:24px">
+      The noise collapses exactly where the period lands on a whole number of
+      clock cycles, and peaks half-way between. That is a
+      <b>dead zone</b>, not precision: when the ramp always crosses in the same
+      clock interval every period gives the same answer, the dither that carried
+      the resolution switches off, and the sensor stops responding to small
+      changes while <em>looking</em> ten times quieter. It is the same mechanism
+      that makes a sigma-delta idle — and it explains slide 07's rising Allan
+      curve, since idle-tone plateaus read as drift.
+    </p>
+    <p>
+      Practical consequence: a quiet-looking GR07 reading is not evidence of a
+      good one. GR06, having no clock in its path, has no equivalent failure.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════ 10 · corrections ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>10</b> / What I got wrong</span>
     <h2>Four corrections worth recording</h2>
     <p class="lede">
       Three were mine. The measurement one mattered most, because it was silently
@@ -700,7 +826,7 @@
 <!-- ═══════════════ 09 · shipped ═══════════════ -->
 <section class="slide">
   <div class="wrap">
-    <span class="num"><b>09</b> / Shipped</span>
+    <span class="num"><b>11</b> / Shipped</span>
     <h2>What exists now</h2>
 
     <div class="grid g2">
@@ -1020,5 +1146,192 @@ if (DATA.staircase && DATA.staircase.bins) {
   const yl = el("text", { x: 16, y: 20, class: "sm" });
   yl.textContent = "periods";
   svg.appendChild(yl);
+})();
+
+/* ---------- slides 08-09 · the stimulus run ---------- */
+(() => {
+  const EV = DATA.events;
+  if (!EV) return;
+  const pairs = (a) => a.filter((p) => p[1] !== null);
+
+  /* --- full run, both sensors, with event marks --- */
+  (() => {
+    const svg = $("chart-events");
+    const W = 980, H = 340, M = { t: 16, r: 18, b: 40, l: 58 };
+    const A = EV.sensors.GR07.trace, B = EV.sensors.GR06.trace;
+    const all = pairs(A).concat(pairs(B)).map((p) => p[1]);
+    let lo = Math.min(...all), hi = Math.max(...all);
+    const pad = (hi - lo) * 0.08; lo -= pad; hi += pad;
+    const xmax = EV.span_s;
+    const X = (v) => M.l + (v / xmax) * (W - M.l - M.r);
+    const Y = (v) => M.t + (1 - (v - lo) / (hi - lo)) * (H - M.t - M.b);
+
+    for (let i = 0; i <= 5; i++) {
+      const v = lo + (hi - lo) * i / 5, y = Y(v);
+      svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: y, y2: y,
+        stroke: "var(--rule)", "stroke-width": .6, opacity: .55 }));
+      const tx = el("text", { x: M.l - 10, y: y + 4, "text-anchor": "end", class: "sm" });
+      tx.textContent = v.toFixed(0); svg.appendChild(tx);
+    }
+    for (let i = 0; i <= 6; i++) {
+      const v = xmax * i / 6, x = X(v);
+      const tx = el("text", { x, y: H - M.b + 20, "text-anchor": "middle", class: "sm" });
+      tx.textContent = v.toFixed(0) + " s"; svg.appendChild(tx);
+    }
+
+    // event markers first, so the traces draw over them
+    [["spray", EV.spray.onset_s], ["finger on", 88.3], ["finger off", 121.9]].forEach(
+      ([label, tv]) => {
+        const x = X(tv);
+        svg.appendChild(el("line", { x1: x, x2: x, y1: M.t, y2: H - M.b,
+          stroke: "var(--ink-3)", "stroke-width": 1, "stroke-dasharray": "3 3", opacity: .8 }));
+        const tx = el("text", { x: x + 5, y: M.t + 13, class: "sm" });
+        tx.textContent = label; svg.appendChild(tx);
+      });
+
+    const line = (data, colour) => {
+      let d = "", pen = false;
+      data.forEach(([x, y]) => {
+        if (y === null) { pen = false; return; }
+        d += (pen ? "L" : "M") + X(x).toFixed(1) + " " + Y(y).toFixed(1) + " ";
+        pen = true;
+      });
+      svg.appendChild(el("path", { d, fill: "none", stroke: colour,
+        "stroke-width": 1.6, "stroke-linejoin": "round" }));
+    };
+    line(B, "var(--gr06)");
+    line(A, "var(--gr07)");
+    const yl = el("text", { x: 14, y: M.t + 4, class: "sm" });
+    yl.textContent = "°C"; svg.appendChild(yl);
+  })();
+
+  /* --- one cutout card: temperature above, dT/dt below --- */
+  const cutCard = (cut) => {
+    const box = document.createElement("div");
+    box.className = "chartbox";
+    const rate = cut.peak_rate;
+    box.innerHTML =
+      `<h3>${cut.label}</h3>` +
+      `<div class="rate ${rate < 0 ? "a" : "b"}">${rate > 0 ? "+" : ""}${rate.toFixed(1)} K/s</div>` +
+      `<div class="sub">peak rate · ${cut.t0.toFixed(0)}–${cut.t1.toFixed(0)} s</div>`;
+
+    const W = 300, H = 200, M = { t: 12, r: 8, b: 26, l: 40 }, SPLIT = 118;
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, class: "chart",
+      role: "img", "aria-label": `${cut.label}: temperature and rate of change` });
+    svg.style.marginTop = "10px";
+
+    const A = pairs(cut.series.GR07), B = pairs(cut.series.GR06);
+    const D = pairs(cut.deriv_GR07);
+    const xs = A.concat(B).map((p) => p[0]);
+    const x0 = Math.min(...xs), x1 = Math.max(...xs);
+    const X = (v) => M.l + (v - x0) / (x1 - x0) * (W - M.l - M.r);
+
+    const tv = A.concat(B).map((p) => p[1]);
+    let tlo = Math.min(...tv), thi = Math.max(...tv);
+    const tp = (thi - tlo) * 0.12 || 0.5; tlo -= tp; thi += tp;
+    const YT = (v) => M.t + (1 - (v - tlo) / (thi - tlo)) * (SPLIT - M.t);
+
+    const dv = D.map((p) => p[1]);
+    let dlo = Math.min(...dv, 0), dhi = Math.max(...dv, 0);
+    const dp = (dhi - dlo) * 0.15 || 1; dlo -= dp; dhi += dp;
+    const YD = (v) => SPLIT + 16 + (1 - (v - dlo) / (dhi - dlo)) * (H - M.b - SPLIT - 16);
+
+    [[tlo, thi, YT, "°C"], [dlo, dhi, YD, "K/s"]].forEach(([a, b, fn, unit]) => {
+      [a, (a + b) / 2, b].forEach((v, i) => {
+        const y = fn(v);
+        svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: y, y2: y,
+          stroke: "var(--rule)", "stroke-width": .5, opacity: .5 }));
+        if (i !== 1) {
+          const tx = el("text", { x: M.l - 5, y: y + 3, "text-anchor": "end", class: "sm" });
+          tx.setAttribute("font-size", "8.5");
+          tx.textContent = Math.abs(v) >= 10 ? v.toFixed(0) : v.toFixed(1);
+          svg.appendChild(tx);
+        }
+      });
+      const ul = el("text", { x: 2, y: fn(b) - 4, class: "sm" });
+      ul.setAttribute("font-size", "8"); ul.textContent = unit; svg.appendChild(ul);
+    });
+    // zero line on the rate pane, so sign reads at a glance
+    if (dlo < 0 && dhi > 0) {
+      svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: YD(0), y2: YD(0),
+        stroke: "var(--ink-3)", "stroke-width": .8, opacity: .7 }));
+    }
+
+    const draw = (data, fn, colour, width) => {
+      let d = "", pen = false;
+      data.forEach(([x, y]) => {
+        if (y === null) { pen = false; return; }
+        d += (pen ? "L" : "M") + X(x).toFixed(1) + " " + fn(y).toFixed(1) + " ";
+        pen = true;
+      });
+      svg.appendChild(el("path", { d, fill: "none", stroke: colour,
+        "stroke-width": width, "stroke-linejoin": "round" }));
+    };
+    draw(cut.series.GR06, YT, "var(--gr06)", 1.4);
+    draw(cut.series.GR07, YT, "var(--gr07)", 1.6);
+    draw(cut.deriv_GR07, YD, "var(--rate)", 1.4);
+
+    [x0, (x0 + x1) / 2, x1].forEach((v) => {
+      const tx = el("text", { x: X(v), y: H - 6, "text-anchor": "middle", class: "sm" });
+      tx.setAttribute("font-size", "8.5"); tx.textContent = v.toFixed(0) + "s";
+      svg.appendChild(tx);
+    });
+    box.appendChild(svg);
+    return box;
+  };
+
+  const host = $("cutouts");
+  EV.cutouts.forEach((c) => host.appendChild(cutCard(c)));
+
+  $("ev-spray-t").textContent = EV.spray.onset_s.toFixed(1) + " s";
+
+  const sp = EV.spray, g7 = EV.sensors.GR07, g6 = EV.sensors.GR06;
+  $("ev-comment").innerHTML =
+    "<b>How fast?</b> The spray took the die from " +
+    g7.baseline_c.toFixed(1) + " °C to " + g7.min_c.toFixed(1) +
+    " °C — <b>" + Math.abs(sp.depth_k).toFixed(1) + " K in " + sp.fall_s.toFixed(2) +
+    " s</b>, averaging " + sp.mean_rate_k_per_s.toFixed(1) + " K/s and peaking at <b>" +
+    g7.peak_cool_k_per_s.toFixed(0) + " K/s</b>. A fingertip is gentler in both " +
+    "directions: about +11 K/s going on and −8.5 K/s coming off, settling near skin " +
+    "temperature. Recovery from the spray is not one exponential — the die is back " +
+    "within a few kelvin in about 6 s, then creeps for another minute as the package " +
+    "and board catch up. " +
+    "Peak rate depends on how fast you look: GR07 resolves it with a " +
+    g7.window_ms.toFixed(0) + " ms window, while GR06's noise forces " +
+    g6.window_ms.toFixed(0) + " ms, which is why it reports only " +
+    g6.peak_cool_k_per_s.toFixed(0) + " K/s for the same event. That is a bandwidth " +
+    "difference, not disagreement.";
+
+  /* --- correlation and dead-zone tables --- */
+  const why = {
+    "spray + recovery (13-86 s)": "die genuinely cooling, then recovering",
+    "finger on (88-125 s)": "die genuinely warming, then settling",
+    "quiet tail (130-180 s)": "nothing happening — sensor noise only",
+  };
+  const crows = $("corr-rows");
+  Object.keys(EV.correlation).filter((k) => !k.endsWith("_n")).forEach((k) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${k}</td><td class="n">${EV.correlation[k] >= 0 ? "+" : ""}` +
+      `${EV.correlation[k].toFixed(3)}</td><td style="text-align:right">${why[k] || ""}</td>`;
+    crows.appendChild(tr);
+  });
+  const trq = document.createElement("tr");
+  trq.innerHTML = `<td>15-minute quiet run (slide 07)</td><td class="n">+` +
+    `${DATA.correlation.toFixed(3)}</td>` +
+    `<td style="text-align:right">no stimulus at all</td>`;
+  crows.appendChild(trq);
+
+  const drows = $("dead-rows");
+  EV.dead_zone.forEach((z) => {
+    const near = Math.min(z.frac, 1 - z.frac);
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      `<td class="n">${z.temp_c.toFixed(2)} °C</td>` +
+      `<td class="n">${z.cycles.toFixed(3)}</td>` +
+      `<td class="n">${near.toFixed(3)}</td>` +
+      `<td class="n"${near < 0.02 ? ' style="font-weight:600"' : ""}>` +
+      `${z.sigma_mk.toFixed(1)} mK</td>`;
+    drows.appendChild(tr);
+  });
 })();
 </script>

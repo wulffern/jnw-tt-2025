@@ -267,6 +267,42 @@ Two results worth keeping in mind when using either sensor:
   event advantage buys a better single reading, not a better long-term
   measurement. Past a few seconds GR06 is the more trustworthy of the two.
 
+### Stimulus runs
+
+`data/jnwtemp-BOTH-20260731-213248.csv` is a three-minute dual-sensor run with
+freeze spray at 12.9 s and a fingertip on the package from 88 s to 122 s.
+
+```sh
+python3 scripts/analyse_events.py data/<run>.csv   # find and rate the events
+python3 scripts/build_event_data.py                # -> data/event_data.json
+```
+
+What it showed:
+
+* The spray took the die from **21.6 °C to 8.2 °C in 1.41 s** - 13.4 K, peaking
+  at **-37 K/s**. A fingertip manages about +11 K/s on and -8.5 K/s off.
+* **The two sensors agree almost perfectly when something real happens**
+  (r = +0.95 during the spray, +0.99 under the finger) and disagree when nothing
+  does (+0.11 over a quiet 15 minutes). That settles the question the quiet run
+  raised: the wander there was sensor noise, not the room.
+* **GR07 has dead zones.** Its noise per 1 ms point ranges from 8.8 mK to 90.7 mK
+  depending on temperature, and collapses exactly where the period lands on a
+  whole number of 64 MHz clock cycles. That is the dither switching off, not
+  precision - the sensor goes locally insensitive while looking ten times
+  quieter, which is also why its Allan curve turns up.
+
+Two things to keep in mind reading those numbers. Single-point calibration means
+the *depth* is extrapolated 15 K beyond its only anchor and carries an unbounded
+systematic; the *rates* depend only on the slope and are far more trustworthy.
+And a peak rate is a bandwidth statement: GR07 resolves the spray with a 46 ms
+window, GR06 needs 406 ms and so reports -17 K/s for the same event.
+
+Differentiating a burst-sampled trace has two traps, both handled in
+`analyse_events.py`: never differentiate across the dead time between captures
+(hence the `capture` column), and drop the half-window at each capture edge,
+where a Savitzky-Golay filter extrapolates and will happily report tens of K/s
+across a perfectly flat boundary.
+
 ### The slides
 
 `docs/presentation.html` is a standalone deck covering the sensors, the setup and
