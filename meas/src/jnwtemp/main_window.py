@@ -40,6 +40,7 @@ from PySide6.QtWidgets import (
     QScrollArea,
     QSpinBox,
     QSplitter,
+    QStackedWidget,
     QToolButton,
     QVBoxLayout,
     QWidget,
@@ -78,10 +79,14 @@ from .temperature import CalibrationStore, resolution_k
 from .worker import AcquireThread
 
 
+#: What the lower pane shows. The raw per-event trace lives here rather than in
+#: a permanent third pane: it is worth looking at occasionally, not constantly,
+#: and two panes leave the temperature trace room to be read.
 SPECTRUM_MODES = [
     ("Within capture (conversion noise)", "fast"),
     ("Long term (drift + 1/f)", "slow"),
     ("Allan deviation", "allan"),
+    ("Last capture - raw timing", "raw"),
 ]
 
 
@@ -177,11 +182,17 @@ class MainWindow(QWidget):
         self.plot_temp = LiveWavePlot("time_s") if CICWAVE_PLOT else TemperaturePlot()
         self.plot_obs = ObservablePlot()
         self.plot_spec = SpectrumPlot()
+        # The lower pane is one slot showing whichever view is selected, so the
+        # temperature trace gets the height instead of a permanently visible
+        # third plot.
+        self.lower = QStackedWidget()
+        self.lower.addWidget(self.plot_spec)
+        self.lower.addWidget(self.plot_obs)
+
         plots = QSplitter(Qt.Orientation.Vertical)
         plots.addWidget(self.plot_temp)
-        plots.addWidget(self.plot_obs)
-        plots.addWidget(self.plot_spec)
-        plots.setSizes([340, 240, 340])
+        plots.addWidget(self.lower)
+        plots.setSizes([520, 380])
 
         left = QVBoxLayout()
         left.setContentsMargins(0, 0, 0, 0)
@@ -827,6 +838,10 @@ class MainWindow(QWidget):
 
     def _redraw_spectrum(self) -> None:
         mode = self.combo_spec.currentData()
+        if mode == "raw":
+            self.lower.setCurrentWidget(self.plot_obs)
+            return
+        self.lower.setCurrentWidget(self.plot_spec)
         if mode != "allan":
             self.plot_spec.restore_frequency_axis()
 

@@ -220,12 +220,13 @@ Two deliberate choices make that work:
   Note the trace is deliberately **not** what feeds the spectra: it is sampled
   in bursts with gaps, which would violate the uniform-sampling assumption in
   the PSD and Allan routines. Those use the per-capture averages instead.
-* **Last capture - raw timing** - every individual period or pulse in the most
-  recent capture. For GR07 expect a *staircase*: the comparator output is
+* **Lower pane** - one slot, not a permanent second plot, so the temperature
+  trace gets the height. Selected with **Bottom plot**:
+  * *Last capture - raw timing* - every individual period or pulse in the most
+    recent capture. For GR07 expect a *staircase*: the comparator output is
   re-timed by the project clock, so one clock period is roughly 4-5 K at 64 MHz.
   Averaging tens of thousands of events dithers through it; that is why the
   clock is run as fast as it will go.
-* **Bottom plot** - selectable:
   * *Within capture* - conversion noise of the sensor at its own ~1 MHz rate.
   * *Long term* - drift and 1/f across the whole session.
   * *Allan deviation* - how far averaging actually helps before drift takes over.
