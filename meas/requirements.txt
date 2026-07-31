@@ -1,0 +1,7 @@
+numpy
+scipy
+PySide6
+pyqtgraph
+click
+pyserial
+logic2-automation

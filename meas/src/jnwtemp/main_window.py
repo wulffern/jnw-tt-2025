@@ -1,0 +1,780 @@
+#!/usr/bin/env python3
+######################################################################
+##        Copyright (c) 2026 Carsten Wulff Software, Norway
+## ###################################################################
+##  The MIT License (MIT)
+##
+##  Permission is hereby granted, free of charge, to any person obtaining a copy
+##  of this software and associated documentation files (the "Software"), to deal
+##  in the Software without restriction, including without limitation the rights
+##  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+##  copies of the Software, and to permit persons to whom the Software is
+##  furnished to do so, subject to the following conditions:
+##
+##  The above copyright notice and this permission notice shall be included in all
+##  copies or substantial portions of the Software.
+######################################################################
+"""The live demo window: instrument status, controls, and three plots."""
+
+from __future__ import annotations
+
+import csv
+import os
+import time
+from typing import Optional
+
+import numpy as np
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
+    QCheckBox,
+    QComboBox,
+    QDoubleSpinBox,
+    QFileDialog,
+    QFormLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QMessageBox,
+    QPlainTextEdit,
+    QPushButton,
+    QSpinBox,
+    QSplitter,
+    QVBoxLayout,
+    QWidget,
+)
+
+from .acquire import SENSORS, AcquireSettings, Reading
+from .board import MAX_PROJECT_CLOCK_HZ, find_ports
+from .logic import OFFERED_RATES, THRESHOLDS_V
+from .plots import (
+    GRID,
+    SERIES_1,
+    STATUS_BAD,
+    STATUS_GOOD,
+    STATUS_WARN,
+    SURFACE,
+    SURFACE_2,
+    TEXT_MUTED,
+    TEXT_PRIMARY,
+    TEXT_SECONDARY,
+    ObservablePlot,
+    SpectrumPlot,
+    StatTile,
+    TemperaturePlot,
+)
+from .recorder import TemperatureRecorder, export_capture
+from .spectrum import History, allan_deviation, integrated_noise, welch_psd
+from .temperature import CalibrationStore, resolution_k
+from .worker import AcquireThread
+
+#: Default wiring, overridable in the GUI. uo_out[0] and uo_out[2] are the two
+#: sensor outputs; which Saleae channel they land on depends on the probe clip,
+#: so "Detect" exists to find out rather than guess.
+DEFAULT_CHANNELS = {"GR07": 0, "GR06": 2}
+
+SPECTRUM_MODES = [
+    ("Within capture (conversion noise)", "fast"),
+    ("Long term (drift + 1/f)", "slow"),
+    ("Allan deviation", "allan"),
+]
+
+
+class StatusChip(QLabel):
+    """A small colored pill showing the state of one instrument."""
+
+    def __init__(self, name: str) -> None:
+        super().__init__()
+        self._name = name
+        self.set_state("unknown", "not connected")
+
+    def set_state(self, state: str, detail: str = "") -> None:
+        color = {
+            "ok": STATUS_GOOD,
+            "warn": STATUS_WARN,
+            "bad": STATUS_BAD,
+        }.get(state, TEXT_MUTED)
+        self.setText(f"{self._name}: {detail}" if detail else self._name)
+        self.setToolTip(detail)
+        self.setStyleSheet(
+            f"QLabel {{ color:{color}; border:1px solid {color}; border-radius:6px;"
+            f" padding:3px 10px; background:{SURFACE_2}; font-size:11px; }}"
+        )
+
+
+class MainWindow(QWidget):
+    def __init__(self, board_port: Optional[str] = None, use_board: bool = True) -> None:
+        super().__init__()
+        self.setWindowTitle("JNW-TEMP - live temperature sensor demo (TT project 258)")
+
+        self.settings = AcquireSettings()
+        self.settings.channel = DEFAULT_CHANNELS[self.settings.sensor]
+        self.cal_store = CalibrationStore()
+        self._board_port = board_port
+        self._use_board = use_board
+        self.thread: Optional[AcquireThread] = None
+
+        # Long-term history: one averaged reading per capture.
+        self.history = History(maxlen=100_000)
+        self._t0 = time.time()
+        self._last: Optional[Reading] = None
+        self._readings = 0
+        self.recorder: Optional[TemperatureRecorder] = None
+        #: identities reported by the instruments at connect, for provenance
+        self._instruments: dict = {}
+
+        self._build_ui()
+        self._apply_dark_theme()
+        self.resize(1500, 940)
+        self._refresh_calibration_labels()
+
+    # ------------------------------------------------------------------- UI
+    def _build_ui(self) -> None:
+        self.chip_logic = StatusChip("Logic 2")
+        self.chip_board = StatusChip("Demo board")
+        self.chip_project = StatusChip("Project")
+        self.status_label = QLabel("Idle")
+        self.status_label.setStyleSheet(f"color:{TEXT_MUTED}; font-size:11px;")
+
+        top = QHBoxLayout()
+        top.setContentsMargins(8, 6, 8, 0)
+        top.setSpacing(8)
+        for chip in (self.chip_logic, self.chip_board, self.chip_project):
+            top.addWidget(chip)
+        top.addWidget(self.status_label)
+        top.addStretch(1)
+
+        # --- hero readouts
+        self.tile_temp = StatTile("ESTIMATED TEMPERATURE", " °C", SERIES_1)
+        self.tile_rate = StatTile("SENSOR RATE", " kHz", TEXT_PRIMARY)
+        self.tile_noise = StatTile("NOISE (1 sigma)", " °C", TEXT_PRIMARY)
+        tiles = QHBoxLayout()
+        tiles.setContentsMargins(8, 6, 8, 0)
+        tiles.setSpacing(8)
+        tiles.addWidget(self.tile_temp, 2)
+        tiles.addWidget(self.tile_rate, 1)
+        tiles.addWidget(self.tile_noise, 1)
+
+        # --- plots
+        self.plot_temp = TemperaturePlot()
+        self.plot_obs = ObservablePlot()
+        self.plot_spec = SpectrumPlot()
+        plots = QSplitter(Qt.Orientation.Vertical)
+        plots.addWidget(self.plot_temp)
+        plots.addWidget(self.plot_obs)
+        plots.addWidget(self.plot_spec)
+        plots.setSizes([340, 240, 340])
+
+        left = QVBoxLayout()
+        left.setContentsMargins(0, 0, 0, 0)
+        left.addLayout(tiles)
+        left.addWidget(plots, 1)
+        left_w = QWidget()
+        left_w.setLayout(left)
+
+        body = QHBoxLayout()
+        body.addWidget(left_w, 1)
+        body.addWidget(self._build_controls(), 0)
+
+        root = QVBoxLayout(self)
+        root.setContentsMargins(0, 0, 8, 8)
+        root.addLayout(top, 0)
+        root.addLayout(body, 1)
+
+    def _build_controls(self) -> QWidget:
+        panel = QWidget()
+        panel.setFixedWidth(340)
+        outer = QVBoxLayout(panel)
+        outer.setContentsMargins(0, 6, 0, 0)
+        outer.setSpacing(8)
+
+        # ---- connection
+        conn = QGroupBox("Instruments")
+        cf = QVBoxLayout(conn)
+        self.btn_connect = QPushButton("Connect")
+        self.btn_connect.clicked.connect(self._on_connect)
+        self.btn_detect = QPushButton("Detect active channels")
+        self.btn_detect.clicked.connect(self._on_detect)
+        self.btn_detect.setEnabled(False)
+        self.chk_board = QCheckBox("Use demo board (closed loop)")
+        self.chk_board.setChecked(self._use_board)
+        self.combo_port = QComboBox()
+        self.combo_port.addItem("auto", None)
+        for p in find_ports():
+            self.combo_port.addItem(p, p)
+        cf.addWidget(self.chk_board)
+        cf.addWidget(self.combo_port)
+        cf.addWidget(self.btn_connect)
+        cf.addWidget(self.btn_detect)
+        outer.addWidget(conn)
+
+        # ---- sensor
+        sens = QGroupBox("Sensor")
+        sf = QFormLayout(sens)
+        self.combo_sensor = QComboBox()
+        for key, spec in SENSORS.items():
+            self.combo_sensor.addItem(spec.label, key)
+        self.combo_sensor.currentIndexChanged.connect(self._on_sensor_changed)
+        sf.addRow("Sensor", self.combo_sensor)
+
+        self.spin_channel = QSpinBox()
+        self.spin_channel.setRange(0, 15)
+        self.spin_channel.setValue(self.settings.channel)
+        self.spin_channel.valueChanged.connect(self._push_settings)
+        sf.addRow("Saleae D", self.spin_channel)
+
+        self.combo_rate = QComboBox()
+        for rate in OFFERED_RATES:
+            self.combo_rate.addItem(f"{rate/1e6:.0f} MS/s", rate)
+        self.combo_rate.currentIndexChanged.connect(self._push_settings)
+        sf.addRow("Sample rate", self.combo_rate)
+
+        # The Logic Pro accepts exactly three digital thresholds; a free spin
+        # box would just let the user pick one the device rejects.
+        self.combo_threshold = QComboBox()
+        for v in THRESHOLDS_V:
+            self.combo_threshold.addItem(f"{v:.1f} V", v)
+        self.combo_threshold.currentIndexChanged.connect(self._push_settings)
+        sf.addRow("Threshold", self.combo_threshold)
+
+        self.spin_duration = QDoubleSpinBox()
+        self.spin_duration.setRange(0.005, 5.0)
+        self.spin_duration.setDecimals(3)
+        self.spin_duration.setSingleStep(0.01)
+        self.spin_duration.setSuffix(" s")
+        self.spin_duration.setValue(self.settings.duration_s)
+        self.spin_duration.valueChanged.connect(self._push_settings)
+        sf.addRow("Capture", self.spin_duration)
+        outer.addWidget(sens)
+
+        # ---- chip control
+        chip = QGroupBox("Chip control")
+        cf2 = QFormLayout(chip)
+        self.spin_clock = QSpinBox()
+        self.spin_clock.setRange(1, MAX_PROJECT_CLOCK_HZ // 1_000_000)
+        self.spin_clock.setValue(self.settings.clock_hz // 1_000_000)
+        self.spin_clock.setSuffix(" MHz")
+        self.spin_clock.valueChanged.connect(self._push_settings)
+        cf2.addRow("Project clock", self.spin_clock)
+
+        self.spin_reset_high = QSpinBox()
+        self.spin_reset_high.setRange(1, 10_000)
+        self.spin_reset_high.setValue(self.settings.reset_high_us)
+        self.spin_reset_high.setSuffix(" us")
+        self.spin_reset_high.valueChanged.connect(self._push_settings)
+        cf2.addRow("Reset high", self.spin_reset_high)
+
+        self.spin_reset_low = QSpinBox()
+        self.spin_reset_low.setRange(1, 100_000)
+        self.spin_reset_low.setValue(self.settings.reset_low_us)
+        self.spin_reset_low.setSuffix(" us")
+        self.spin_reset_low.valueChanged.connect(self._push_settings)
+        cf2.addRow("Reset low", self.spin_reset_low)
+
+        self.btn_apply_chip = QPushButton("Apply to chip")
+        self.btn_apply_chip.clicked.connect(self._on_apply_chip)
+        self.btn_apply_chip.setEnabled(False)
+        cf2.addRow(self.btn_apply_chip)
+        outer.addWidget(chip)
+
+        # ---- calibration
+        calib = QGroupBox("Calibration")
+        kf = QFormLayout(calib)
+        self.spin_ref = QDoubleSpinBox()
+        self.spin_ref.setRange(-50.0, 150.0)
+        self.spin_ref.setDecimals(2)
+        self.spin_ref.setValue(23.0)
+        self.spin_ref.setSuffix(" °C")
+        kf.addRow("Reference", self.spin_ref)
+
+        self.btn_calibrate = QPushButton("Calibrate here")
+        self.btn_calibrate.clicked.connect(self._on_calibrate)
+        self.btn_clear_cal = QPushButton("Clear")
+        self.btn_clear_cal.clicked.connect(self._on_clear_cal)
+        row = QHBoxLayout()
+        row.addWidget(self.btn_calibrate)
+        row.addWidget(self.btn_clear_cal)
+        kf.addRow(row)
+
+        self.lbl_cal = QLabel("uncalibrated")
+        self.lbl_cal.setWordWrap(True)
+        # Two wrapped lines of model + resolution; without a floor the group box
+        # shrinks to one line and clips the rest.
+        self.lbl_cal.setMinimumHeight(46)
+        self.lbl_cal.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.lbl_cal.setStyleSheet(f"color:{TEXT_MUTED}; font-size:11px;")
+        kf.addRow(self.lbl_cal)
+        outer.addWidget(calib)
+
+        # ---- display
+        disp = QGroupBox("Display")
+        df = QFormLayout(disp)
+        self.combo_spec = QComboBox()
+        for label, key in SPECTRUM_MODES:
+            self.combo_spec.addItem(label, key)
+        self.combo_spec.currentIndexChanged.connect(self._redraw_spectrum)
+        df.addRow("Bottom plot", self.combo_spec)
+
+        self.btn_run = QPushButton("Start")
+        self.btn_run.setEnabled(False)
+        self.btn_run.clicked.connect(self._on_run_toggled)
+        self.btn_reset = QPushButton("Clear history")
+        self.btn_reset.clicked.connect(self._on_clear_history)
+        self.btn_save = QPushButton("Save CSV...")
+        self.btn_save.clicked.connect(self._on_save)
+        df.addRow(self.btn_run)
+        df.addRow(self.btn_reset)
+        df.addRow(self.btn_save)
+        outer.addWidget(disp)
+
+        # ---- recording
+        rec = QGroupBox("Recording")
+        rf = QVBoxLayout(rec)
+        self.btn_record = QPushButton("Record to CSV...")
+        self.btn_record.clicked.connect(self._on_record)
+        self.btn_record_stop = QPushButton("Stop recording")
+        self.btn_record_stop.clicked.connect(self._on_record_stop)
+        self.btn_record_stop.setEnabled(False)
+        self.lbl_record = QLabel("not recording")
+        self.lbl_record.setWordWrap(True)
+        self.lbl_record.setMinimumHeight(30)
+        self.lbl_record.setStyleSheet(f"color:{TEXT_MUTED}; font-size:11px;")
+        self.btn_export_capture = QPushButton("Export last capture...")
+        self.btn_export_capture.setToolTip(
+            "Per-event data of the most recent capture (every period/pulse), "
+            "for plotting in cicwave. .csv, .parquet or .feather."
+        )
+        self.btn_export_capture.clicked.connect(self._on_export_capture)
+        rf.addWidget(self.btn_record)
+        rf.addWidget(self.btn_record_stop)
+        rf.addWidget(self.btn_export_capture)
+        rf.addWidget(self.lbl_record)
+        outer.addWidget(rec)
+
+        self.log = QPlainTextEdit()
+        self.log.setReadOnly(True)
+        self.log.setMaximumBlockCount(500)
+        self.log.setStyleSheet(
+            f"QPlainTextEdit {{ background:{SURFACE_2}; color:{TEXT_MUTED};"
+            f" border:1px solid {GRID}; border-radius:6px; font-size:11px; }}"
+        )
+        outer.addWidget(self.log, 1)
+        return panel
+
+    def _apply_dark_theme(self) -> None:
+        self.setStyleSheet(
+            f"""
+            QWidget {{ background:{SURFACE}; color:{TEXT_SECONDARY}; font-size:12px; }}
+            QGroupBox {{ border:1px solid {GRID}; border-radius:8px; margin-top:10px;
+                         padding:8px 8px 6px 8px; }}
+            QGroupBox::title {{ subcontrol-origin: margin; left:10px; padding:0 4px;
+                                color:{TEXT_MUTED}; font-size:11px; letter-spacing:1px; }}
+            QPushButton {{ background:{SURFACE_2}; border:1px solid {GRID};
+                           border-radius:6px; padding:6px 10px; color:{TEXT_PRIMARY}; }}
+            QPushButton:hover:enabled {{ border-color:{SERIES_1}; color:{SERIES_1}; }}
+            QPushButton:disabled {{ color:{TEXT_MUTED}; border-color:{GRID}; }}
+            QComboBox, QSpinBox, QDoubleSpinBox {{ background:{SURFACE_2};
+                border:1px solid {GRID}; border-radius:6px; padding:3px 6px;
+                color:{TEXT_PRIMARY}; }}
+            QCheckBox {{ color:{TEXT_SECONDARY}; }}
+            QSplitter::handle {{ background:{GRID}; }}
+            """
+        )
+
+    # ------------------------------------------------------------- settings
+    def _collect_settings(self) -> AcquireSettings:
+        st = self.settings
+        st.sensor = self.combo_sensor.currentData()
+        st.channel = self.spin_channel.value()
+        st.sample_rate = int(self.combo_rate.currentData())
+        st.threshold_volts = float(self.combo_threshold.currentData())
+        st.duration_s = float(self.spin_duration.value())
+        st.clock_hz = self.spin_clock.value() * 1_000_000
+        st.reset_high_us = self.spin_reset_high.value()
+        st.reset_low_us = self.spin_reset_low.value()
+        return st
+
+    def _push_settings(self) -> None:
+        st = self._collect_settings()
+        if self.thread is not None:
+            self.thread.update_settings(st)
+
+    def _on_sensor_changed(self) -> None:
+        key = self.combo_sensor.currentData()
+        self.spin_channel.blockSignals(True)
+        self.spin_channel.setValue(DEFAULT_CHANNELS.get(key, 0))
+        self.spin_channel.blockSignals(False)
+        spec = SENSORS[key]
+        self.spin_reset_high.setEnabled(spec.needs_stimulus)
+        self.spin_reset_low.setEnabled(spec.needs_stimulus)
+        self._append_log(f"{spec.key}: {spec.doc}")
+        self._on_clear_history()
+        self._push_settings()
+        self._refresh_calibration_labels()
+
+    @property
+    def cal(self):
+        return self.cal_store.get(self.combo_sensor.currentData() or "GR07")
+
+    def _refresh_calibration_labels(self) -> None:
+        cal = self.cal
+        self.lbl_cal.setText(cal.describe())
+        st = self.settings
+        if cal.calibrated and self._last is not None and self._last.ok:
+            lsb = st.timing_lsb_s(self._last.sample_rate)
+            res = resolution_k(self._last.mean_rate_hz, lsb, cal)
+            self.lbl_cal.setText(
+                f"{cal.describe()}\nsingle-event step ≈ {res:.3f} K "
+                f"({lsb*1e9:.2f} ns); averaging dithers through it"
+            )
+
+    # ------------------------------------------------------------ instrument
+    def _on_connect(self) -> None:
+        if self.thread is not None:
+            self._teardown_thread()
+            self.btn_connect.setText("Connect")
+            self.btn_run.setEnabled(False)
+            self.btn_detect.setEnabled(False)
+            self.btn_apply_chip.setEnabled(False)
+            for chip in (self.chip_logic, self.chip_board, self.chip_project):
+                chip.set_state("unknown", "not connected")
+            return
+
+        st = self._collect_settings()
+        self.thread = AcquireThread(
+            st,
+            self.cal,
+            board_port=self.combo_port.currentData(),
+            use_board=self.chk_board.isChecked(),
+        )
+        self.thread.opened.connect(self._on_opened)
+        self.thread.readingReady.connect(self._on_reading)
+        self.thread.detected.connect(self._on_detected)
+        self.thread.logMessage.connect(self._append_log)
+        self.thread.statusMessage.connect(lambda m: self.status_label.setText(m))
+        self.thread.errorMessage.connect(self._on_error)
+        self.thread.runStateChanged.connect(self._on_run_state)
+        self.thread.start()
+        self.btn_connect.setText("Disconnect")
+        self.status_label.setText("Connecting...")
+
+    def _teardown_thread(self) -> None:
+        if self.thread is None:
+            return
+        self.thread.shutdown()
+        if not self.thread.wait(5000):
+            self.thread.terminate()
+            self.thread.wait(1000)
+        self.thread = None
+
+    def _on_opened(self, status: dict) -> None:
+        logic = status.get("logic", "")
+        board = status.get("board", "")
+        if logic.startswith("failed"):
+            self.chip_logic.set_state("bad", logic)
+            self.btn_run.setEnabled(False)
+        else:
+            self.chip_logic.set_state("ok", logic)
+            self.btn_run.setEnabled(True)
+            self.btn_detect.setEnabled(True)
+            self.status_label.setText("Connected - press Start")
+
+        if board in ("disabled",) or board.startswith("unavailable"):
+            self.chip_board.set_state("warn", board)
+            self.chip_project.set_state("warn", "not verified")
+        else:
+            self.chip_board.set_state("ok", board.split("|")[0].strip())
+            self.chip_project.set_state("ok", "tt_um_jnw_wulffern (258)")
+            self.btn_apply_chip.setEnabled(True)
+        self._instruments = {"logic2": logic, "demo_board": board}
+        self._append_log(f"Logic 2: {logic}")
+        self._append_log(f"Board: {board}")
+
+    def _on_apply_chip(self) -> None:
+        self._push_settings()
+        if self.thread is not None:
+            self.thread.request_configure()
+
+    def _on_detect(self) -> None:
+        if self.thread is not None:
+            self.thread.request_detect(list(range(8)))
+
+    def _on_detected(self, report: dict) -> None:
+        lines = ["Channel scan:"]
+        for ch in sorted(report):
+            v = report[ch]
+            if v["edges"] < 2:
+                lines.append(f"  D{ch}: idle (level {v['level']})")
+            else:
+                lines.append(
+                    f"  D{ch}: {v['edges']} edges, {v['freq']/1e3:.1f} kHz, duty {v['duty']*100:.1f}%"
+                )
+        self._append_log("\n".join(lines))
+
+    # --------------------------------------------------------------- running
+    def _on_run_toggled(self) -> None:
+        if self.thread is None:
+            return
+        if self.btn_run.text() == "Start":
+            self._push_settings()
+            self.thread.update_calibration(self.cal)
+            self.thread.start_acquiring()
+        else:
+            self.thread.stop_acquiring()
+
+    def _on_run_state(self, running: bool) -> None:
+        self.btn_run.setText("Stop" if running else "Start")
+
+    def _on_error(self, msg: str) -> None:
+        self._append_log(f"ERROR: {msg}")
+        self.status_label.setText("Error - see log")
+
+    def _append_log(self, msg: str) -> None:
+        self.log.appendPlainText(msg)
+
+    # ---------------------------------------------------------------- data
+    def _on_reading(self, reading: Reading) -> None:
+        self._last = reading
+        self._readings += 1
+        if not reading.ok:
+            self._append_log(f"Empty capture: {reading.note}")
+            self.tile_temp.set_value(float("nan"))
+            return
+
+        st = self.settings
+        spec = st.spec
+        cal = self.cal
+
+        # Hero numbers
+        self.tile_rate.set_value(reading.mean_rate_hz / 1e3, f"{spec.unit_label.lower()} "
+                                 f"{reading.mean_s*1e9:.1f} ns", decimals=3)
+        if cal.calibrated:
+            self.tile_temp.set_value(
+                reading.mean_temp_c,
+                f"{reading.n} events in {reading.duration_s*1e3:.0f} ms"
+                + (f", {reading.n_rejected} rejected" if reading.n_rejected else ""),
+            )
+            self.tile_temp.set_color(SERIES_1)
+            # Standard error of the capture mean is what the headline number is worth.
+            sem = reading.std_temp_c / max(1.0, np.sqrt(reading.n))
+            self.tile_noise.set_value(sem, f"per-event sigma {reading.std_temp_c:.3f} °C",
+                                      decimals=4)
+            self.history.append(reading.t_wall - self._t0, reading.mean_temp_c)
+        else:
+            self.tile_temp.set_value(float("nan"), "calibrate to convert rate to °C")
+            self.tile_temp.set_color(STATUS_WARN)
+            self.tile_noise.set_value(
+                reading.std_s * 1e9, f"{spec.unit_label.lower()} jitter [ns]", decimals=3
+            )
+            # Track the raw rate so the drift plot still works before calibration.
+            self.history.append(reading.t_wall - self._t0, float("nan"))
+
+        # Recording is fed the reading itself, not the plotted history, so a
+        # "Clear history" during a run cannot punch a hole in the record.
+        if self.recorder is not None and self.recorder.active:
+            self.recorder.add(reading)
+            self.plot_temp.set_recording(True)
+            self._update_record_label()
+
+        # Plots
+        t, temp = self.history.arrays()
+        self.plot_temp.update_series(t, temp)
+        self.plot_obs.update_series(reading.event_t, reading.event_s, spec.unit_label)
+        self._redraw_spectrum()
+        self._refresh_calibration_labels()
+
+    def _redraw_spectrum(self) -> None:
+        mode = self.combo_spec.currentData()
+        if mode != "allan":
+            self.plot_spec.restore_frequency_axis()
+
+        if mode == "fast":
+            r = self._last
+            if r is None or r.n < 32:
+                self.plot_spec.clear_data()
+                return
+            series = r.temp_c if self.cal.calibrated else r.event_s * 1e9
+            unit = "degC" if self.cal.calibrated else "ns"
+            fs = r.event_rate_hz
+            f, psd = welch_psd(series, fs)
+            rms = integrated_noise(f, psd)
+            self.plot_spec.update_psd(
+                f,
+                psd,
+                f"Conversion noise within one capture - {rms:.4g} {unit} rms, "
+                f"{r.n} events at {fs/1e3:.1f} kHz",
+                f"PSD [{unit}^2/Hz]",
+            )
+        elif mode == "slow":
+            t, v = self.history.arrays()
+            good = np.isfinite(v)
+            v = v[good]
+            if v.size < 16:
+                self.plot_spec.clear_data()
+                self.plot_spec.setTitle(
+                    f"Long-term spectrum - need 16 readings, have {v.size}",
+                    color=TEXT_MUTED,
+                    size="10pt",
+                )
+                return
+            dt = self.history.mean_dt()
+            f, psd = welch_psd(v, 1.0 / dt if dt > 0 else 1.0)
+            rms = integrated_noise(f, psd)
+            span = t[good][-1] - t[good][0] if v.size > 1 else 0.0
+            self.plot_spec.update_psd(
+                f, psd,
+                f"Long-term noise - {rms:.4g} °C rms over {span/60:.1f} min "
+                f"({v.size} readings, {1/dt if dt>0 else 0:.2f} Hz)",
+                "PSD [degC^2/Hz]",
+            )
+        else:
+            t, v = self.history.arrays()
+            v = v[np.isfinite(v)]
+            dt = self.history.mean_dt()
+            if v.size < 16 or not np.isfinite(dt):
+                self.plot_spec.clear_data()
+                return
+            taus, devs = allan_deviation(v, dt)
+            self.plot_spec.update_allan(taus, devs)
+
+    # ------------------------------------------------------------ recording
+    def _on_record(self) -> None:
+        if self.recorder is not None and self.recorder.active:
+            return
+        default = time.strftime(f"jnwtemp-{self.settings.sensor}-%Y%m%d-%H%M%S.csv")
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Record temperature to", default, "CSV files (*.csv)"
+        )
+        if not path:
+            return
+        cal = self.cal
+        if not cal.calibrated:
+            QMessageBox.information(
+                self,
+                "Recording uncalibrated",
+                "This sensor has no calibration, so the temperature column will be "
+                "empty. The raw rate and timing columns are still recorded and can "
+                "be converted later.",
+            )
+        self.recorder = TemperatureRecorder(path)
+        try:
+            self.recorder.start(self.settings, cal, self._instruments)
+        except OSError as exc:
+            self.recorder = None
+            QMessageBox.warning(self, "Recording", f"Could not open {path}:\n{exc}")
+            return
+
+        self._record_marker_t = None
+        self.btn_record.setEnabled(False)
+        self.btn_record_stop.setEnabled(True)
+        self._append_log(
+            f"Recording to {path}\n"
+            f"  provenance -> {os.path.basename(self.recorder.sidecar_path)}"
+        )
+        self._update_record_label()
+        if self.thread is not None and self.btn_run.text() == "Start":
+            # Recording with the loop paused would silently write nothing.
+            self._on_run_toggled()
+
+    def _on_record_stop(self) -> None:
+        if self.recorder is None or not self.recorder.active:
+            return
+        path, rows, dur = self.recorder.stop()
+        self.btn_record.setEnabled(True)
+        self.btn_record_stop.setEnabled(False)
+        self.lbl_record.setText(f"saved {rows} readings ({dur/60:.1f} min)\n{path}")
+        self._append_log(f"Recording stopped: {rows} readings over {dur/60:.2f} min -> {path}")
+        self.plot_temp.set_recording(False)
+
+    def _update_record_label(self) -> None:
+        r = self.recorder
+        if r is None or not r.active:
+            self.lbl_record.setText("not recording")
+            return
+        self.lbl_record.setText(
+            f"● recording {r.rows} readings, {r.elapsed()/60:.1f} min\n"
+            f"{os.path.basename(r.path)}"
+        )
+        self.lbl_record.setStyleSheet(f"color:{STATUS_BAD}; font-size:11px;")
+
+    def _on_export_capture(self) -> None:
+        r = self._last
+        if r is None or not r.ok:
+            QMessageBox.warning(self, "Export capture", "No capture to export yet.")
+            return
+        default = time.strftime(f"jnwtemp-{self.settings.sensor}-capture-%Y%m%d-%H%M%S.csv")
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Export last capture (per-event)",
+            default,
+            "Data files (*.csv *.parquet *.feather);;All files (*)",
+        )
+        if not path:
+            return
+        try:
+            path, n = export_capture(path, r, self.settings, self.cal, self._instruments)
+        except Exception as exc:
+            QMessageBox.warning(self, "Export capture", f"Could not export:\n{exc}")
+            return
+        self._append_log(
+            f"Exported {n} events to {path}\n"
+            f"  plot in cicwave: cicwave {os.path.basename(path)}"
+        )
+
+    # -------------------------------------------------------------- actions
+    def _on_calibrate(self) -> None:
+        r = self._last
+        if r is None or not r.ok:
+            QMessageBox.warning(self, "Calibrate", "Take a reading first.")
+            return
+        cal = self.cal
+        cal.add_point(self.spin_ref.value(), r.mean_rate_hz, note=f"n={r.n}")
+        self.cal_store.save()
+        if self.thread is not None:
+            self.thread.update_calibration(cal)
+        self._append_log(
+            f"Calibrated {cal.sensor} at {self.spin_ref.value():.2f} degC "
+            f"-> {r.mean_rate_hz/1e3:.4f} kHz. {cal.describe()}"
+        )
+        # Past history was computed with the old model, so it is no longer valid.
+        self.history.clear()
+        self._refresh_calibration_labels()
+
+    def _on_clear_cal(self) -> None:
+        cal = self.cal
+        cal.clear()
+        self.cal_store.save()
+        if self.thread is not None:
+            self.thread.update_calibration(cal)
+        self.history.clear()
+        self._refresh_calibration_labels()
+        self._append_log(f"Cleared calibration for {cal.sensor}")
+
+    def _on_clear_history(self) -> None:
+        self.history.clear()
+        self._t0 = time.time()
+        self._readings = 0
+        self.plot_temp.clear_data()
+        self.plot_spec.clear_data()
+
+    def _on_save(self) -> None:
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Save temperature history", "jnwtemp.csv", "CSV files (*.csv)"
+        )
+        if not path:
+            return
+        t, v = self.history.arrays()
+        with open(path, "w", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(["time_s", "temperature_c", "sensor", "calibration"])
+            cal = self.cal
+            for ti, vi in zip(t, v):
+                w.writerow([f"{ti:.6f}", f"{vi:.6f}", cal.sensor, cal.describe()])
+        self._append_log(f"Wrote {len(t)} readings to {path}")
+
+    # ------------------------------------------------------------- shutdown
+    def closeEvent(self, event) -> None:  # noqa: N802 (Qt naming)
+        if self.recorder is not None and self.recorder.active:
+            self._on_record_stop()
+        self._teardown_thread()
+        self.cal_store.save()
+        super().closeEvent(event)

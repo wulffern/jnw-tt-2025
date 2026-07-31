@@ -1,0 +1,371 @@
+#!/usr/bin/env python3
+######################################################################
+##        Copyright (c) 2026 Carsten Wulff Software, Norway
+## ###################################################################
+##  The MIT License (MIT)
+##
+##  Permission is hereby granted, free of charge, to any person obtaining a copy
+##  of this software and associated documentation files (the "Software"), to deal
+##  in the Software without restriction, including without limitation the rights
+##  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+##  copies of the Software, and to permit persons to whom the Software is
+##  furnished to do so, subject to the following conditions:
+##
+##  The above copyright notice and this permission notice shall be included in all
+##  copies or substantial portions of the Software.
+######################################################################
+"""Live plot widgets.
+
+Each plot carries a single series, so the title names it and no legend box is
+needed; identity never rests on color alone. Colors are the first three
+categorical slots stepped for a dark surface, which validate all-pairs in dark
+mode. Grid and axes stay recessive, lines are 2px, and every plot has a
+crosshair readout so values can be read off directly rather than estimated.
+"""
+
+from __future__ import annotations
+
+from typing import Optional, Tuple
+
+import numpy as np
+import pyqtgraph as pg
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont
+from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
+
+# --- dark-surface tokens ----------------------------------------------------
+SURFACE = "#1a1a19"
+SURFACE_2 = "#232322"
+TEXT_PRIMARY = "#ffffff"
+TEXT_SECONDARY = "#c3c2b7"
+TEXT_MUTED = "#8a8980"
+GRID = "#383835"
+
+SERIES_1 = "#3987e5"  # blue   - temperature
+SERIES_2 = "#d95926"  # orange - spectra
+SERIES_3 = "#199e70"  # aqua   - raw timing observable
+STATUS_GOOD = "#199e70"
+STATUS_WARN = "#c98500"
+STATUS_BAD = "#e66767"
+
+pg.setConfigOption("background", SURFACE)
+pg.setConfigOption("foreground", TEXT_SECONDARY)
+pg.setConfigOptions(antialias=True)
+
+
+#: Points beyond this per curve stall the Qt paint loop. One capture holds
+#: ~180k periods, far more than a ~1200 px wide plot can show, and painting
+#: them all blocks the GUI thread for seconds.
+MAX_PLOT_POINTS = 4000
+
+
+def envelope_decimate(
+    x: np.ndarray, y: np.ndarray, max_points: int = MAX_PLOT_POINTS
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Thin a series to ``max_points`` while keeping its min/max envelope.
+
+    Plain slicing would drop exactly the outliers worth seeing, so each output
+    bin contributes its minimum and its maximum, in time order. What is drawn
+    then still spans the true range of the data at every x.
+    """
+    n = y.size
+    if n <= max_points:
+        return x, y
+    bins = max(1, max_points // 2)
+    edges = np.linspace(0, n, bins + 1, dtype=int)
+    lo = np.empty(bins, dtype=int)
+    hi = np.empty(bins, dtype=int)
+    for i in range(bins):
+        a, b = edges[i], edges[i + 1]
+        if b <= a:
+            lo[i] = hi[i] = min(a, n - 1)
+            continue
+        seg = y[a:b]
+        lo[i] = a + int(np.argmin(seg))
+        hi[i] = a + int(np.argmax(seg))
+    idx = np.sort(np.concatenate([lo, hi]))
+    return x[idx], y[idx]
+
+
+class DecadeLogAxis(pg.AxisItem):
+    """Log axis that labels only whole decades.
+
+    Over the ~6 decades a noise spectrum spans, pyqtgraph's default also labels
+    intermediate ticks (2*10^5, 3*10^5 ...) and they collide into an unreadable
+    smear. Only decades are labelled here; the minor ticks stay as tick marks.
+    """
+
+    def logTickStrings(self, values, scale, spacing):  # noqa: N802 (pyqtgraph API)
+        out = []
+        for v in values:
+            nearest = round(v)
+            out.append(f"1e{int(nearest)}" if abs(v - nearest) < 1e-6 else "")
+        return out
+
+
+def _style_axes(plot: pg.PlotItem) -> None:
+    plot.showGrid(x=True, y=True, alpha=0.18)
+    for name in ("left", "bottom"):
+        ax = plot.getAxis(name)
+        ax.setPen(pg.mkPen(GRID, width=1))
+        ax.setTextPen(pg.mkPen(TEXT_MUTED))
+    plot.getViewBox().setDefaultPadding(0.02)
+
+
+class CrosshairPlot(pg.PlotWidget):
+    """A plot with a crosshair and a value readout in the corner.
+
+    Interaction is the default, not an extra: an instrument plot is read for
+    specific values, so the cursor always reports the point under it.
+    """
+
+    def __init__(
+        self,
+        title: str,
+        x_label: str,
+        y_label: str,
+        color: str = SERIES_1,
+        fmt: str = "{x:.3f}, {y:.3f}",
+        log_x: bool = False,
+        log_y: bool = False,
+        parent: Optional[QWidget] = None,
+    ) -> None:
+        axis_items = {}
+        if log_x:
+            axis_items["bottom"] = DecadeLogAxis(orientation="bottom")
+        if log_y:
+            axis_items["left"] = DecadeLogAxis(orientation="left")
+        super().__init__(parent, axisItems=axis_items or None)
+        self._fmt = fmt
+        self.setTitle(title, color=TEXT_SECONDARY, size="10pt")
+        self.setLabel("bottom", x_label, color=TEXT_MUTED)
+        self.setLabel("left", y_label, color=TEXT_MUTED)
+        self.setLogMode(x=log_x, y=log_y)
+        _style_axes(self.getPlotItem())
+
+        self.curve = self.plot([], [], pen=pg.mkPen(color, width=2))
+
+        self._vline = pg.InfiniteLine(angle=90, movable=False, pen=pg.mkPen(TEXT_MUTED, width=1))
+        self._hline = pg.InfiniteLine(angle=0, movable=False, pen=pg.mkPen(TEXT_MUTED, width=1))
+        for line in (self._vline, self._hline):
+            line.setVisible(False)
+            self.addItem(line, ignoreBounds=True)
+
+        self._readout = pg.TextItem(color=TEXT_PRIMARY, anchor=(0, 0))
+        self._readout.setVisible(False)
+        self.addItem(self._readout, ignoreBounds=True)
+
+        self._data: Tuple[np.ndarray, np.ndarray] = (np.empty(0), np.empty(0))
+        self.scene().sigMouseMoved.connect(self._on_mouse)
+
+    # ------------------------------------------------------------------ data
+    def set_data(self, x: np.ndarray, y: np.ndarray) -> None:
+        x = np.asarray(x, dtype=float)
+        y = np.asarray(y, dtype=float)
+        good = np.isfinite(x) & np.isfinite(y)
+        x, y = x[good], y[good]
+        # Keep the full series for the crosshair readout, but only ever hand the
+        # painter an envelope-preserving thinning of it.
+        self._data = (x, y)
+        self.curve.setData(*envelope_decimate(x, y))
+
+    def clear_data(self) -> None:
+        self.set_data(np.empty(0), np.empty(0))
+
+    # ----------------------------------------------------------- interaction
+    def _on_mouse(self, pos) -> None:
+        x, y = self._data
+        if x.size == 0 or not self.sceneBoundingRect().contains(pos):
+            for item in (self._vline, self._hline, self._readout):
+                item.setVisible(False)
+            return
+        pt = self.getPlotItem().vb.mapSceneToView(pos)
+        # In log mode the view coordinates are decades, but the data are not.
+        px = 10 ** pt.x() if self.getPlotItem().ctrl.logXCheck.isChecked() else pt.x()
+        idx = int(np.argmin(np.abs(x - px)))
+        xv, yv = float(x[idx]), float(y[idx])
+
+        vx = np.log10(xv) if self.getPlotItem().ctrl.logXCheck.isChecked() and xv > 0 else xv
+        vy = np.log10(yv) if self.getPlotItem().ctrl.logYCheck.isChecked() and yv > 0 else yv
+        self._vline.setPos(vx)
+        self._hline.setPos(vy)
+        self._readout.setText(self._fmt.format(x=xv, y=yv))
+        self._readout.setPos(vx, vy)
+        for item in (self._vline, self._hline, self._readout):
+            item.setVisible(True)
+
+
+class StatTile(QWidget):
+    """A hero number with a unit and a caption.
+
+    The headline reading is a single value, and a single value is not a chart -
+    it gets a stat tile so it can be read across the room during a demo.
+    """
+
+    def __init__(self, caption: str, unit: str, color: str = SERIES_1) -> None:
+        super().__init__()
+        self._unit = unit
+        self.setObjectName("StatTile")
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(14, 10, 14, 10)
+        layout.setSpacing(2)
+
+        self._caption = QLabel(caption)
+        self._caption.setStyleSheet(f"color:{TEXT_MUTED}; font-size:11px; letter-spacing:1px;")
+
+        self._value = QLabel("--")
+        font = QFont()
+        font.setPointSize(34)
+        font.setBold(True)
+        self._value.setFont(font)
+        self._value.setStyleSheet(f"color:{color};")
+
+        self._sub = QLabel("")
+        self._sub.setStyleSheet(f"color:{TEXT_SECONDARY}; font-size:11px;")
+
+        layout.addWidget(self._caption)
+        layout.addWidget(self._value)
+        layout.addWidget(self._sub)
+        # Scope the frame to the tile itself: an unscoped QWidget rule would put
+        # a border and a panel behind each of the three child labels too.
+        self.setStyleSheet(
+            f"QWidget#StatTile {{ background:{SURFACE_2}; border:1px solid {GRID};"
+            f" border-radius:8px; }}"
+            f"QWidget#StatTile QLabel {{ background:transparent; border:none; }}"
+        )
+
+    def set_value(self, value: float, sub: str = "", decimals: int = 2) -> None:
+        if value is None or not np.isfinite(value):
+            self._value.setText("--")
+        else:
+            self._value.setText(f"{value:.{decimals}f}{self._unit}")
+        self._sub.setText(sub)
+
+    def set_color(self, color: str) -> None:
+        self._value.setStyleSheet(f"color:{color};")
+
+
+class TemperaturePlot(CrosshairPlot):
+    """Estimated temperature against wall-clock time, with a mean reference."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            title="Estimated temperature",
+            x_label="Time [s]",
+            y_label="Temperature [degC]",
+            color=SERIES_1,
+            fmt="{x:.1f} s   {y:.3f} degC",
+        )
+        # A dashed mean line makes drift visible without a second series.
+        self._mean = pg.InfiniteLine(
+            angle=0, movable=False, pen=pg.mkPen(TEXT_MUTED, width=1, style=Qt.PenStyle.DashLine)
+        )
+        self._mean.setVisible(False)
+        self.addItem(self._mean, ignoreBounds=True)
+        self._band = pg.LinearRegionItem(
+            orientation="horizontal", movable=False, brush=pg.mkBrush(57, 135, 229, 28)
+        )
+        self._band.setZValue(-10)
+        self._band.setVisible(False)
+        self.addItem(self._band, ignoreBounds=True)
+
+        # A recording indicator drawn on the plot itself, so a demo audience can
+        # see at a glance that the trace is being written to disk.
+        self._rec = pg.TextItem(color=STATUS_BAD, anchor=(1, 0))
+        self._rec.setText("● REC")
+        self._rec.setVisible(False)
+        self.addItem(self._rec, ignoreBounds=True)
+        self._recording = False
+
+    def set_recording(self, on: bool) -> None:
+        self._recording = bool(on)
+        self._rec.setVisible(self._recording)
+
+    def update_series(self, t: np.ndarray, temp: np.ndarray) -> None:
+        self.set_data(t, temp)
+        good = temp[np.isfinite(temp)]
+        if good.size >= 2:
+            m, s = float(good.mean()), float(good.std(ddof=1))
+            self._mean.setPos(m)
+            self._mean.setVisible(True)
+            self._band.setRegion((m - s, m + s))
+            self._band.setVisible(True)
+        else:
+            self._mean.setVisible(False)
+            self._band.setVisible(False)
+        if self._recording and good.size:
+            # Park the badge in the top-right of the current view.
+            (x0, x1), (y0, y1) = self.getPlotItem().vb.viewRange()
+            self._rec.setPos(x1, y1)
+
+
+#: Events shown in the raw-timing plot. Drawing a whole 90k-event capture is
+#: worse than useless: every pixel column then spans the full dither range and
+#: the plot is a solid block. A short slice shows the actual event-to-event
+#: pattern - which for GR07 is the clock-retiming staircase.
+RAW_SLICE_EVENTS = 600
+
+
+class ObservablePlot(CrosshairPlot):
+    """The raw timing observable of the most recent capture, event by event."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            title="Last capture - raw timing",
+            x_label="Time within capture [ms]",
+            y_label="Observable [ns]",
+            color=SERIES_3,
+            fmt="{x:.3f} ms   {y:.2f} ns",
+        )
+        self.curve.setPen(pg.mkPen(SERIES_3, width=1))
+        self.curve.setSymbol("o")
+        self.curve.setSymbolSize(3)
+        self.curve.setSymbolBrush(pg.mkBrush(SERIES_3))
+        self.curve.setSymbolPen(None)
+
+    def update_series(self, t_s: np.ndarray, value_s: np.ndarray, label: str) -> None:
+        t = np.asarray(t_s) * 1e3
+        v = np.asarray(value_s) * 1e9
+        total = v.size
+        if total > RAW_SLICE_EVENTS:
+            t, v = t[:RAW_SLICE_EVENTS], v[:RAW_SLICE_EVENTS]
+            shown = f"first {RAW_SLICE_EVENTS} of {total}"
+        else:
+            shown = f"{total}"
+        self.setTitle(
+            f"Last capture - {label.lower()} ({shown} events)",
+            color=TEXT_SECONDARY,
+            size="10pt",
+        )
+        self.set_data(t, v)
+
+
+class SpectrumPlot(CrosshairPlot):
+    """Noise spectrum (or Allan deviation) of the temperature estimate."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            title="Noise spectrum",
+            x_label="Frequency [Hz]",
+            y_label="PSD [degC^2/Hz]",
+            color=SERIES_2,
+            fmt="{x:.4g} Hz   {y:.4g}",
+            log_x=True,
+            log_y=True,
+        )
+
+    def update_psd(self, f: np.ndarray, psd: np.ndarray, title: str, y_label: str) -> None:
+        self.setTitle(title, color=TEXT_SECONDARY, size="10pt")
+        self.setLabel("left", y_label, color=TEXT_MUTED)
+        good = (f > 0) & (psd > 0)
+        self.set_data(f[good], psd[good])
+
+    def update_allan(self, taus: np.ndarray, devs: np.ndarray) -> None:
+        self.setTitle("Allan deviation of temperature", color=TEXT_SECONDARY, size="10pt")
+        self.setLabel("bottom", "Averaging time tau [s]", color=TEXT_MUTED)
+        self.setLabel("left", "sigma(tau) [degC]", color=TEXT_MUTED)
+        good = (taus > 0) & (devs > 0)
+        self.set_data(taus[good], devs[good])
+
+    def restore_frequency_axis(self) -> None:
+        self.setLabel("bottom", "Frequency [Hz]", color=TEXT_MUTED)
