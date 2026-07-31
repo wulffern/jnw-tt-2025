@@ -204,7 +204,9 @@ Two results worth keeping in mind when using either sensor:
 `docs/presentation.html` is a standalone deck covering the sensors, the setup and
 these results. It is published with the project's GitHub Pages site:
 
-<https://wulffern.github.io/jnw-tt-2025/presentation.html>
+<https://analogicus.com/jnw-tt-2025/presentation.html>
+
+(The `github.io` address redirects there — the site uses a custom domain.)
 
 The site root stays what Tiny Tapeout's action makes it - a redirect to the 3D
 GDS viewer. The `viewer` job in `.github/workflows/gds.yaml` gained two steps
