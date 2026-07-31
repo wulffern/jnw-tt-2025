@@ -57,6 +57,7 @@ from .board import MAX_PROJECT_CLOCK_HZ, find_ports
 from .logic import OFFERED_RATES, THRESHOLDS_V
 from .plots import (
     GRID,
+    SENSOR_COLORS,
     SERIES_1,
     SERIES_2,
     STATUS_BAD,
@@ -74,7 +75,13 @@ from .plots import (
 )
 from .cicwave_plot import AVAILABLE as CICWAVE_PLOT, KEYMAP, LiveWavePlot
 from .recorder import TemperatureRecorder, export_capture
-from .spectrum import History, allan_deviation, integrated_noise, welch_psd
+from .spectrum import (
+    History,
+    allan_deviation,
+    integrated_noise,
+    phase_noise,
+    welch_psd,
+)
 from .temperature import CalibrationStore, resolution_k
 from .worker import AcquireThread
 
@@ -86,6 +93,7 @@ SPECTRUM_MODES = [
     ("Within capture (conversion noise)", "fast"),
     ("Long term (drift + 1/f)", "slow"),
     ("Allan deviation", "allan"),
+    ("Phase noise (both)", "phase"),
     ("Last capture - raw timing", "raw"),
 ]
 
@@ -845,24 +853,72 @@ class MainWindow(QWidget):
         if mode != "allan":
             self.plot_spec.restore_frequency_axis()
 
-        if mode == "fast":
-            r = self._last
-            if r is None or r.n < 32:
+        readings = getattr(self, "_last_readings", None) or {}
+        keys = [k for k in self.settings.sensor_keys if k in readings
+                and readings[k].ok and readings[k].n >= 64]
+
+        if mode == "phase":
+            # Timing noise of each sensor, referred to its own carrier.
+            if not keys:
                 self.plot_spec.clear_data()
+                self.plot_spec.clear_second_psd()
                 return
-            series = r.temp_c if self.cal.calibrated else r.event_s * 1e9
-            unit = "degC" if self.cal.calibrated else "ns"
-            fs = r.event_rate_hz
-            f, psd = welch_psd(series, fs)
-            rms = integrated_noise(f, psd)
-            self.plot_spec.update_psd(
-                f,
-                psd,
-                f"Conversion noise within one capture - {rms:.4g} {unit} rms, "
-                f"{r.n} events at {fs/1e3:.1f} kHz",
-                f"PSD [{unit}^2/Hz]",
+            self.plot_spec.set_log_mode(True, False)
+            self.plot_spec.setLabel("left", "L(f) [dBc/Hz]", color=TEXT_MUTED)
+            bits = []
+            for i, k in enumerate(keys):
+                f, lf, f0 = phase_noise(readings[k].event_s)
+                if f.size == 0:
+                    continue
+                self.plot_spec.set_curve_color(i, SENSOR_COLORS.get(k, SERIES_2))
+                if i == 0:
+                    self.plot_spec.set_data(f, lf)
+                else:
+                    self.plot_spec.set_second_psd(f, lf)
+                bits.append(f"{k} {f0/1e3:.0f} kHz")
+            if len(keys) < 2:
+                self.plot_spec.clear_second_psd()
+            note = " · GR06 is re-triggered: width jitter, not oscillator phase noise" \
+                if "GR06" in keys else ""
+            self.plot_spec.setTitle(
+                "Phase noise - " + " · ".join(bits) + note,
+                color=TEXT_SECONDARY, size="10pt",
+            )
+            return
+
+        self.plot_spec.set_log_mode(True, True)
+
+        if mode == "fast":
+            if not keys:
+                self.plot_spec.clear_data()
+                self.plot_spec.clear_second_psd()
+                return
+            bits = []
+            for i, k in enumerate(keys):
+                r = readings[k]
+                cal = self.cal_store.get(k)
+                series = r.temp_c if cal.calibrated else r.event_s * 1e9
+                unit = "degC" if cal.calibrated else "ns"
+                f, psd = welch_psd(series, r.event_rate_hz)
+                if f.size == 0:
+                    continue
+                self.plot_spec.set_curve_color(i, SENSOR_COLORS.get(k, SERIES_2))
+                if i == 0:
+                    self.plot_spec.update_psd(
+                        f, psd, "", f"PSD [{unit}^2/Hz]"
+                    )
+                else:
+                    self.plot_spec.set_second_psd(f, psd)
+                bits.append(f"{k} {integrated_noise(f, psd):.3g} {unit} rms "
+                            f"({r.n:,} ev at {r.event_rate_hz/1e3:.0f} kHz)")
+            if len(keys) < 2:
+                self.plot_spec.clear_second_psd()
+            self.plot_spec.setTitle(
+                "Conversion noise within one capture - " + " · ".join(bits),
+                color=TEXT_SECONDARY, size="10pt",
             )
         elif mode == "slow":
+            self.plot_spec.clear_second_psd()
             t, v = self._history_for(self.settings.sensor_keys[0]).arrays()
             good = np.isfinite(v)
             v = v[good]
@@ -875,6 +931,8 @@ class MainWindow(QWidget):
                 )
                 return
             dt = self._history_for(self.settings.sensor_keys[0]).mean_dt()
+            self.plot_spec.set_curve_color(
+                0, SENSOR_COLORS.get(self.settings.sensor_keys[0], SERIES_2))
             f, psd = welch_psd(v, 1.0 / dt if dt > 0 else 1.0)
             rms = integrated_noise(f, psd)
             span = t[good][-1] - t[good][0] if v.size > 1 else 0.0
@@ -885,9 +943,12 @@ class MainWindow(QWidget):
                 "PSD [degC^2/Hz]",
             )
         else:
+            self.plot_spec.clear_second_psd()
             t, v = self._history_for(self.settings.sensor_keys[0]).arrays()
             v = v[np.isfinite(v)]
             dt = self._history_for(self.settings.sensor_keys[0]).mean_dt()
+            self.plot_spec.set_curve_color(
+                0, SENSOR_COLORS.get(self.settings.sensor_keys[0], SERIES_2))
             if v.size < 16 or not np.isfinite(dt):
                 self.plot_spec.clear_data()
                 return

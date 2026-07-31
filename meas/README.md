@@ -230,6 +230,15 @@ Two deliberate choices make that work:
   * *Within capture* - conversion noise of the sensor at its own ~1 MHz rate.
   * *Long term* - drift and 1/f across the whole session.
   * *Allan deviation* - how far averaging actually helps before drift takes over.
+  * *Phase noise* - L(f) in dBc/Hz for both sensors, from the running sum of
+    their interval deviations. GR07's is genuine oscillator phase noise; GR06 is
+    re-triggered rather than free-running, so its curve is width jitter referred
+    to 1/width, which the title says. GR07 is ~10 dB worse per cycle - its
+    periods are quantized by the retiming - and recovers only by averaging a
+    million of them.
+
+  In Both mode the two noise spectra show both sensors, coloured the same way as
+  everywhere else.
 
 ## Comparing the two sensors
 
@@ -351,6 +360,20 @@ re-reads its column from it, so swapping the frame each capture updates the
 curves in place — cursors, zoom and legend survive. Auto-fit stops the moment you
 zoom, because a plot that keeps re-framing itself is useless for reading values
 off; **f** hands it back.
+
+## The gain that isn't
+
+Breathing on the package makes GR06 swing ~2.4x further than GR07, which looks
+like a gain mismatch. It is not: over the 15 K freeze-spray run the two agree to
+within 3 %. The cause is GR07's dead zone - during the breath run its period sat
+0.013-0.145 clock cycles from a whole 64 MHz cycle, and a 1 K breath moves it
+only about a quarter of a cycle, so it never escapes. Its noise falls to 9 mK
+there because it has stopped responding, not because it got better.
+
+The students' simulations agree the gains should match: fitting each simulated
+transfer to `t = K/T + t_d` gives a fixed term of -2 % of the period for GR06 and
+-5 % for GR07, and GR07's PTAT current is proportional to absolute temperature
+within 2 % across corners. So for small excursions, trust GR06.
 
 ## Layout
 

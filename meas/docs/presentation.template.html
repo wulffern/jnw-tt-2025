@@ -590,7 +590,7 @@
       Nyquist exactly as that structure predicts.
     </p>
     <p>
-      This is also why outlier rejection had to be rebuilt — see slide 10.
+      This is also why outlier rejection had to be rebuilt — see slide 11.
     </p>
   </div>
 </section>
@@ -793,10 +793,96 @@
   </div>
 </section>
 
-<!-- ═══════════════ 10 · corrections ═══════════════ -->
+<!-- ═══════════════ 10 · the gain that wasn't ═══════════════ -->
 <section class="slide">
   <div class="wrap">
-    <span class="num"><b>10</b> / What I got wrong</span>
+    <span class="num"><b>10</b> / A gain difference that isn't one</span>
+    <h2>Breathing on the chip, GR06 swings 2.4× further</h2>
+    <p class="lede">
+      Four breaths over <span class="stat" id="br-span">—</span>. Each moves both
+      sensors, but not by the same amount: GR06 reads about
+      <span class="stat" id="br-ratio">—</span>× the excursion GR07 does. The
+      obvious reading is that the two circuits have different gains. They don't.
+    </p>
+
+    <figure>
+      <div class="chartbox">
+        <div class="legend">
+          <span class="pill"><i class="dot a"></i>GR07</span>
+          <span class="pill"><i class="dot b"></i>GR06</span>
+          <span class="pill" style="margin-left:auto;color:var(--ink-3)">four breaths</span>
+        </div>
+        <svg class="chart" id="chart-breath" viewBox="0 0 980 300" role="img"
+             aria-label="Both sensors during four breaths on the package"></svg>
+      </div>
+      <figcaption id="br-cap">—</figcaption>
+    </figure>
+
+    <p style="margin-top:26px">
+      <b>The same two sensors agree to within
+      <span class="stat" id="br-wide">—</span> over the 15 K freeze-spray run.</b>
+      A real difference in calibrated gain would show up <em>more</em> strongly
+      over a wider excursion, not vanish. So this is a property of small, fast
+      signals, not of the circuits' sensitivity.
+    </p>
+
+    <h3 style="margin-top:34px">It is GR07 sitting on a clock edge</h3>
+    <p>
+      Slide 09 showed GR07's period lands on a staircase of whole 64 MHz clock
+      cycles, and that its dither — and with it its resolution — collapses
+      wherever the period sits close to a whole cycle. This run happened to sit
+      exactly there, and stayed there: a 1 K breath moves GR07 by about a quarter
+      of a clock cycle, nowhere near enough to escape.
+    </p>
+
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>During the run</th><th>GR07</th><th>Period (clocks)</th>
+              <th>To nearest whole cycle</th><th>GR07 noise</th><th>GR06 noise</th></tr>
+        </thead>
+        <tbody id="br-zones"></tbody>
+      </table>
+    </div>
+
+    <p style="margin-top:24px">
+      GR07's noise falls to <b>9 mK</b> — not because it got better, but because
+      it stopped responding. GR06, with no clock anywhere in its path, sits at a
+      flat ~110 mK throughout. The sensor that <em>looks</em> ten times quieter is
+      the one compressing the signal.
+    </p>
+
+    <h3 style="margin-top:34px">The simulations agree the gains should match</h3>
+    <p>
+      Worth checking against what the students designed, because a real 2.4×
+      mismatch would be a design finding rather than a measurement artefact.
+      Fitting each simulated transfer to <code>t = K/T + t<sub>d</sub></code> —
+      a PTAT ramp plus whatever fixed time does not scale with temperature —
+      gives a fixed term of only <b>−2 %</b> of the period for GR06 and
+      <b>−5 %</b> for GR07. Both are near-ideal, so their gains should differ by
+      a few per cent, not a factor of two. GR07's simulated PTAT current is
+      proportional to absolute temperature within 2 % across corners
+      (13.8 / 18.2 / 24.9 µA cold / typical / hot).
+    </p>
+    <p>
+      Measurement, simulation and the 15 K run all say the same thing: the factor
+      of two is an artefact of reading a quantized sensor over an excursion
+      smaller than its quantum.
+    </p>
+    <p>
+      <b>What to do about it.</b> For small excursions, trust GR06. For GR07,
+      either move it off the edge — the project clock sets where the staircase
+      falls, so changing the clock frequency shifts the dead zones — or accept
+      that excursions of a few kelvin are compressed by an unknown factor between
+      one and about three.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════ 11 · corrections ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>11</b> / What I got wrong</span>
     <h2>Four corrections worth recording</h2>
     <p class="lede">
       Three were mine. The measurement one mattered most, because it was silently
@@ -850,10 +936,10 @@
   </div>
 </section>
 
-<!-- ═══════════════ 09 · shipped ═══════════════ -->
+<!-- ═══════════════ 12 · shipped ═══════════════ -->
 <section class="slide">
   <div class="wrap">
-    <span class="num"><b>11</b> / Shipped</span>
+    <span class="num"><b>12</b> / Shipped</span>
     <h2>What exists now</h2>
 
     <div class="grid g2">
@@ -894,10 +980,10 @@
   </div>
 </section>
 
-<!-- ═══════════════ 12 · running it ═══════════════ -->
+<!-- ═══════════════ 13 · running it ═══════════════ -->
 <section class="slide">
   <div class="wrap">
-    <span class="num"><b>12</b> / Running it yourself</span>
+    <span class="num"><b>13</b> / Running it yourself</span>
     <h2>From a bare board to a live trace</h2>
     <p class="lede">
       Two USB cables, three probe clips and one calibration press. The whole
@@ -1533,6 +1619,81 @@ if (DATA.staircase && DATA.staircase.bins) {
       `<td class="n"${near < 0.02 ? ' style="font-weight:600"' : ""}>` +
       `${z.sigma_mk.toFixed(1)} mK</td>`;
     drows.appendChild(tr);
+  });
+})();
+
+/* ---------- slide 10 · the breath run ---------- */
+(() => {
+  const B = DATA.events && DATA.events.breath;
+  if (!B) return;
+  const pairs = (a) => a.filter((p) => p[1] !== null);
+
+  $("br-span").textContent = B.span_s.toFixed(0) + " s";
+  $("br-ratio").textContent = B.median_ratio.toFixed(1);
+  $("br-wide").textContent = ((1 - B.wide_slope) * 100).toFixed(0) + " %";
+
+  const svg = $("chart-breath");
+  const W = 980, H = 300, M = { t: 14, r: 18, b: 38, l: 54 };
+  const A = B.trace.GR07, C = B.trace.GR06;
+  const all = pairs(A).concat(pairs(C)).map((p) => p[1]);
+  let lo = Math.min(...all), hi = Math.max(...all);
+  const pad = (hi - lo) * 0.08; lo -= pad; hi += pad;
+  const xmax = B.span_s;
+  const X = (v) => M.l + (v / xmax) * (W - M.l - M.r);
+  const Y = (v) => M.t + (1 - (v - lo) / (hi - lo)) * (H - M.t - M.b);
+
+  for (let i = 0; i <= 4; i++) {
+    const v = lo + (hi - lo) * i / 4, y = Y(v);
+    svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: y, y2: y,
+      stroke: "var(--rule)", "stroke-width": .6, opacity: .55 }));
+    const tx = el("text", { x: M.l - 10, y: y + 4, "text-anchor": "end", class: "sm" });
+    tx.textContent = v.toFixed(1); svg.appendChild(tx);
+  }
+  for (let i = 0; i <= 5; i++) {
+    const v = xmax * i / 5;
+    const tx = el("text", { x: X(v), y: H - M.b + 20, "text-anchor": "middle", class: "sm" });
+    tx.textContent = v.toFixed(0) + " s"; svg.appendChild(tx);
+  }
+  // mark each breath with its ratio, so the number is on the picture
+  B.peaks.forEach((pk) => {
+    const x = X(pk.t);
+    svg.appendChild(el("line", { x1: x, x2: x, y1: M.t, y2: H - M.b,
+      stroke: "var(--ink-3)", "stroke-width": 1, "stroke-dasharray": "3 3", opacity: .6 }));
+    const tx = el("text", { x: x + 4, y: M.t + 12, class: "sm" });
+    tx.textContent = "\u00d7" + pk.ratio.toFixed(1); svg.appendChild(tx);
+  });
+  const line = (data, colour) => {
+    let d = "", pen = false;
+    data.forEach(([x, y]) => {
+      if (y === null) { pen = false; return; }
+      d += (pen ? "L" : "M") + X(x).toFixed(1) + " " + Y(y).toFixed(1) + " ";
+      pen = true;
+    });
+    svg.appendChild(el("path", { d, fill: "none", stroke: colour,
+      "stroke-width": 1.6, "stroke-linejoin": "round" }));
+  };
+  line(C, "var(--gr06)");
+  line(A, "var(--gr07)");
+  const yl = el("text", { x: 14, y: M.t + 4, class: "sm" });
+  yl.textContent = "\u00b0C"; svg.appendChild(yl);
+
+  $("br-cap").innerHTML =
+    "Four breaths. The dashed marks give each one's GR06/GR07 amplitude ratio — " +
+    B.peaks.map((p) => p.ratio.toFixed(1) + "\u00d7").join(", ") +
+    ". Gaps are dead time between captures.";
+
+  const rows = $("br-zones");
+  B.zones.forEach((z) => {
+    const tight = z.to_edge < 0.05;
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      `<td>${z.label}</td>` +
+      `<td class="n">${z.temp_c.toFixed(2)} °C</td>` +
+      `<td class="n">${z.cycles.toFixed(3)}</td>` +
+      `<td class="n"${tight ? ' style="font-weight:600"' : ""}>${z.to_edge.toFixed(3)}</td>` +
+      `<td class="n a"${tight ? ' style="font-weight:600"' : ""}>${z.sigma_mk.toFixed(1)} mK</td>` +
+      `<td class="n b">${z.sigma6_mk.toFixed(0)} mK</td>`;
+    rows.appendChild(tr);
   });
 })();
 </script>

@@ -44,6 +44,10 @@ GRID = "#383835"
 SERIES_1 = "#3987e5"  # blue   - temperature
 SERIES_2 = "#d95926"  # orange - spectra
 SERIES_3 = "#199e70"  # aqua   - raw timing observable
+#: Colour follows the sensor everywhere - trace, spectrum, tiles - so a colour
+#: always means the same circuit.
+SENSOR_COLORS = {"GR07": SERIES_1, "GR06": SERIES_2}
+
 STATUS_GOOD = "#199e70"
 STATUS_WARN = "#c98500"
 STATUS_BAD = "#e66767"
@@ -441,6 +445,34 @@ class SpectrumPlot(CrosshairPlot):
             log_x=True,
             log_y=True,
         )
+
+    def ensure_second_curve(self) -> None:
+        if getattr(self, "_curve2", None) is None:
+            self._curve2 = self.plot([], [], pen=pg.mkPen(SERIES_2, width=2))
+
+    def set_curve_color(self, index: int, color: str) -> None:
+        """Colour curve 0 or 1. Spectra carry whichever sensor is selected, so
+        the pen has to follow the sensor rather than the slot."""
+        if index == 0:
+            self.curve.setPen(pg.mkPen(color, width=2))
+        else:
+            self.ensure_second_curve()
+            self._curve2.setPen(pg.mkPen(color, width=2))
+
+    def set_second_psd(self, f: np.ndarray, y: np.ndarray) -> None:
+        """Overlay a second sensor's spectrum on the same axes."""
+        self.ensure_second_curve()
+        f = np.asarray(f, dtype=float)
+        y = np.asarray(y, dtype=float)
+        good = np.isfinite(f) & np.isfinite(y) & (f > 0)
+        self._curve2.setData(f[good], y[good])
+
+    def clear_second_psd(self) -> None:
+        if getattr(self, "_curve2", None) is not None:
+            self._curve2.setData([], [])
+
+    def set_log_mode(self, log_x: bool, log_y: bool) -> None:
+        self.setLogMode(x=log_x, y=log_y)
 
     def update_psd(self, f: np.ndarray, psd: np.ndarray, title: str, y_label: str) -> None:
         self.setTitle(title, color=TEXT_SECONDARY, size="10pt")

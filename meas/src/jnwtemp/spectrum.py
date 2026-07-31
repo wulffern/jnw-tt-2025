@@ -89,6 +89,38 @@ def integrated_noise(f: np.ndarray, psd: np.ndarray) -> float:
     return float(np.sqrt(np.trapezoid(psd, f)))
 
 
+def phase_noise(intervals: np.ndarray, nperseg: Optional[int] = None):
+    """Single-sideband phase noise L(f) in dBc/Hz from a sequence of intervals.
+
+    For a free-running oscillator the excess phase accumulates, so the timing
+    error is the running sum of the period deviations (the "time interval
+    error"). Its PSD maps to phase noise by
+
+        S_phi(f) = (2*pi*f0)^2 * S_TIE(f),   L(f) = 10*log10(S_phi(f) / 2)
+
+    with the TIE sequence sampled once per cycle, i.e. at f0. Valid for offsets
+    well below f0/2.
+
+    Returns ``(offset_hz, L_dbc_per_hz, f0)``.
+    """
+    x = np.asarray(intervals, dtype=float)
+    x = x[np.isfinite(x)]
+    if x.size < 64:
+        return np.empty(0), np.empty(0), float("nan")
+    t0 = float(x.mean())
+    if t0 <= 0:
+        return np.empty(0), np.empty(0), float("nan")
+    f0 = 1.0 / t0
+    tie = np.cumsum(x - t0)          # seconds of accumulated timing error
+    f, s_tie = welch_psd(tie, f0, nperseg=nperseg)
+    if f.size == 0:
+        return np.empty(0), np.empty(0), f0
+    s_phi = (2.0 * np.pi * f0) ** 2 * s_tie
+    with np.errstate(divide="ignore"):
+        lf = 10.0 * np.log10(np.maximum(s_phi / 2.0, 1e-300))
+    return f, lf, f0
+
+
 def allan_deviation(x: np.ndarray, dt: float, n_taus: int = 24) -> Tuple[np.ndarray, np.ndarray]:
     """Overlapping Allan deviation - the honest way to read drift vs averaging.
 

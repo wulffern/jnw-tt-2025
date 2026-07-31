@@ -140,6 +140,79 @@ def main() -> None:
         })
     out["dead_zone"] = sorted(zones, key=lambda z: z["frac"])
 
+    # --- the breath run: small, fast excursions -----------------------------
+    BREATH = os.path.join(DATA, "jnwtemp-BOTH-20260731-223642.csv")
+    if os.path.exists(BREATH):
+        bt, bcap, bser = load(BREATH)
+        bsm = {}
+        for key, v in bser.items():
+            bw = tune_window(bt, bcap, v)
+            bsm[key] = smooth_and_diff(bt, bcap, v, window_s=bw) + (bw,)
+        ta, va = bsm["GR07"][0], bsm["GR07"][1]
+        fb = np.isfinite(bsm["GR06"][0]) & np.isfinite(bsm["GR06"][1])
+        vb = np.interp(ta, bsm["GR06"][0][fb], bsm["GR06"][1][fb],
+                       left=np.nan, right=np.nan)
+        ok = np.isfinite(va) & np.isfinite(vb) & np.isfinite(ta)
+        base_a = float(np.median(va[ok & (ta < 12)]))
+        base_b = float(np.median(vb[ok & (ta < 12)]))
+
+        peaks = []
+        for lo, hi in [(12, 20), (33, 50), (55, 72), (74, 95)]:
+            m = ok & (ta >= lo) & (ta < hi)
+            if m.sum() < 50:
+                continue
+            da = float(np.max(va[m]) - base_a)
+            db = float(np.max(vb[m]) - base_b)
+            peaks.append({"t": float(ta[m][int(np.argmax(va[m]))]),
+                          "gr07": da, "gr06": db, "ratio": db / da})
+
+        # Where GR07 sat between clock edges, and what its noise did there.
+        import csv as _csv
+        rows = list(_csv.DictReader(open(BREATH)))
+        brate = np.array([float(r["GR07_rate_hz"]) for r in rows])
+        bT7 = np.array([float(r["GR07_temp_c"]) for r in rows])
+        bT6 = np.array([float(r["GR06_temp_c"]) for r in rows])
+        zones = []
+        for lo, hi, lab in [(0, 12, "baseline"), (35, 38, "breath peak"),
+                            (45, 55, "decay"), (105, 115, "tail")]:
+            m = (bt >= lo) & (bt < hi)
+            c0 = bcap[m][0]
+            mm = m & (bcap == c0)
+            per = 1e9 / brate[mm].mean()
+            cyc = per / (1e9 / CLK_HZ)
+            zones.append({
+                "label": lab, "temp_c": float(np.median(bT7[mm])),
+                "cycles": float(cyc), "to_edge": float(min(cyc % 1, 1 - cyc % 1)),
+                "sigma_mk": float(np.std(np.diff(bT7[mm])) / np.sqrt(2) * 1000),
+                "sigma6_mk": float(np.std(np.diff(bT6[mm])) / np.sqrt(2) * 1000),
+            })
+
+        tt, aa = thin(ta, va, keep=800)
+        _, bb2 = thin(ta, vb, keep=800)
+        out["breath"] = {
+            "span_s": float(np.nanmax(ta)),
+            "baseline": {"GR07": base_a, "GR06": base_b},
+            "peaks": peaks,
+            "median_ratio": float(np.median([p["ratio"] for p in peaks])),
+            "zones": zones,
+            "trace": {
+                "GR07": [[round(float(x), 3), None if not np.isfinite(y) else round(float(y), 3)]
+                         for x, y in zip(tt, aa)],
+                "GR06": [[round(float(x), 3), None if not np.isfinite(y) else round(float(y), 3)]
+                         for x, y in zip(tt, bb2)],
+            },
+        }
+
+        # Same-gain check against the wide excursion of the stimulus run.
+        a2, b2 = sm_all["GR07"], sm_all["GR06"]
+        t2 = a2[0]
+        f2 = np.isfinite(b2[0]) & np.isfinite(b2[1])
+        v2b = np.interp(t2, b2[0][f2], b2[1][f2], left=np.nan, right=np.nan)
+        g = np.isfinite(a2[1]) & np.isfinite(v2b)
+        A, B = a2[1][g] - 23.0, v2b[g] - 23.0
+        out["breath"]["wide_slope"] = float(np.sum(A * B) / np.sum(A * A))
+        out["breath"]["wide_r"] = float(np.corrcoef(A, B)[0, 1])
+
     json.dump(out, open(OUT, "w"), separators=(",", ":"))
     kb = os.path.getsize(OUT) / 1024
     print(f"wrote {OUT} ({kb:.0f} kB)")
