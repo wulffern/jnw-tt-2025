@@ -179,7 +179,14 @@ class AcquireThread(QThread):
                 use_board=self._use_board,
                 log=self.logMessage.emit,
             )
-            status = self._acq.open()
+            try:
+                status = self._acq.open()
+            except Exception as exc:
+                # open() reports per-instrument status before raising, so the
+                # board may well be connected even though Logic 2 is not.
+                status = getattr(self._acq, "last_status", None) or {
+                    "logic": f"failed: {exc}", "board": "not attempted"}
+                self.errorMessage.emit(str(exc))
             self.opened.emit(status)
             self._safe_configure()
         except Exception as exc:

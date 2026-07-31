@@ -249,12 +249,41 @@ class TTBoard:
     def set_clock_hz(self, hz: int = MAX_PROJECT_CLOCK_HZ) -> int:
         """Set the project clock; returns the frequency actually achieved.
 
-        ``set_clock_hz`` is the SDK helper injected into the REPL globals: it
-        raises the RP2350 system clock to 2x the request, then reconfigures the
-        project clock PWM. Requests above 64 MHz are silently clamped.
+        ``set_clock_hz`` is a convenience global that main.py *may* define in the
+        REPL, but it is not always there - after some boots it is simply absent,
+        and depending on it meant the clock silently stayed at 0 after a power
+        cycle, which leaves GR07 dead. So drive the DemoBoard API directly and
+        keep the helper only as a first choice.
+
+        The RP2350 PWM cannot divide the system clock by less than two, so the
+        system clock has to be at least 2x the requested project clock.
         """
-        self.exec(f"set_clock_hz({int(hz)})", timeout=10.0)
+        hz = int(min(hz, MAX_PROJECT_CLOCK_HZ))
+        code = (
+            "import machine\n"
+            f"hz = {hz}\n"
+            "try:\n"
+            "    set_clock_hz(hz)\n"
+            "except NameError:\n"
+            "    if machine.freq() < 2 * hz:\n"
+            "        machine.freq(2 * hz)\n"
+            "    tt.clock_project_PWM(hz)\n"
+            "print(tt.auto_clocking_freq)\n"
+        )
+        out = self.exec(code, timeout=15.0).strip().splitlines()
+        for line in reversed(out):
+            try:
+                return int(line.strip())
+            except ValueError:
+                continue
         return int(self.exec_eval("tt.auto_clocking_freq"))
+
+    def clock_running(self) -> int:
+        """Project clock frequency as the board reports it. 0 means stopped."""
+        try:
+            return int(self.exec_eval("tt.auto_clocking_freq"))
+        except (BoardError, ValueError):
+            return 0
 
     def stop_clock(self) -> None:
         self.exec("tt.clock_project_stop()")

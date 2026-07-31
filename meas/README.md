@@ -23,6 +23,19 @@ jnwtemp --no-board           # Saleae only, board driven by hand
 jnwtemp --port /dev/cu.usbmodem212301
 ```
 
+### After a power cycle
+
+The board keeps its project selection but **not its clock** —
+`tt.auto_clocking_freq` comes back 0, and GR07 stops toggling entirely while
+GR06 carries on, which looks like a broken probe on one channel. Pressing
+**Connect** restores it. And a Logic 2 update resets the *Enable automation
+server* preference, so check that too: the two failures are indistinguishable
+from the outside.
+
+Note `set_clock_hz` is a convenience global that `main.py` may or may not define
+in the REPL depending on the boot — the app drives `tt.clock_project_PWM()`
+directly and only tries the helper first.
+
 ### Prerequisites
 
 1. **Logic 2 automation server.** Logic 2 -> Preferences -> Automation ->

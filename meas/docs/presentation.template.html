@@ -1117,13 +1117,34 @@ pip install -r requirements.txt
       </div>
     </div>
 
+    <h3 style="margin-top:38px">After a power cycle</h3>
+    <p>
+      The demo board keeps its project selection across a reset but <em>not</em>
+      its clock: <code>tt.auto_clocking_freq</code> comes back 0, and GR07 —
+      whose comparator output is re-timed by that clock — simply stops toggling.
+      GR06 is unaffected, which makes it look like a wiring fault on one channel.
+      Pressing <b>Connect</b> fixes it; the app sets the clock as part of
+      configuring the chip, and warns in the log if it fails to start.
+    </p>
+    <p>
+      Logic 2 is the other half: an application update resets the
+      <em>Enable automation server</em> preference, so it has to be ticked again.
+      The two failures look identical from the outside — nothing works — which is
+      why the app now connects the two instruments independently and reports each
+      one separately rather than giving up at the first.
+    </p>
+
     <h3 style="margin-top:38px">If it misbehaves</h3>
     <div class="scroll">
       <table>
         <thead><tr><th>Symptom</th><th style="text-align:right">Cause</th></tr></thead>
         <tbody>
+          <tr><td><b>Nothing works after a restart</b></td>
+              <td style="text-align:right">clock stopped and/or automation server off — see below</td></tr>
           <tr><td>Connect fails on Logic 2</td>
-              <td style="text-align:right">automation server not enabled</td></tr>
+              <td style="text-align:right">automation server not enabled (a Logic 2 update resets it)</td></tr>
+          <tr><td>GR07 flat, GR06 fine</td>
+              <td style="text-align:right">project clock stopped; Connect restarts it</td></tr>
           <tr><td>Demo board “unavailable: could not open …”</td>
               <td style="text-align:right">a Chrome/Commander tab holds the serial port</td></tr>
           <tr><td>GR06 reads nothing</td>

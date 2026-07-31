@@ -348,17 +348,32 @@ class Acquisition:
 
     # ------------------------------------------------------------- lifecycle
     def open(self) -> Dict[str, str]:
-        """Connect to whatever is available; returns a status per instrument."""
+        """Connect to whatever is available; returns a status per instrument.
+
+        Raises if Logic 2 could not be reached, but only after the board has
+        been tried - ``last_status`` then still describes both.
+        """
         status = {}
+        self.last_status = status
         cs = CaptureSettings(
             channels=[self.settings.channel_of(k) for k in self.settings.sensor_keys],
             sample_rate=self.settings.sample_rate,
             threshold_volts=self.settings.threshold_volts,
             duration_s=self.settings.duration_s,
         )
+        # Connect the two instruments independently. A Logic 2 failure used to
+        # abort open() before the board was touched, so a disabled automation
+        # server also left the project clock stopped after a power cycle - and
+        # then nothing worked, for two unrelated reasons at once.
         self.logic = LogicCapture(cs)
-        status["logic"] = self.logic.connect()
-        self._log(f"Logic 2: {status['logic']}")
+        logic_error = None
+        try:
+            status["logic"] = self.logic.connect()
+            self._log(f"Logic 2: {status['logic']}")
+        except Exception as exc:
+            logic_error = exc
+            status["logic"] = f"failed: {exc}"
+            self._log(f"Logic 2 unavailable: {exc}")
 
         if self.use_board:
             try:
@@ -372,6 +387,11 @@ class Acquisition:
                 self._log(f"Demo board unavailable: {exc}")
         else:
             status["board"] = "disabled"
+
+        if logic_error is not None:
+            # Reported after the board so the chip still gets configured, but
+            # still raised: without a capture there is nothing to measure.
+            raise logic_error
         return status
 
     def close(self) -> None:
@@ -400,6 +420,10 @@ class Acquisition:
         msgs.append(f"project clock {actual/1e6:.1f} MHz")
         if actual != st.clock_hz:
             st.clock_hz = actual
+        if not actual:
+            # A stopped clock is silent failure for GR07: the pin simply never
+            # toggles and the capture looks like a wiring fault.
+            msgs.append("WARNING: project clock is stopped - GR07 will be dead")
         # Leave ResetTemp06 deasserted; GR06 asserts it per burst.
         for key in st.sensor_keys:
             bit = SENSORS[key].ui_bit
