@@ -22,6 +22,12 @@ readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.9"
 
+[project.optional-dependencies]
+# The temperature trace uses cicwave's waveform plot when it is importable
+# (A/B cursors, delta readout, z/Z/a/b/f/l keys); without it the app falls
+# back to its own plot.
+plot = ["cicwave"]
+
 [project.scripts]
 jnwtemp = "jnwtemp.cli:main"
 

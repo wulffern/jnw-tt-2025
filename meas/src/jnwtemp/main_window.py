@@ -71,6 +71,7 @@ from .plots import (
     StatTile,
     TemperaturePlot,
 )
+from .cicwave_plot import AVAILABLE as CICWAVE_PLOT, KEYMAP, LiveWavePlot
 from .recorder import TemperatureRecorder, export_capture
 from .spectrum import History, allan_deviation, integrated_noise, welch_psd
 from .temperature import CalibrationStore, resolution_k
@@ -170,7 +171,10 @@ class MainWindow(QWidget):
         tiles.addWidget(self.tile_noise, 1)
 
         # --- plots
-        self.plot_temp = TemperaturePlot()
+        # cicwave's waveform plot brings A/B cursors with a delta readout and
+        # the keymap this project already has muscle memory for, so use it for
+        # the trace when it is installed and fall back otherwise.
+        self.plot_temp = LiveWavePlot("time_s") if CICWAVE_PLOT else TemperaturePlot()
         self.plot_obs = ObservablePlot()
         self.plot_spec = SpectrumPlot()
         plots = QSplitter(Qt.Orientation.Vertical)
@@ -680,17 +684,14 @@ class MainWindow(QWidget):
 
         # Plots. The raw-timing and spectrum panes follow the primary sensor;
         # the temperature trace shows every selected sensor.
-        t, temp = self._trace_for(keys[0]).arrays()
-        self.plot_temp.update_series(t, temp, stats=len(keys) == 1)
-        if len(keys) > 1:
-            t2, temp2 = self._trace_for(keys[1]).arrays()
-            self.plot_temp.set_second_series(t2, temp2)
-        else:
-            self.plot_temp.clear_second_series()
-        self.plot_temp.setTitle(
-            "Estimated temperature — " + " · ".join(keys),
-            color=TEXT_SECONDARY, size="10pt",
+        self.plot_temp.show_traces(
+            {f"{k}_temp_c": self._trace_for(k).arrays() for k in keys}
         )
+        if hasattr(self.plot_temp, "setTitle"):
+            self.plot_temp.setTitle(
+                "Estimated temperature — " + " · ".join(keys),
+                color=TEXT_SECONDARY, size="10pt",
+            )
         self.plot_obs.update_series(
             primary.event_t, primary.event_s, SENSORS[keys[0]].unit_label
         )
@@ -1019,6 +1020,23 @@ class MainWindow(QWidget):
         self._readings = 0
         self.plot_temp.clear_data()
         self.plot_spec.clear_data()
+
+    # ------------------------------------------------------------- keyboard
+    def keyPressEvent(self, event) -> None:  # noqa: N802 (Qt naming)
+        """Forward cicwave's plot bindings, unless a field has focus."""
+        from PySide6.QtWidgets import QAbstractSpinBox, QComboBox, QPlainTextEdit
+
+        focus = self.focusWidget()
+        if isinstance(focus, (QAbstractSpinBox, QComboBox, QPlainTextEdit)):
+            super().keyPressEvent(event)
+            return
+        ctrl = bool(event.modifiers() & (Qt.KeyboardModifier.ControlModifier
+                                         | Qt.KeyboardModifier.MetaModifier))
+        if hasattr(self.plot_temp, "handle_key") and \
+                self.plot_temp.handle_key(event.text(), ctrl):
+            event.accept()
+            return
+        super().keyPressEvent(event)
 
     # ------------------------------------------------------------- shutdown
     def closeEvent(self, event) -> None:  # noqa: N802 (Qt naming)

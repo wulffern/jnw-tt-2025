@@ -205,6 +205,33 @@
   .fix + .fix { margin-top: 22px; }
   .fix h3 { font-size: 1.04rem; }
   .fix p { font-size: .96rem; color: var(--ink-2); margin: 6px 0 0; }
+  .steps { counter-reset: step; margin-top: 22px; }
+  .step {
+    display: grid; grid-template-columns: 30px 1fr; gap: 16px;
+    padding: 12px 0; border-bottom: 1px solid var(--rule-2); align-items: start;
+  }
+  .step:last-child { border-bottom: 0; }
+  .step::before {
+    counter-increment: step; content: counter(step);
+    font-family: var(--mono); font-size: 12px; color: var(--ink-3);
+    padding-top: 3px; font-variant-numeric: tabular-nums;
+  }
+  .step b { display: block; }
+  .step > div > span { display: block; font-size: .94rem; color: var(--ink-2); }
+  .keys { display: flex; flex-wrap: wrap; gap: 8px 10px; margin-top: 14px; }
+  .key {
+    font-family: var(--mono); font-size: 11.5px; color: var(--ink-2);
+    border: 1px solid var(--rule); border-radius: 5px; padding: 3px 8px;
+    background: var(--surface);
+  }
+  .key b { color: var(--ink); font-weight: 600; }
+  pre {
+    font-family: var(--mono); font-size: .84rem; line-height: 1.6;
+    background: var(--surface); border: 1px solid var(--rule);
+    border-radius: 8px; padding: 14px 16px; overflow-x: auto; margin: 16px 0 0;
+    color: var(--ink-2);
+  }
+  pre b { color: var(--ink); font-weight: 600; }
   .fix .tag {
     font-family: var(--mono); font-size: 11px; letter-spacing: .09em;
     text-transform: uppercase; color: var(--ink-3);
@@ -867,6 +894,164 @@
   </div>
 </section>
 
+<!-- ═══════════════ 12 · running it ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>12</b> / Running it yourself</span>
+    <h2>From a bare board to a live trace</h2>
+    <p class="lede">
+      Two USB cables, three probe clips and one calibration press. The whole
+      thing takes about five minutes, and most of the ways it goes wrong are
+      listed at the bottom.
+    </p>
+
+    <div class="grid g2">
+      <div class="card">
+        <h3>Wire it</h3>
+        <p>
+          The demo board and the logic analyser both go to the host over USB.
+          The analyser needs three clips onto the demo board header:
+        </p>
+        <div class="scroll">
+          <table style="margin-top:14px">
+            <thead><tr><th>Saleae</th><th>Demo board</th><th>Carries</th></tr></thead>
+            <tbody>
+              <tr><td class="n">D0</td><td class="n a">uo_out[0]</td>
+                  <td style="text-align:right">GR07, free-running</td></tr>
+              <tr><td class="n">D2</td><td class="n b">uo_out[2]</td>
+                  <td style="text-align:right">GR06, reset-triggered</td></tr>
+              <tr><td class="n">GND</td><td class="n">GND</td>
+                  <td style="text-align:right">required — a floating ground reads noise</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top:12px">
+          Any channel works; the app has a <b>Detect active channels</b> button
+          that reports which ones carry a signal, so the wiring is measured
+          rather than guessed. Threshold stays at <code>1.2 V</code>.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>Install and start</h3>
+        <pre>cd meas
+pip install -r requirements.txt
+<b>python3 main.py</b></pre>
+        <p style="margin-top:12px">
+          Two things must be true before <b>Connect</b> will work:
+        </p>
+        <p style="margin-top:8px">
+          <b>1.</b> In Logic 2, Preferences → <em>Enable automation server</em>
+          (port 10430). Without it the app cannot capture at all, and nothing
+          else will make it work.
+        </p>
+        <p style="margin-top:6px">
+          <b>2.</b> Nothing else may hold the board's serial port. macOS reports
+          it busy while a Chrome tab has it over WebSerial, so close TT Commander
+          first.
+        </p>
+      </div>
+    </div>
+
+    <h3 style="margin-top:38px">First run</h3>
+    <div class="steps">
+      <div class="step"><div>
+        <b>Connect</b>
+        <span>Top right. The three chips go green: Logic 2, demo board, project.
+        The app selects project 258 and sets the clock to 64 MHz itself.</span>
+      </div></div>
+      <div class="step"><div>
+        <b>Pick a sensor</b>
+        <span><span class="a">GR07</span> free-runs and needs nothing driving it.
+        <span class="b">GR06</span> emits nothing without the reset burst, so it
+        needs the demo board connected. <b>Both</b> captures the two together in
+        one capture — the only way to compare them meaningfully.</span>
+      </div></div>
+      <div class="step"><div>
+        <b>Start</b>
+        <span>The trace appears within a second or two. Nothing is in degrees
+        yet — the tile says so.</span>
+      </div></div>
+      <div class="step"><div>
+        <b>Calibrate here</b>
+        <span>Set <em>Reference</em> to the true ambient and press it. That one
+        press fits both sensors if you are in Both mode. Degrees appear
+        immediately; the history resets, because earlier points were computed
+        with the old model.</span>
+      </div></div>
+      <div class="step"><div>
+        <b>Record to CSV…</b>
+        <span>Streams one row per trace bin, flushed every capture, with a
+        <code>.meta.json</code> sidecar carrying the calibration and the
+        instrument state. Roughly 1.4 MB/min at 1 ms bins. It also starts the
+        loop if you had it paused.</span>
+      </div></div>
+    </div>
+
+    <h3 style="margin-top:38px">Reading the trace</h3>
+    <p>
+      The temperature pane is cicwave's waveform plot, so its keys work here
+      too. Click the plot first, then:
+    </p>
+    <div class="keys" id="keymap"></div>
+    <p style="margin-top:14px">
+      Cursors A and B print their values and the delta between them under the
+      plot, alongside min / max / mean / σ / rms / peak-to-peak per series. The
+      view stops auto-fitting the moment you zoom, so it will not re-frame
+      itself while you are reading a value off; <b>f</b> hands it back.
+    </p>
+
+    <h3 style="margin-top:38px">Three settings that matter</h3>
+    <div class="grid g3" style="margin-top:16px">
+      <div class="card">
+        <h3>Capture</h3>
+        <p>
+          Each capture costs a fixed ~0.7 s of overhead, so longer is strictly
+          better for throughput: 0.5 s gives 41 % duty, 2 s gives 71 %. You pay
+          only in how often the display updates. Below 0.2 s is pointless.
+        </p>
+      </div>
+      <div class="card">
+        <h3>Trace bin</h3>
+        <p>
+          Time resolution of the trace. 1 ms suits GR07 (~910 events per point).
+          GR06 fires only ~4500 times a second, so 1 ms leaves 4 events per
+          point — the panel warns, and ~20 ms fixes it.
+        </p>
+      </div>
+      <div class="card">
+        <h3>Setup / wiring</h3>
+        <p>
+          Collapsed by default and rarely needed: channel, sample rate (which is
+          negotiated with the device anyway), threshold, project clock and the
+          GR06 reset timing.
+        </p>
+      </div>
+    </div>
+
+    <h3 style="margin-top:38px">If it misbehaves</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Symptom</th><th style="text-align:right">Cause</th></tr></thead>
+        <tbody>
+          <tr><td>Connect fails on Logic 2</td>
+              <td style="text-align:right">automation server not enabled</td></tr>
+          <tr><td>Demo board “unavailable: could not open …”</td>
+              <td style="text-align:right">a Chrome/Commander tab holds the serial port</td></tr>
+          <tr><td>GR06 reads nothing</td>
+              <td style="text-align:right">no demo board — it needs the reset burst</td></tr>
+          <tr><td>Trace looks like pure noise</td>
+              <td style="text-align:right">bin too small for the sensor; widen it</td></tr>
+          <tr><td>Temperature is stable but wrong</td>
+              <td style="text-align:right">one-point calibration; add a second temperature</td></tr>
+          <tr><td>Sample rate is lower than requested</td>
+              <td style="text-align:right">expected — negotiated down for the channel count</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
 <footer class="foot">
   <div class="wrap">
     <span>JNW-TEMP · Tiny Tapeout ttsky25a · project 258</span>
@@ -1146,6 +1331,20 @@ if (DATA.staircase && DATA.staircase.bins) {
   const yl = el("text", { x: 16, y: 20, class: "sm" });
   yl.textContent = "periods";
   svg.appendChild(yl);
+})();
+
+/* ---------- slide 12 · keymap chips ---------- */
+(() => {
+  const host = $("keymap");
+  if (!host) return;
+  // Mirrors jnwtemp.cicwave_plot.KEYMAP, which is what the app actually binds.
+  [["z", "zoom in"], ["Z", "zoom out"], ["a", "cursor A"], ["b", "cursor B"],
+   ["f", "fit to data"], ["l", "legend"]].forEach(([k, what]) => {
+    const d = document.createElement("span");
+    d.className = "key";
+    d.innerHTML = `<b>${k}</b> &nbsp;${what}`;
+    host.appendChild(d);
+  });
 })();
 
 /* ---------- slides 08-09 · the stimulus run ---------- */

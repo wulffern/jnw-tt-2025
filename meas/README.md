@@ -327,6 +327,22 @@ produce the committed `docs/presentation.html`. No number in the deck is typed b
 hand, so it cannot drift from the measurements. Re-run all three scripts after a
 new capture.
 
+## The plot window
+
+If [cicwave](https://github.com/wulffern/cicwave) is importable, the temperature
+pane *is* cicwave's `PgWavePlot`, so its measurement ergonomics come along:
+A/B cursors with a delta readout, min/max/mean/σ/rms/peak-to-peak per series, and
+the usual keys — **z** zoom in, **Z** zoom out, **a**/**b** cursors, **f** fit,
+**l** legend. Without cicwave the app falls back to its own plot and the rest is
+unchanged.
+
+The bridge is deliberately small (`cicwave_plot.py`): cicwave's `WaveFile`
+accepts an in-memory DataFrame and exposes a `df` setter, and `PgWave.reload()`
+re-reads its column from it, so swapping the frame each capture updates the
+curves in place — cursors, zoom and legend survive. Auto-fit stops the moment you
+zoom, because a plot that keeps re-framing itself is useless for reading values
+off; **f** hands it back.
+
 ## Layout
 
 | File | Role |
@@ -343,6 +359,7 @@ new capture.
 | `scripts/analyse_dual.py` | Compare the two, emit deck data |
 | `scripts/build_presentation.py` | Inject measured data into the deck |
 | `plots.py` / `main_window.py` | The GUI |
+| `cicwave_plot.py` | Live trace via cicwave's waveform plot (optional) |
 
 The control panel keeps the everyday controls visible - sensor, capture length,
 trace bin, calibrate, record - and folds wiring and one-time configuration into

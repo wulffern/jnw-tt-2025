@@ -353,6 +353,18 @@ class TemperaturePlot(CrosshairPlot):
         if getattr(self, "_curve2", None) is not None:
             self._curve2.setData([], [])
 
+    def show_traces(self, series: dict) -> None:
+        """Draw one or two named series. Shared interface with LiveWavePlot."""
+        items = list(series.items())
+        if not items:
+            return
+        (name, (t, v)) = items[0]
+        self.update_series(t, v, stats=len(items) == 1)
+        if len(items) > 1:
+            self.set_second_series(*items[1][1])
+        else:
+            self.clear_second_series()
+
     def set_recording(self, on: bool) -> None:
         self._recording = bool(on)
         self._rec.setVisible(self._recording)
