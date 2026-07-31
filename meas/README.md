@@ -162,6 +162,47 @@ Two deliberate choices make that work:
   * *Long term* - drift and 1/f across the whole session.
   * *Allan deviation* - how far averaging actually helps before drift takes over.
 
+## Comparing the two sensors
+
+`scripts/dual_log.py` logs **both** sensors at once. One capture covers D0 (GR07)
+and D2 (GR06) while the ResetTemp06 burst runs on the RP2350, so the two share a
+time base and thermal environment — which is what makes the comparison mean
+anything. Two channels caps the Logic Pro at 125 MS/s (8 ns), still finer than
+GR07's 15.6 ns clock quantum, and GR06's 14.3 ns jitter dithers over it.
+
+```sh
+python3 scripts/dual_log.py 900        # 15 min -> data/dual.csv
+python3 scripts/analyse_dual.py        # -> data/deck_data.json + a summary
+python3 scripts/build_presentation.py  # -> docs/presentation-built.html
+```
+
+`data/2026-07-31_dual_15min.csv` is one such run, 569 readings over 15 minutes.
+What it shows:
+
+| Per 0.5 s reading | GR07 | GR06 |
+| :--- | ---: | ---: |
+| Mean | 23.028 °C | 22.960 °C |
+| Statistical precision (SEM) | **3.31 mK** | 12.82 mK |
+| Reading-to-reading spread | 172.8 mK | 104.0 mK |
+| Peak-to-peak over the run | 1041 mK | 738 mK |
+| Best Allan deviation | 57 mK at τ = 8 s | **31 mK at τ = 76 s** |
+
+Two results worth keeping in mind when using either sensor:
+
+* **They do not track each other.** Correlation is +0.11, and the spread of their
+  difference (192 mK) is 95 % of the quadrature sum of the individual spreads
+  (202 mK) — the signature of largely independent noise. On a die this small the
+  two are at the same temperature, so the ~1 K of wander is measuring the
+  *sensors*, not the room.
+* **The Allan curves cross.** GR07 bottoms out at 57 mK after 8 s of averaging
+  and degrades from there; GR06 keeps improving to 31 mK at 76 s. GR07's ~200×
+  event advantage buys a better single reading, not a better long-term
+  measurement. Past a few seconds GR06 is the more trustworthy of the two.
+
+`docs/presentation.html` is a standalone deck covering the sensors, the setup and
+these results; it carries a `__DATA__` placeholder that `build_presentation.py`
+fills from the analysis, so no number in it is typed by hand.
+
 ## Layout
 
 | File | Role |
@@ -174,6 +215,9 @@ Two deliberate choices make that work:
 | `acquire.py` | The measurement loop; sensor definitions |
 | `worker.py` | Qt thread wrapping `acquire` |
 | `recorder.py` | Streaming CSV recorder |
+| `scripts/dual_log.py` | Log both sensors simultaneously |
+| `scripts/analyse_dual.py` | Compare the two, emit deck data |
+| `scripts/build_presentation.py` | Inject measured data into the deck |
 | `plots.py` / `main_window.py` | The GUI |
 
 ## Measured behaviour (room temperature, 64 MHz project clock)

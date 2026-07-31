@@ -3,4 +3,17 @@ __pycache__/
 *.egg-info/
 build/
 dist/
+
+# The app writes recordings wherever it is launched from, and each one drops a
+# JSON sidecar beside it. That is session output, not repo content.
 *.csv
+*.meta.json
+*.parquet
+*.feather
+
+# ...except measurement runs deliberately kept with the repo.
+!data/*.csv
+
+# Regenerated from data/ by scripts/analyse_dual.py.
+data/deck_data.json
+presentation-built.html

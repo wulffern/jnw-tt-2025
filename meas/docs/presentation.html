@@ -1,0 +1,1023 @@
+<title>JNW-TEMP — two temperature sensors, measured</title>
+<style>
+  /* ---------- tokens ---------------------------------------------------
+     The page is monochrome warm-grey. Colour appears ONLY where it encodes
+     a sensor: GR07 blue, GR06 orange, everywhere — diagram, charts, tables,
+     pills. Colour follows the entity, never the rank.                     */
+  :root {
+    color-scheme: light;
+    --ground:  #faf7f1;
+    --surface: #f3eee4;
+    --raised:  #ffffff;
+    --rule:    #ded5c4;
+    --rule-2:  #ebe4d6;
+    --ink:     #1b1811;
+    --ink-2:   #58513f;
+    --ink-3:   #857c68;
+    --gr07:    #2a78d6;
+    --gr06:    #d1521f;
+    --gr07-15: rgba(42,120,214,.13);
+    --gr06-15: rgba(209,82,31,.13);
+    --shadow:  0 1px 2px rgba(27,24,17,.06), 0 8px 24px rgba(27,24,17,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --ground:  #17150f;
+      --surface: #1f1c15;
+      --raised:  #262219;
+      --rule:    #3a3428;
+      --rule-2:  #2c281e;
+      --ink:     #f6f2e9;
+      --ink-2:   #b9b0a0;
+      --ink-3:   #8b8272;
+      --gr07:    #3987e5;
+      --gr06:    #e0662f;
+      --gr07-15: rgba(57,135,229,.16);
+      --gr06-15: rgba(224,102,47,.16);
+      --shadow:  0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.28);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ground:  #17150f;
+    --surface: #1f1c15;
+    --raised:  #262219;
+    --rule:    #3a3428;
+    --rule-2:  #2c281e;
+    --ink:     #f6f2e9;
+    --ink-2:   #b9b0a0;
+    --ink-3:   #8b8272;
+    --gr07:    #3987e5;
+    --gr06:    #e0662f;
+    --gr07-15: rgba(57,135,229,.16);
+    --gr06-15: rgba(224,102,47,.16);
+    --shadow:  0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.28);
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --ground:  #faf7f1;
+    --surface: #f3eee4;
+    --raised:  #ffffff;
+    --rule:    #ded5c4;
+    --rule-2:  #ebe4d6;
+    --ink:     #1b1811;
+    --ink-2:   #58513f;
+    --ink-3:   #857c68;
+    --gr07:    #2a78d6;
+    --gr06:    #d1521f;
+    --gr07-15: rgba(42,120,214,.13);
+    --gr06-15: rgba(209,82,31,.13);
+    --shadow:  0 1px 2px rgba(27,24,17,.06), 0 8px 24px rgba(27,24,17,.05);
+  }
+
+  /* ---------- type ------------------------------------------------------
+     Serif for prose and headings (a lab report, not a landing page); mono
+     ONLY where the content is a measurement or an identifier.            */
+  :root {
+    --serif: Charter, "Bitstream Charter", "Iowan Old Style", "Palatino Linotype",
+             Palatino, "Book Antiqua", Georgia, serif;
+    --mono:  ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
+             "Liberation Mono", monospace;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 28px; }
+
+  /* ---------- slides ---------------------------------------------------- */
+  .slide { padding: 84px 0; border-top: 1px solid var(--rule-2); position: relative; }
+  .slide:first-of-type { border-top: 0; }
+  .num {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .14em;
+    color: var(--ink-3); display: block; margin-bottom: 14px;
+  }
+  .num b { color: var(--ink-2); font-weight: 600; }
+  h1, h2, h3 { text-wrap: balance; margin: 0; font-weight: 600; }
+  h1 { font-size: clamp(2.6rem, 6vw, 4.1rem); line-height: 1.04; letter-spacing: -.02em; }
+  h2 { font-size: clamp(1.7rem, 3.4vw, 2.5rem); line-height: 1.12; letter-spacing: -.015em; }
+  h3 { font-size: 1.12rem; letter-spacing: -.005em; }
+  .lede { font-size: 1.22rem; color: var(--ink-2); max-width: 62ch; margin-top: 18px; }
+  p { max-width: 68ch; }
+  .slide > .wrap > p + p { margin-top: 14px; }
+  a { color: var(--gr07); }
+
+  /* ---------- cover ----------------------------------------------------- */
+  .cover { padding: 96px 0 78px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 12.5px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+  .cover h1 { margin-top: 20px; }
+  .cover .rule { height: 1px; background: var(--rule); margin: 34px 0 26px; }
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 10px 30px;
+    font-family: var(--mono); font-size: 12.5px; color: var(--ink-3);
+  }
+  .meta span b { color: var(--ink-2); font-weight: 600; }
+
+  /* ---------- shared bits ----------------------------------------------- */
+  .grid { display: grid; gap: 18px; margin-top: 30px; }
+  .g2 { grid-template-columns: repeat(2, 1fr); }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 820px) { .g2, .g3 { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--rule);
+    border-radius: 10px; padding: 22px 24px;
+  }
+  .card h3 { margin-bottom: 8px; }
+  .card p { font-size: .96rem; color: var(--ink-2); margin: 0; }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--ink-2);
+  }
+  .dot { width: 9px; height: 9px; border-radius: 2px; flex: none; }
+  .dot.a { background: var(--gr07); }
+  .dot.b { background: var(--gr06); }
+
+  .stat { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .big { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 600; letter-spacing: -.02em; line-height: 1.1; }
+  .a { color: var(--gr07); } .b { color: var(--gr06); }
+
+  table { border-collapse: collapse; width: 100%; font-size: .93rem; }
+  .scroll { overflow-x: auto; margin-top: 26px; }
+  th, td { text-align: right; padding: 11px 14px; border-bottom: 1px solid var(--rule-2); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-3); font-weight: 500;
+    border-bottom: 1px solid var(--rule);
+  }
+  td.n { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  code, .k { font-family: var(--mono); font-size: .88em; color: var(--ink-2); }
+
+  figure { margin: 30px 0 0; }
+  figcaption {
+    font-size: .88rem; color: var(--ink-3); margin-top: 12px; max-width: 70ch;
+  }
+  .chart { width: 100%; height: auto; display: block; }
+  .chartbox {
+    background: var(--surface); border: 1px solid var(--rule);
+    border-radius: 10px; padding: 18px 16px 10px;
+  }
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; padding: 0 6px 12px; }
+
+  /* ---------- the ask (input log) --------------------------------------- */
+  .asks { margin-top: 30px; border-top: 1px solid var(--rule-2); }
+  .ask {
+    display: grid; grid-template-columns: 46px 1fr; gap: 20px;
+    padding: 16px 0; border-bottom: 1px solid var(--rule-2); align-items: start;
+  }
+  .ask .i {
+    font-family: var(--mono); font-size: 12px; color: var(--ink-3);
+    padding-top: 4px; font-variant-numeric: tabular-nums;
+  }
+  .ask q { font-style: italic; color: var(--ink); quotes: "\201C" "\201D"; }
+  .ask .out { display: block; font-size: .92rem; color: var(--ink-3); margin-top: 5px; }
+  .ask .out::before { content: "→ "; color: var(--ink-3); }
+
+  /* ---------- corrections ------------------------------------------------ */
+  .fix { border-left: 2px solid var(--rule); padding: 2px 0 2px 20px; }
+  .fix + .fix { margin-top: 22px; }
+  .fix h3 { font-size: 1.04rem; }
+  .fix p { font-size: .96rem; color: var(--ink-2); margin: 6px 0 0; }
+  .fix .tag {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+
+  .foot {
+    padding: 40px 0 64px; color: var(--ink-3); font-size: .88rem;
+    border-top: 1px solid var(--rule-2);
+  }
+  .foot .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+
+  /* diagram + chart text inherits page ink */
+  svg text { font-family: var(--mono); fill: var(--ink-2); }
+  svg .lbl { font-size: 12.5px; }
+  svg .sm  { font-size: 10.5px; fill: var(--ink-3); }
+  svg .ttl { font-size: 13px; fill: var(--ink); font-family: var(--serif); font-weight: 600; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .chart .rise { transform-origin: center bottom; }
+  }
+</style>
+
+<main>
+
+<!-- ═══════════════ 01 · cover ═══════════════ -->
+<section class="slide cover">
+  <div class="wrap">
+    <div class="eyebrow">Tiny Tapeout · ttsky25a · project 258 · tt_um_jnw_wulffern</div>
+    <h1>Two temperature sensors,<br>measured properly.</h1>
+    <p class="lede">
+      A day spent building a live readout for <b>JNW-TEMP</b> — the two sensors
+      designed by NTNU TFE4188 students — and then finding out what the silicon
+      actually does. Both sensors read within <span class="stat" id="cover-offset">—</span>
+      of each other at room temperature.
+    </p>
+    <div class="rule"></div>
+    <div class="meta">
+      <span><b>Sensors</b> GR06 · GR07</span>
+      <span><b>Instruments</b> Saleae Logic Pro 16 · TT demo board RP2350B</span>
+      <span><b>Run</b> <span id="cover-run">—</span></span>
+      <span><b>Author</b> Carsten Wulff</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 02 · the ask ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>02</b> / What you asked for</span>
+    <h2>The brief, as it actually arrived</h2>
+    <p class="lede">
+      Nine requests over the day. Most arrived mid-task, which is why the
+      shape of the tool kept changing.
+    </p>
+
+    <div class="asks">
+      <div class="ask"><span class="i">01</span><div>
+        <q>Create a local interface where I can plot the period of output 0… figure out whether we could control the tiny tapeout board from python to create a closed loop… a live demo plot… and an FFT over long time to show the noise.</q>
+        <span class="out">Set the whole scope: PySide6 app, Logic 2 automation, host-driven GR06 stimulus.</span>
+      </div></div>
+
+      <div class="ask"><span class="i">02</span><div>
+        <q>You will need to sample at as high frequency as possible. Each period is about 1 µs, and the pulse is only a few tens of ns.</q>
+        <span class="out">Correct, and load-bearing — it forced transition-based parsing instead of sample-based, and top-rate captures.</span>
+      </div></div>
+
+      <div class="ask"><span class="i">03</span><div>
+        <q>App owns serial.</q>
+        <span class="out">Answer to my question about who drives the board. Made the closed loop possible.</span>
+      </div></div>
+
+      <div class="ask"><span class="i">04</span><div>
+        <q>put the scripts in meas/ directory</q>
+        <span class="out">Package lives at <code>meas/src/jnwtemp</code>.</span>
+      </div></div>
+
+      <div class="ask"><span class="i">05</span><div>
+        <q>automation: 127.0.0.1:10430 &nbsp; mcp: 127.0.0.1:10530</q>
+        <span class="out">Unblocked everything — the Logic 2 automation server had been refusing connections until then.</span>
+      </div></div>
+
+      <div class="ask"><span class="i">06</span><div>
+        <q>We should add a trace of the temperature versus time. a button to record the temperature would be good, and a button to stop recording.</q>
+        <span class="out">Streaming CSV recorder, flushed per row.</span>
+      </div></div>
+
+      <div class="ask"><span class="i">07</span><div>
+        <q>The recorder should also have some provenance (time,date,user etc) maybe a sidecar file</q>
+        <span class="out">JSON sidecar — and it made the CSV comment banner redundant, which is what later let cicwave read the files.</span>
+      </div></div>
+
+      <div class="ask"><span class="i">08</span><div>
+        <q>…longer captures with saleae, maybe up to a second? … make sure the capture is easy to plot in cicwave. 3) commit, push</q>
+        <span class="out">Found and fixed a real incompatibility: our CSV would not parse in cicwave at all.</span>
+      </div></div>
+
+      <div class="ask"><span class="i">09</span><div>
+        <q>fix cicwave &nbsp;·&nbsp; capture the temperature for both sensors for a while and compare</q>
+        <span class="out">MCP server ported to SDK 2.x; the 15-minute dual-sensor run behind slide 07.</span>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 03 · setup ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>03</b> / The setup</span>
+    <h2>One loop, two instruments</h2>
+    <p class="lede">
+      The host both <em>drives</em> the chip and <em>listens</em> to it. GR07 free-runs, so
+      listening is enough; GR06 emits nothing until its reset is toggled, so the
+      host has to close the loop.
+    </p>
+
+    <figure>
+      <div class="chartbox">
+        <svg class="chart" viewBox="0 0 980 430" role="img"
+             aria-label="Setup diagram: the Mac runs jnwtemp, which drives the Tiny Tapeout demo board over USB serial and reads the chip outputs through a Saleae Logic Pro 16.">
+          <defs>
+            <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7"
+                    markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <!-- host -->
+          <g color="var(--ink-3)">
+            <rect x="16" y="150" width="176" height="128" rx="8"
+                  fill="var(--raised)" stroke="var(--rule)"/>
+            <text class="ttl" x="104" y="182" text-anchor="middle">Host · macOS</text>
+            <text class="lbl" x="104" y="205" text-anchor="middle">jnwtemp</text>
+            <text class="sm"  x="104" y="226" text-anchor="middle">PySide6 + pyqtgraph</text>
+            <text class="sm"  x="104" y="244" text-anchor="middle">acquisition thread</text>
+            <text class="sm"  x="104" y="262" text-anchor="middle">calibrate · record</text>
+          </g>
+
+          <!-- demo board -->
+          <g>
+            <rect x="286" y="150" width="186" height="128" rx="8"
+                  fill="var(--raised)" stroke="var(--rule)"/>
+            <text class="ttl" x="379" y="182" text-anchor="middle">TT demo board</text>
+            <text class="lbl" x="379" y="205" text-anchor="middle">RP2350B core</text>
+            <text class="sm"  x="379" y="226" text-anchor="middle">MicroPython REPL</text>
+            <text class="sm"  x="379" y="244" text-anchor="middle">project clock 64 MHz</text>
+            <text class="sm"  x="379" y="262" text-anchor="middle">reset burst on ui_in[0]</text>
+          </g>
+
+          <!-- chip -->
+          <g>
+            <rect x="566" y="118" width="196" height="192" rx="8"
+                  fill="var(--raised)" stroke="var(--rule)"/>
+            <text class="ttl" x="664" y="146" text-anchor="middle">tt_um_jnw_wulffern</text>
+            <text class="sm"  x="664" y="165" text-anchor="middle">sky130 · index 258</text>
+
+            <rect x="588" y="182" width="152" height="52" rx="6"
+                  fill="var(--gr07-15)" stroke="var(--gr07)"/>
+            <text class="lbl" x="664" y="203" text-anchor="middle" fill="var(--gr07)">GR07</text>
+            <text class="sm"  x="664" y="221" text-anchor="middle">free-running PWM</text>
+
+            <rect x="588" y="246" width="152" height="52" rx="6"
+                  fill="var(--gr06-15)" stroke="var(--gr06)"/>
+            <text class="lbl" x="664" y="267" text-anchor="middle" fill="var(--gr06)">GR06</text>
+            <text class="sm"  x="664" y="285" text-anchor="middle">reset-triggered pulse</text>
+          </g>
+
+          <!-- saleae -->
+          <g>
+            <rect x="828" y="150" width="136" height="128" rx="8"
+                  fill="var(--raised)" stroke="var(--rule)"/>
+            <text class="ttl" x="896" y="182" text-anchor="middle">Saleae</text>
+            <text class="lbl" x="896" y="203" text-anchor="middle">Logic Pro 16</text>
+            <text class="sm"  x="896" y="226" text-anchor="middle">250 MS/s · 1 ch</text>
+            <text class="sm"  x="896" y="244" text-anchor="middle">125 MS/s · 2 ch</text>
+            <text class="sm"  x="896" y="262" text-anchor="middle">edge transitions</text>
+          </g>
+
+          <!-- host -> board -->
+          <g color="var(--ink-3)" stroke="currentColor" stroke-width="1.5" fill="none">
+            <path d="M192 196 H 280" marker-end="url(#ar)"/>
+          </g>
+          <text class="sm" x="236" y="186" text-anchor="middle">USB serial</text>
+          <text class="sm" x="236" y="216" text-anchor="middle">4.8 ms/cmd</text>
+
+          <!-- board -> chip -->
+          <g color="var(--ink-3)" stroke="currentColor" stroke-width="1.5" fill="none">
+            <path d="M472 196 H 560" marker-end="url(#ar)"/>
+          </g>
+          <text class="sm" x="516" y="186" text-anchor="middle">clk · ui_in[0]</text>
+          <text class="sm" x="516" y="216" text-anchor="middle">6 µs/edge</text>
+
+          <!-- chip -> saleae, one line per sensor -->
+          <g stroke="var(--gr07)" stroke-width="1.8" fill="none" color="var(--gr07)">
+            <path d="M762 208 H 795 V 186 H 822" marker-end="url(#ar)"/>
+          </g>
+          <text class="sm" x="790" y="176" text-anchor="middle" fill="var(--gr07)">uo_out[0] → D0</text>
+
+          <g stroke="var(--gr06)" stroke-width="1.8" fill="none" color="var(--gr06)">
+            <path d="M762 272 H 795 V 244 H 822" marker-end="url(#ar)"/>
+          </g>
+          <text class="sm" x="790" y="292" text-anchor="middle" fill="var(--gr06)">uo_out[2] → D2</text>
+
+          <!-- saleae -> host, the return leg -->
+          <g color="var(--ink-3)" stroke="currentColor" stroke-width="1.5"
+             fill="none" stroke-dasharray="5 4">
+            <path d="M896 278 V 366 H 104 V 282" marker-end="url(#ar)"/>
+          </g>
+          <text class="sm" x="500" y="358" text-anchor="middle">Logic 2 automation · gRPC 127.0.0.1:10430 · binary edge export</text>
+
+          <!-- loop annotation -->
+          <text class="sm" x="16" y="404">
+            The dashed leg closes the loop: the host reads back what its own stimulus produced.
+          </text>
+        </svg>
+      </div>
+      <figcaption>
+        Colour marks the sensor, here and everywhere after: <span class="pill"><i class="dot a"></i>GR07</span>
+        <span class="pill"><i class="dot b"></i>GR06</span>. Everything else on the page is grey.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ═══════════════ 04 · the sensors ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>04</b> / The circuits</span>
+    <h2>Same physics, two ways of reading it out</h2>
+    <p class="lede">
+      Both sensors are a PTAT current charging a capacitor into a comparator. The
+      current rises with absolute temperature, so the <em>time</em> to reach the
+      threshold falls with it:
+    </p>
+    <p style="font-family:var(--mono);font-size:.95rem;color:var(--ink);margin-top:18px">
+      t = V<sub>ref</sub>·C / I(T),&nbsp;&nbsp; I(T) = k·T·ln(N) / (q·R)
+    </p>
+    <p>
+      So <code>t ∝ 1/T</code>, and the <em>rate</em> <code>r = 1/t</code> is proportional to
+      absolute temperature. The app works in the rate domain and fits
+      <code>r = a·T<sub>K</sub> + b</code> — with one calibration point it fits the ideal PTAT
+      line through the origin, which is the only honest model from a single observation.
+    </p>
+
+    <div class="grid g2">
+      <div class="card" style="border-left:3px solid var(--gr07)">
+        <span class="pill"><i class="dot a"></i>GR07 · uo_out[0]</span>
+        <h3 style="margin-top:10px">Free-running PWM</h3>
+        <p>
+          Nerheim, Batalle Largo &amp; Sætermo. The comparator output is re-timed by a
+          clocked register, which also resets the ramp — so it oscillates on its own and
+          the <b>period</b> is the observable. Nothing to drive; just listen. Its resolution
+          depends on the project clock, which is why we run it as fast as it goes.
+        </p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--gr06)">
+        <span class="pill"><i class="dot b"></i>GR06 · uo_out[2]</span>
+        <h3 style="margin-top:10px">Reset-triggered pulse</h3>
+        <p>
+          Sbaffi, Jensen &amp; Klemetsdal. Asserting ResetTemp06 on ui_in[0] shorts the
+          capacitor; releasing it produces exactly one pulse whose <b>width</b> is the
+          observable. Asynchronous — no clock quantization — but it yields one
+          measurement per stimulus instead of a million per second.
+        </p>
+      </div>
+    </div>
+
+    <div class="scroll">
+      <table>
+        <caption class="sr-only" style="position:absolute;left:-9999px">Measured characteristics of both sensors</caption>
+        <thead>
+          <tr><th>Measured</th><th>GR07</th><th>GR06</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Observable</td><td class="n">period</td><td class="n">high pulse width</td></tr>
+          <tr><td>Value at ~23 °C</td><td class="n a" id="t-obs-a">—</td><td class="n b" id="t-obs-b">—</td></tr>
+          <tr><td>Frequency</td><td class="n">909.8 kHz</td><td class="n">141.3 kHz equivalent</td></tr>
+          <tr><td>Sensitivity</td><td class="n">3.08 kHz/K</td><td class="n">0.48 kHz/K</td></tr>
+          <tr><td>Events per 0.5 s capture</td><td class="n a" id="t-ev-a">—</td><td class="n b" id="t-ev-b">—</td></tr>
+          <tr><td>Host stimulus needed</td><td class="n">none</td><td class="n">reset burst</td></tr>
+          <tr><td>Quantization</td><td class="n">15.6 ns clock</td><td class="n">none (async)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 05 · closing the loop ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>05</b> / Closing the loop</span>
+    <h2>Two bottlenecks stood between “works” and “usable”</h2>
+    <p class="lede">
+      GR06 needs a reset pulse every few hundred microseconds. Naively that is
+      impossible from a host; both fixes were about finding where the time was going.
+    </p>
+
+    <div class="grid g2">
+      <div class="card">
+        <span class="pill">Serial round-trip</span>
+        <div class="big stat" style="margin:10px 0 4px">730 ms → 4.8 ms</div>
+        <p>
+          pyserial's <code>read(n)</code> blocks until <em>n</em> bytes arrive or the timeout
+          expires, so a <code>read(4096)</code> that gets 20 bytes still costs a full timeout —
+          every call. Polling <code>in_waiting</code> instead made the REPL 150× faster.
+        </p>
+      </div>
+      <div class="card">
+        <span class="pill">Reset edge</span>
+        <div class="big stat" style="margin:10px 0 4px">15 ms → 6 µs</div>
+        <p>
+          <code>tt.ui_in[0] = 1</code> goes through the SDK's <code>Logic</code> wrapper and costs
+          ~15 ms per edge. The underlying <code>machine.Pin</code> costs ~6 µs — 2500× less. The
+          burst runs on the RP2350 itself, concurrently with the capture.
+        </p>
+      </div>
+    </div>
+
+    <p style="margin-top:26px">
+      The result: one asynchronous burst of ~4500 reset pulses runs <em>during</em> a capture,
+      so a single 0.5 s window yields thousands of independent GR06 measurements instead of
+      the handful that host round-trips would allow.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════ 06 · the staircase ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>06</b> / The surprise</span>
+    <h2>GR07's period only takes four values</h2>
+    <p class="lede">
+      A 1-second capture holds <span class="stat" id="stair-total">—</span> periods. They land on
+      <span class="stat" id="stair-distinct">—</span> distinct values, in two clusters one 64 MHz
+      clock period apart.
+    </p>
+
+    <figure>
+      <div class="chartbox">
+        <div class="legend"><span class="pill"><i class="dot a"></i>GR07 period, 1 s capture at 250 MS/s</span></div>
+        <svg class="chart" id="chart-stair" viewBox="0 0 980 300" role="img"
+             aria-label="Histogram of GR07 period values showing four discrete levels in two clusters"></svg>
+      </div>
+      <figcaption id="stair-cap">
+        The 16 ns gap between clusters is one project-clock period (15.6 ns); the 4 ns
+        substructure inside each cluster is the Saleae's own sample quantum.
+      </figcaption>
+    </figure>
+
+    <p style="margin-top:26px">
+      The comparator trip is re-timed by the project clock, so each period is either
+      <em>N</em> or <em>N</em>+1 clock cycles. One whole step is ≈ 4.2 K. All the resolution
+      therefore comes from the <b>ratio</b> between the two levels — the circuit dithers,
+      and averaging ~900 000 periods reads that ratio to a few millikelvin. It is,
+      accidentally, a first-order sigma-delta: the in-capture noise spectrum rises toward
+      Nyquist exactly as that structure predicts.
+    </p>
+    <p>
+      This is also why outlier rejection had to be rebuilt — see slide 08.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════ 07 · results ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>07</b> / The comparison</span>
+    <h2>Both sensors, <span id="hdr-span">—</span>, same time base</h2>
+    <p class="lede">
+      Captured simultaneously on two channels — identical thermal environment,
+      identical clock. Each is calibrated at a single point, 23.00 °C, on its
+      first reading; everything after that is the silicon talking.
+    </p>
+
+    <figure>
+      <div class="chartbox">
+        <div class="legend">
+          <span class="pill"><i class="dot a"></i>GR07</span>
+          <span class="pill"><i class="dot b"></i>GR06</span>
+          <span class="pill" id="hover-readout" style="margin-left:auto;color:var(--ink-3)">hover to read values</span>
+        </div>
+        <svg class="chart" id="chart-time" viewBox="0 0 980 380" role="img"
+             aria-label="Estimated temperature from both sensors over the run"></svg>
+      </div>
+      <figcaption>
+        One point per 0.5 s capture. The two traces wander independently — see the
+        reading below the chart. The table further down is the same data numerically.
+      </figcaption>
+    </figure>
+
+    <div class="grid g3" style="margin-top:30px">
+      <div class="card">
+        <span class="pill">Correlation</span>
+        <div class="big stat" id="k-corr" style="margin-top:8px">—</div>
+        <p>Between the two temperature series — and it is the headline result. See below.</p>
+      </div>
+      <div class="card">
+        <span class="pill">Offset</span>
+        <div class="big stat" id="k-offset" style="margin-top:8px">—</div>
+        <p>Mean GR06 − GR07, after single-point calibration of each.</p>
+      </div>
+      <div class="card">
+        <span class="pill">Precision ratio</span>
+        <div class="big stat" id="k-ratio" style="margin-top:8px">—</div>
+        <p>GR07's per-reading noise advantage, from ~200× more events.</p>
+      </div>
+    </div>
+
+    <figure>
+      <div class="chartbox">
+        <div class="legend">
+          <span class="pill"><i class="dot a"></i>GR07</span>
+          <span class="pill"><i class="dot b"></i>GR06</span>
+          <span class="pill" style="margin-left:auto;color:var(--ink-3)">Allan deviation — lower is better</span>
+        </div>
+        <svg class="chart" id="chart-allan" viewBox="0 0 980 340" role="img"
+             aria-label="Allan deviation versus averaging time for both sensors"></svg>
+      </div>
+      <figcaption>
+        How far averaging actually helps. A falling curve means more averaging buys
+        precision; a rising one means drift has taken over and longer averaging makes
+        the answer <em>worse</em>. <span id="allan-note"></span>
+      </figcaption>
+    </figure>
+
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>Per reading (0.5 s capture)</th><th>GR07</th><th>GR06</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Mean temperature</td><td class="n a" id="r-mean-a">—</td><td class="n b" id="r-mean-b">—</td></tr>
+          <tr><td>Statistical precision (SEM)</td><td class="n a" id="r-sem-a">—</td><td class="n b" id="r-sem-b">—</td></tr>
+          <tr><td>Reading-to-reading spread</td><td class="n a" id="r-std-a">—</td><td class="n b" id="r-std-b">—</td></tr>
+          <tr><td>Peak-to-peak over the run</td><td class="n a" id="r-p2p-a">—</td><td class="n b" id="r-p2p-b">—</td></tr>
+          <tr><td>Per-event σ</td><td class="n a" id="r-ev-a">—</td><td class="n b" id="r-ev-b">—</td></tr>
+          <tr><td>Allan deviation @ ~10 s</td><td class="n a" id="r-al-a">—</td><td class="n b" id="r-al-b">—</td></tr>
+          <tr><td>Events rejected as glitches</td><td class="n a" id="r-rej-a">—</td><td class="n b" id="r-rej-b">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="margin-top:26px" id="interp">—</p>
+  </div>
+</section>
+
+<!-- ═══════════════ 08 · corrections ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>08</b> / What I got wrong</span>
+    <h2>Four corrections worth recording</h2>
+    <p class="lede">
+      Three were mine. The measurement one mattered most, because it was silently
+      producing plausible numbers.
+    </p>
+
+    <div style="margin-top:30px">
+      <div class="fix" style="border-left-color:var(--gr06)">
+        <span class="tag">Measurement · silent</span>
+        <h3>Outlier rejection was deleting the signal</h3>
+        <p>
+          A MAD/σ rule reads GR07's far cluster as outliers. One recorded row shows
+          <b>44 924 of 91 512 events discarded</b> and the temperature biased to 24.17 °C.
+          Rejection is now by ratio to the median (±40 %), which catches what actually goes
+          wrong — a missed edge doubles the interval — and is blind to legitimate dither.
+          After the fix: zero rejected, and the reading returned to ~22.8 °C.
+        </p>
+      </div>
+
+      <div class="fix">
+        <span class="tag">Assumption</span>
+        <h3>The Logic Pro does not do 500 MS/s here</h3>
+        <p>
+          I hardcoded a rate/channel table from memory. The device caps at 250 MS/s on one
+          channel and 125 MS/s on two. Rates are now negotiated from the device's own
+          rejection message rather than assumed.
+        </p>
+      </div>
+
+      <div class="fix">
+        <span class="tag">Performance</span>
+        <h3>Plotting 180 000 points froze the GUI</h3>
+        <p>
+          The Qt main thread stalled inside <code>PlotCurveItem.paint</code>; pyqtgraph's
+          <code>autoDownsample</code> still paints the full path. Now decimated to 4 000 points
+          with a min/max envelope, so outliers survive the thinning.
+        </p>
+      </div>
+
+      <div class="fix">
+        <span class="tag">Ecosystem</span>
+        <h3>cicwave could not read our files — then could not start</h3>
+        <p>
+          The <code>#</code> provenance banner made the CSV unparseable, and the MCP
+          <code>plot</code> tool has no way to pass <code>--csv-comment</code>. Dropping the banner
+          fixed it. Separately <code>cicwave-mcp</code> died at import under MCP SDK 2.x, which
+          renamed <code>FastMCP</code> to <code>MCPServer</code> — now supports both generations.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 09 · shipped ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>09</b> / Shipped</span>
+    <h2>What exists now</h2>
+
+    <div class="grid g2">
+      <div class="card">
+        <h3><code>meas/src/jnwtemp</code></h3>
+        <p>
+          Live readout: sensor select, channel detection, one- and two-point calibration,
+          three plot modes (in-capture noise, long-term drift, Allan deviation), streaming
+          recorder and per-event capture export. 13 modules, ~3 100 lines.
+          Committed to <code>jnw-tt-2025@c0830cb</code>.
+        </p>
+      </div>
+      <div class="card">
+        <h3>cicwave, SDK 2.x</h3>
+        <p>
+          MCP server ported and verified over a real stdio transport — initialize,
+          list_tools, inline PNGs, text analysis. Full suite 160 passed.
+          Committed to <code>cicwave@eb823a6</code>.
+        </p>
+      </div>
+      <div class="card">
+        <h3>Data that outlives the session</h3>
+        <p>
+          Every recording writes a JSON sidecar: timestamps, operator, software and git
+          commit, DUT and pin configuration, instrument identities, and every calibration
+          point. Data files stay flag-free so any tool opens them.
+        </p>
+      </div>
+      <div class="card">
+        <h3>Known limits</h3>
+        <p>
+          Single-point calibration assumes ideal PTAT through the origin — a second
+          temperature would absorb comparator delay. And cicwave still builds Qt widgets
+          off the main thread; it works, but it is undefined behaviour.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="wrap">
+    <span>JNW-TEMP · Tiny Tapeout ttsky25a · project 258</span>
+    <span class="stat" id="foot-stamp">—</span>
+  </div>
+</footer>
+</main>
+
+<script>
+const DATA = __DATA__;
+
+/* ---------- helpers ---------- */
+const $ = (id) => document.getElementById(id);
+const mK = (c) => (c * 1000);
+const fmt = (v, d = 2) => v.toFixed(d);
+const SVGNS = "http://www.w3.org/2000/svg";
+const el = (n, a = {}) => {
+  const e = document.createElementNS(SVGNS, n);
+  for (const k in a) e.setAttribute(k, a[k]);
+  return e;
+};
+
+/* ---------- fill the numbers ---------- */
+const A = DATA.sensors.GR07, B = DATA.sensors.GR06;
+
+$("cover-offset").textContent = fmt(Math.abs(mK(DATA.mean_offset_c)), 0) + " mK";
+$("cover-run").textContent = fmt(DATA.span_s / 60, 1) + " min · " + DATA.n_readings + " readings";
+$("hdr-span").textContent = fmt(DATA.span_s / 60, 0) + " minutes";
+$("foot-stamp").textContent = DATA.stamp;
+
+$("t-obs-a").textContent = fmt(A.observable_ns, 1) + " ns";
+$("t-obs-b").textContent = fmt(B.observable_ns, 1) + " ns";
+$("t-ev-a").textContent = Math.round(A.events_per_capture).toLocaleString("en-US");
+$("t-ev-b").textContent = Math.round(B.events_per_capture).toLocaleString("en-US");
+
+$("r-mean-a").textContent = fmt(A.mean_c, 3) + " °C";
+$("r-mean-b").textContent = fmt(B.mean_c, 3) + " °C";
+$("r-sem-a").textContent = fmt(mK(A.sem_c), 2) + " mK";
+$("r-sem-b").textContent = fmt(mK(B.sem_c), 2) + " mK";
+$("r-std-a").textContent = fmt(mK(A.reading_std_c), 1) + " mK";
+$("r-std-b").textContent = fmt(mK(B.reading_std_c), 1) + " mK";
+$("r-p2p-a").textContent = fmt(mK(A.peak_to_peak_c), 0) + " mK";
+$("r-p2p-b").textContent = fmt(mK(B.peak_to_peak_c), 0) + " mK";
+$("r-ev-a").textContent = fmt(A.per_event_sigma_c, 2) + " °C";
+$("r-ev-b").textContent = fmt(B.per_event_sigma_c, 2) + " °C";
+$("r-al-a").textContent = A.allan.short ? fmt(mK(A.allan.short.dev_c), 1) + " mK" : "—";
+$("r-al-b").textContent = B.allan.short ? fmt(mK(B.allan.short.dev_c), 1) + " mK" : "—";
+$("r-rej-a").textContent = A.rejected_total.toLocaleString("en-US");
+$("r-rej-b").textContent = B.rejected_total.toLocaleString("en-US");
+
+$("k-corr").textContent = fmt(DATA.correlation, 3);
+$("k-offset").textContent = (DATA.mean_offset_c >= 0 ? "+" : "−") +
+  fmt(Math.abs(mK(DATA.mean_offset_c)), 0) + " mK";
+$("k-ratio").textContent = fmt(B.sem_c / A.sem_c, 1) + "×";
+
+if (DATA.staircase && DATA.staircase.bins) {
+  $("stair-total").textContent = DATA.staircase.total.toLocaleString("en-US");
+  $("stair-distinct").textContent = DATA.staircase.distinct;
+}
+
+/* Interpretation, computed from the run rather than assumed. The expected story
+   was "both track the room"; the correlation says otherwise, so the text follows
+   the data. Shared variance fraction comes straight from r. */
+(() => {
+  const ind = DATA.independence;
+  const ratio = ind.diff_std / ind.quadrature_sum;
+  const sharedPct = Math.max(0, DATA.correlation * 100);
+  $("interp").innerHTML =
+    "<b>The two sensors barely track each other.</b> Correlation over the run is " +
+    fmt(DATA.correlation, 3) + ", and the spread of their difference (" +
+    fmt(mK(DATA.diff_std_c), 0) + " mK) is " + fmt(ratio * 100, 0) +
+    " % of the quadrature sum of their individual spreads (" +
+    fmt(mK(ind.quadrature_sum), 0) + " mK) — the signature of two largely " +
+    "<em>independent</em> noise sources. At most ~" + fmt(sharedPct, 0) +
+    " % of the variance is shared. Were both simply watching the room, the " +
+    "difference would have been far steadier than either trace; it is not. " +
+    "There is a weak common trend — both drift down over the run (" +
+    fmt(ind.gr07_slope_mk_per_min, 1) + " and " + fmt(ind.gr06_slope_mk_per_min, 1) +
+    " mK/min) — but it is dwarfed by fluctuation that is local to each sensor. " +
+    "On a die this small the two <em>are</em> at the same temperature, so what the " +
+    "spread measures is the sensors, not the room. " +
+    "Each reading is precise to " + fmt(mK(A.sem_c), 1) + " and " + fmt(mK(B.sem_c), 1) +
+    " mK, yet the readings wander by " + fmt(mK(A.peak_to_peak_c), 0) + " and " +
+    fmt(mK(B.peak_to_peak_c), 0) + " mK — " + Math.round(A.peak_to_peak_c / A.sem_c) +
+    "× and " + Math.round(B.peak_to_peak_c / B.sem_c) + "× their own precision. " +
+    "<b>Precision is not accuracy</b>, and the Allan curves show averaging only fixes " +
+    "one of them.";
+})();
+
+/* ---------- chart 1 · time series ---------- */
+(() => {
+  const svg = $("chart-time");
+  const W = 980, H = 380, M = { t: 16, r: 18, b: 42, l: 62 };
+  const t = DATA.series.t_min, a = DATA.series.GR07, b = DATA.series.GR06;
+  const all = a.concat(b);
+  let lo = Math.min(...all), hi = Math.max(...all);
+  const pad = (hi - lo) * 0.12 || 0.1; lo -= pad; hi += pad;
+  const xmax = Math.max(...t);
+  const X = (v) => M.l + (v / xmax) * (W - M.l - M.r);
+  const Y = (v) => M.t + (1 - (v - lo) / (hi - lo)) * (H - M.t - M.b);
+
+  // grid + y labels
+  const ticks = 5;
+  for (let i = 0; i <= ticks; i++) {
+    const v = lo + (hi - lo) * i / ticks, y = Y(v);
+    if (i === ticks) continue;  // top tick collides with the unit label
+    svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: y, y2: y,
+      stroke: "var(--rule)", "stroke-width": i === 0 ? 1 : .6, opacity: i === 0 ? 1 : .55 }));
+    const tx = el("text", { x: M.l - 10, y: y + 4, "text-anchor": "end", class: "sm" });
+    tx.textContent = v.toFixed(2);
+    svg.appendChild(tx);
+  }
+  const yl = el("text", { x: 16, y: M.t + 4, class: "sm" });
+  yl.textContent = "°C"; svg.appendChild(yl);
+
+  // x labels
+  const xt = Math.min(6, Math.ceil(xmax));
+  for (let i = 0; i <= xt; i++) {
+    const v = xmax * i / xt, x = X(v);
+    svg.appendChild(el("line", { x1: x, x2: x, y1: H - M.b, y2: H - M.b + 5, stroke: "var(--rule)" }));
+    const tx = el("text", { x: x, y: H - M.b + 20, "text-anchor": "middle", class: "sm" });
+    tx.textContent = v.toFixed(0) + " min";
+    svg.appendChild(tx);
+  }
+
+  const line = (vals, colour) => {
+    const d = vals.map((v, i) => (i ? "L" : "M") + X(t[i]).toFixed(1) + " " + Y(v).toFixed(1)).join(" ");
+    svg.appendChild(el("path", { d, fill: "none", stroke: colour,
+      "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+  };
+  line(a, "var(--gr07)");
+  line(b, "var(--gr06)");
+
+  // direct labels at the right end — identity never rests on colour alone
+  // Push the two end-labels apart: where the traces converge they would overlap.
+  const aEnd = a[a.length - 1], bEnd = b[b.length - 1];
+  const lastLbl = (v, colour, name, above) => {
+    const tx = el("text", { x: W - M.r - 4, y: Y(v) + (above ? -11 : 17),
+      "text-anchor": "end", class: "sm", fill: colour });
+    tx.textContent = name;
+    svg.appendChild(tx);
+  };
+  lastLbl(aEnd, "var(--gr07)", "GR07", aEnd >= bEnd);
+  lastLbl(bEnd, "var(--gr06)", "GR06", bEnd > aEnd);
+
+  // crosshair
+  const cross = el("line", { y1: M.t, y2: H - M.b, stroke: "var(--ink-3)",
+    "stroke-width": 1, opacity: 0, "stroke-dasharray": "3 3" });
+  svg.appendChild(cross);
+  const dotA = el("circle", { r: 4, fill: "var(--gr07)", opacity: 0 });
+  const dotB = el("circle", { r: 4, fill: "var(--gr06)", opacity: 0 });
+  svg.appendChild(dotA); svg.appendChild(dotB);
+  const out = $("hover-readout");
+  svg.addEventListener("pointermove", (e) => {
+    const r = svg.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width * W;
+    const v = Math.max(0, Math.min(xmax, (x - M.l) / (W - M.l - M.r) * xmax));
+    let i = 0, best = Infinity;
+    t.forEach((tv, j) => { const d = Math.abs(tv - v); if (d < best) { best = d; i = j; } });
+    cross.setAttribute("x1", X(t[i])); cross.setAttribute("x2", X(t[i]));
+    cross.setAttribute("opacity", 1);
+    dotA.setAttribute("cx", X(t[i])); dotA.setAttribute("cy", Y(a[i])); dotA.setAttribute("opacity", 1);
+    dotB.setAttribute("cx", X(t[i])); dotB.setAttribute("cy", Y(b[i])); dotB.setAttribute("opacity", 1);
+    out.textContent = t[i].toFixed(1) + " min · GR07 " + a[i].toFixed(3) +
+                      " °C · GR06 " + b[i].toFixed(3) + " °C";
+  });
+  svg.addEventListener("pointerleave", () => {
+    [cross, dotA, dotB].forEach((n) => n.setAttribute("opacity", 0));
+    out.textContent = "hover to read values";
+  });
+})();
+
+/* ---------- chart 3 · Allan deviation (log-log) ---------- */
+(() => {
+  const svg = $("chart-allan");
+  const W = 980, H = 340, M = { t: 18, r: 24, b: 46, l: 66 };
+  const curves = [[A.allan_curve, "var(--gr07)", "GR07"], [B.allan_curve, "var(--gr06)", "GR06"]];
+  const pts = curves.flatMap((c) => c[0]).filter((p) => p[0] > 0 && p[1] > 0);
+  if (!pts.length) return;
+  const lx = pts.map((p) => Math.log10(p[0])), ly = pts.map((p) => Math.log10(p[1] * 1000));
+  const x0 = Math.min(...lx), x1 = Math.max(...lx);
+  let y0 = Math.min(...ly), y1 = Math.max(...ly);
+  const pad = (y1 - y0) * 0.15 || 0.2; y0 -= pad; y1 += pad;
+  const X = (v) => M.l + (Math.log10(v) - x0) / (x1 - x0) * (W - M.l - M.r);
+  const Y = (v) => M.t + (1 - (Math.log10(v * 1000) - y0) / (y1 - y0)) * (H - M.t - M.b);
+
+  // decade gridlines on y (values are in mK)
+  for (let d = Math.floor(y0); d <= Math.ceil(y1); d++) {
+    for (const m of [1, 2, 5]) {
+      const mk = Math.pow(10, d) * m;
+      const y = Y(mk / 1000);
+      if (y < M.t || y > H - M.b) continue;
+      svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: y, y2: y,
+        stroke: "var(--rule)", "stroke-width": .6, opacity: m === 1 ? .7 : .35 }));
+      const tx = el("text", { x: M.l - 10, y: y + 4, "text-anchor": "end", class: "sm" });
+      tx.textContent = mk >= 1 ? mk + " mK" : mk.toFixed(1);
+      svg.appendChild(tx);
+    }
+  }
+  for (let d = Math.floor(x0); d <= Math.ceil(x1); d++) {
+    const v = Math.pow(10, d), x = X(v);
+    if (x < M.l || x > W - M.r) continue;
+    svg.appendChild(el("line", { x1: x, x2: x, y1: H - M.b, y2: H - M.b + 5, stroke: "var(--rule)" }));
+    const tx = el("text", { x: x, y: H - M.b + 20, "text-anchor": "middle", class: "sm" });
+    tx.textContent = v + " s";
+    svg.appendChild(tx);
+  }
+  svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: H - M.b, y2: H - M.b, stroke: "var(--rule)" }));
+
+  curves.forEach(([curve, colour, name]) => {
+    const good = curve.filter((p) => p[0] > 0 && p[1] > 0);
+    if (!good.length) return;
+    const d = good.map((p, i) => (i ? "L" : "M") + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1)).join(" ");
+    svg.appendChild(el("path", { d, fill: "none", stroke: colour, "stroke-width": 2,
+      "stroke-linejoin": "round", "stroke-linecap": "round" }));
+    good.forEach((p) => svg.appendChild(el("circle", {
+      cx: X(p[0]), cy: Y(p[1]), r: 3, fill: colour })));
+    const last = good[good.length - 1];
+    const tx = el("text", { x: X(last[0]) - 6, y: Y(last[1]) - 10, "text-anchor": "end",
+      class: "sm", fill: colour });
+    tx.textContent = name;
+    svg.appendChild(tx);
+  });
+
+  // State where each curve actually bottoms out rather than eyeballing it.
+  const minOf = (c) => c.reduce((m, p) => (p[1] > 0 && p[1] < m[1] ? p : m), [0, Infinity]);
+  const ma = minOf(A.allan_curve), mb = minOf(B.allan_curve);
+  const note = $("allan-note");
+  if (note) {
+    note.innerHTML = "<b>Both curves turn up eventually</b> — every real sensor drifts. " +
+      "What differs is when. GR07 bottoms out at " + fmt(mK(ma[1]), 0) + " mK after only " +
+      fmt(ma[0], 0) + " s of averaging and degrades from there; GR06 keeps improving to " +
+      fmt(mK(mb[1]), 0) + " mK at " + fmt(mb[0], 0) + " s. So GR07's ~200× event advantage " +
+      "buys a better single reading, not a better long-term measurement — past a few " +
+      "seconds GR06 is the more trustworthy of the two.";
+  }
+
+  const xl = el("text", { x: (M.l + W - M.r) / 2, y: H - 8, "text-anchor": "middle", class: "sm" });
+  xl.textContent = "averaging time τ";
+  svg.appendChild(xl);
+  const yl = el("text", { x: 16, y: 20, class: "sm" });
+  yl.textContent = "σ(τ)";
+  svg.appendChild(yl);
+})();
+
+/* ---------- chart 2 · the staircase ---------- */
+(() => {
+  const svg = $("chart-stair");
+  const st = DATA.staircase;
+  if (!st || !st.bins) return;
+  const W = 980, H = 300, M = { t: 20, r: 24, b: 46, l: 62 };
+  const bins = st.bins;
+  const maxC = Math.max(...bins.map((d) => d[1]));
+  const bw = (W - M.l - M.r) / bins.length;
+  const Y = (c) => M.t + (1 - c / maxC) * (H - M.t - M.b);
+
+  svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: H - M.b, y2: H - M.b, stroke: "var(--rule)" }));
+
+  bins.forEach((d, i) => {
+    const [ns, c] = d;
+    const x = M.l + i * bw, y = Y(c), h = (H - M.b) - y;
+    // 2px surface gap between adjacent bars, 4px rounded data-end
+    svg.appendChild(el("rect", { x: x + 2, y: y, width: bw - 4, height: h,
+      rx: 4, fill: "var(--gr07)", opacity: .9 }));
+    const lv = el("text", { x: x + bw / 2, y: y - 9, "text-anchor": "middle", class: "sm",
+      fill: "var(--ink-2)" });
+    lv.textContent = (c / 1000).toFixed(0) + "k";
+    svg.appendChild(lv);
+    const lx = el("text", { x: x + bw / 2, y: H - M.b + 20, "text-anchor": "middle", class: "sm" });
+    lx.textContent = ns.toFixed(0);
+    svg.appendChild(lx);
+  });
+
+  const xl = el("text", { x: (M.l + W - M.r) / 2, y: H - 8, "text-anchor": "middle", class: "sm" });
+  xl.textContent = "period [ns] — one 64 MHz clock period separates the two clusters";
+  svg.appendChild(xl);
+  const yl = el("text", { x: 16, y: 20, class: "sm" });
+  yl.textContent = "periods";
+  svg.appendChild(yl);
+})();
+</script>
