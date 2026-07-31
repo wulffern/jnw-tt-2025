@@ -42,19 +42,20 @@ from . import __version__
 from .acquire import SENSORS, AcquireSettings, Reading
 from .temperature import Calibration
 
+#: One row per *trace bin* - the same time resolution the live plot shows,
+#: 1 ms by default. Per-event recording was measured and rejected: GR07 emits
+#: ~910k periods a second, which is 77 GB/hour as CSV and still 11 GB/hour as
+#: Parquet. A 1 ms bin is 1.1 MB/min, and a whole capture's per-event detail is
+#: still available on demand through export_capture().
 COLUMNS = [
-    "t_rel_s",           # seconds since the recording started
-    "t_unix",            # absolute time, so runs can be correlated with anything else
-    "temp_c",            # capture-mean temperature
-    "temp_sem_c",        # standard error of that mean
-    "temp_sigma_c",      # per-event spread within the capture
-    "rate_hz",           # the raw observable, in case the model changes later
-    "observable_s",
-    "observable_sigma_s",
-    "n_events",
-    "n_rejected",
-    "capture_s",
-    "sample_rate_hz",
+    "t_rel_s",       # bin centre, seconds since the recording started
+    "t_unix",        # absolute time, so runs correlate with anything else
+    "temp_c",        # temperature for this bin
+    "temp_sem_c",    # its standard error, so points carry their own error bar
+    "rate_hz",       # the raw observable, in case the model changes later
+    "observable_ns",
+    "events",        # events averaged into this bin
+    "capture",       # index of the capture the bin came from
 ]
 
 
@@ -127,6 +128,11 @@ def build_provenance(
             "capture_duration_s": settings.duration_s,
             "observable": spec.observable if spec else "",
             "outlier_band": settings.outlier_band,
+            "trace_bin_ms": settings.bin_ms,
+            "row_resolution": (
+                f"{settings.bin_ms:g} ms bins" if settings.bin_ms > 0
+                else "one row per capture"
+            ),
             "reset_high_us": settings.reset_high_us,
             "reset_low_us": settings.reset_low_us,
         },
@@ -161,6 +167,14 @@ class TemperatureRecorder:
         self._writer = None
         self.rows = 0
         self.t0 = 0.0
+        self._capture = 0
+        self._keys = []
+        self.columns = list(COLUMNS)
+        #: Absolute time of the first row written. t_rel_s is measured from
+        #: here, not from the button press: the capture in flight when Record
+        #: was pressed began earlier, which would otherwise make the first
+        #: timestamps negative.
+        self._t_first: Optional[float] = None
         self.provenance: dict = {}
 
     # ------------------------------------------------------------- lifecycle
@@ -196,37 +210,139 @@ class TemperatureRecorder:
         # plot tool has no way to pass it. The data file stays a plain header row
         # plus numbers so any tool opens it with no flags; all provenance lives
         # in the JSON sidecar beside it.
+        self._keys = list(settings.sensor_keys)
+        if len(self._keys) > 1:
+            cols = ["t_rel_s", "t_unix"]
+            for k in self._keys:
+                cols += [f"{k}_temp_c", f"{k}_sem_c", f"{k}_rate_hz", f"{k}_events"]
+            cols.append("capture")
+        else:
+            cols = list(COLUMNS)
+        self.columns = cols
+        self.provenance["columns"] = cols
+        self._write_sidecar()
         self._writer = csv.writer(self._fh)
-        self._writer.writerow(COLUMNS)
+        self._writer.writerow(cols)
         self._fh.flush()
         self.rows = 0
+        self._capture = 0
+        self._t_first = None
 
-    def add(self, reading: Reading) -> None:
-        """Append one reading. Silently ignores empty captures."""
-        if not self.active or not reading.ok:
+    def add(self, reading) -> None:
+        """Append a reading at trace-bin resolution.
+
+        Accepts one Reading, or a {sensor: Reading} dict from dual mode. Both
+        sensors come out of the same capture and so share bin edges, which lets
+        them be written as aligned wide columns rather than a long format that
+        would need pivoting to plot.
+
+        One row per bin when the capture was binned, otherwise a single row for
+        the capture mean. Empty captures are ignored.
+        """
+        if not self.active:
             return
         import numpy as np
 
-        sem = reading.std_temp_c / max(1.0, np.sqrt(reading.n))
-        self._writer.writerow(
-            [
-                f"{reading.t_wall - self.t0:.6f}",
-                f"{reading.t_wall:.6f}",
-                f"{reading.mean_temp_c:.6f}",
-                f"{sem:.6f}",
-                f"{reading.std_temp_c:.6f}",
-                f"{reading.mean_rate_hz:.6f}",
-                f"{reading.mean_s:.12e}",
-                f"{reading.std_s:.12e}",
-                reading.n,
-                reading.n_rejected,
-                f"{reading.duration_s:.6f}",
-                reading.sample_rate,
-            ]
-        )
-        # Flush every row: a recording is worthless if a crash loses the tail.
+        if isinstance(reading, dict):
+            self._add_multi(reading, np)
+            return
+        if not reading.ok:
+            return
+
+        # t_wall is stamped after reduction, so the capture began roughly
+        # duration_s earlier; bin centres are relative to that start.
+        start_unix = reading.t_wall - reading.duration_s
+        if self._t_first is None:
+            self._t_first = start_unix
+        start_rel = start_unix - self._t_first
+
+        if reading.bin_t.size:
+            counts = np.maximum(reading.bin_n, 1.0)
+            sem = reading.std_temp_c / np.sqrt(counts)
+            rows = zip(
+                start_rel + reading.bin_t,
+                start_unix + reading.bin_t,
+                reading.bin_temp_c,
+                sem,
+                reading.bin_rate_hz,
+                reading.bin_n,
+            )
+            for t_rel, t_abs, temp, se, rate, n in rows:
+                if not np.isfinite(rate):
+                    continue  # empty bin: no events, nothing measured
+                self._writer.writerow(
+                    [
+                        f"{t_rel:.6f}", f"{t_abs:.6f}",
+                        f"{temp:.5f}" if np.isfinite(temp) else "",
+                        f"{se:.5f}" if np.isfinite(se) else "",
+                        f"{rate:.4f}",
+                        f"{1e9 / rate:.4f}" if rate else "",
+                        int(n),
+                        self._capture,
+                    ]
+                )
+                self.rows += 1
+        else:
+            sem = reading.std_temp_c / max(1.0, np.sqrt(reading.n))
+            self._writer.writerow(
+                [
+                    f"{reading.t_wall - self._t_first:.6f}", f"{reading.t_wall:.6f}",
+                    f"{reading.mean_temp_c:.5f}", f"{sem:.5f}",
+                    f"{reading.mean_rate_hz:.4f}", f"{reading.mean_s * 1e9:.4f}",
+                    reading.n, self._capture,
+                ]
+            )
+            self.rows += 1
+
+        self._capture += 1
+        # Flush every capture: a recording is worthless if a crash loses the tail.
         self._fh.flush()
-        self.rows += 1
+
+    def _add_multi(self, readings: dict, np) -> None:
+        """Write one aligned row per bin covering every sensor in the capture."""
+        keys = [k for k in self._keys if k in readings and readings[k].ok]
+        if not keys:
+            return
+        base = readings[keys[0]]
+        start_unix = base.t_wall - base.duration_s
+        if self._t_first is None:
+            self._t_first = start_unix
+        start_rel = start_unix - self._t_first
+        nbins = min(readings[k].bin_t.size for k in keys)
+
+        if nbins == 0:  # binning off: one row for the capture means
+            row = [f"{start_rel:.6f}", f"{start_unix:.6f}"]
+            for k in keys:
+                r = readings[k]
+                sem = r.std_temp_c / max(1.0, np.sqrt(r.n))
+                row += [f"{r.mean_temp_c:.5f}", f"{sem:.5f}", f"{r.mean_rate_hz:.4f}", r.n]
+            row.append(self._capture)
+            self._writer.writerow(row)
+            self.rows += 1
+        else:
+            for i in range(nbins):
+                rates = [readings[k].bin_rate_hz[i] for k in keys]
+                if not all(np.isfinite(v) for v in rates):
+                    continue  # a bin with no events in one sensor is not aligned
+                row = [
+                    f"{start_rel + base.bin_t[i]:.6f}",
+                    f"{start_unix + base.bin_t[i]:.6f}",
+                ]
+                for k, rate in zip(keys, rates):
+                    r = readings[k]
+                    n = max(r.bin_n[i], 1.0)
+                    row += [
+                        f"{r.bin_temp_c[i]:.5f}" if np.isfinite(r.bin_temp_c[i]) else "",
+                        f"{r.std_temp_c / np.sqrt(n):.5f}",
+                        f"{rate:.4f}",
+                        int(r.bin_n[i]),
+                    ]
+                row.append(self._capture)
+                self._writer.writerow(row)
+                self.rows += 1
+
+        self._capture += 1
+        self._fh.flush()
 
     def _write_sidecar(self) -> None:
         """(Re)write the JSON sidecar. Never let this kill a recording."""
@@ -257,6 +373,12 @@ class TemperatureRecorder:
 
     def elapsed(self) -> float:
         return time.time() - self.t0 if self.active else 0.0
+
+    def size_bytes(self) -> int:
+        try:
+            return os.path.getsize(self.path)
+        except OSError:
+            return 0
 
 
 #: Per-event columns written by :func:`export_capture`.

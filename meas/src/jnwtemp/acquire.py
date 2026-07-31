@@ -87,12 +87,21 @@ SENSORS: Dict[str, SensorSpec] = {
 }
 
 
+#: Selector for measuring both sensors in one capture. They sit on different
+#: pins, so a single two-channel capture covers both - same time base, same
+#: thermal environment, which is what makes them comparable.
+BOTH = "BOTH"
+
+#: Default Saleae channel per sensor, matching uo_out[0] and uo_out[2].
+DEFAULT_CHANNELS = {"GR07": 0, "GR06": 2}
+
+
 @dataclass
 class AcquireSettings:
     """Everything the GUI can change about how a reading is taken."""
 
     sensor: str = "GR07"
-    channel: int = 0
+    channels: Dict[str, int] = field(default_factory=lambda: dict(DEFAULT_CHANNELS))
     sample_rate: int = 500_000_000
     threshold_volts: float = 1.2
     duration_s: float = 0.05
@@ -113,8 +122,30 @@ class AcquireSettings:
         return self.bin_ms / 1000.0
 
     @property
+    def is_dual(self) -> bool:
+        return self.sensor == BOTH
+
+    @property
+    def sensor_keys(self) -> List[str]:
+        """Sensors this setting measures, in display order."""
+        return list(SENSORS) if self.is_dual else [self.sensor]
+
+    @property
     def spec(self) -> SensorSpec:
-        return SENSORS[self.sensor]
+        """Primary sensor spec - GR07 leads in dual mode."""
+        return SENSORS[self.sensor_keys[0]]
+
+    @property
+    def channel(self) -> int:
+        return self.channels.get(self.sensor_keys[0], 0)
+
+    def channel_of(self, key: str) -> int:
+        return self.channels.get(key, DEFAULT_CHANNELS.get(key, 0))
+
+    @property
+    def needs_stimulus(self) -> bool:
+        """True if any selected sensor has to be driven to say anything."""
+        return any(SENSORS[k].needs_stimulus for k in self.sensor_keys)
 
     def timing_lsb_s(self, actual_sample_rate: int = 0) -> float:
         """Dominant timing quantum.
@@ -320,7 +351,7 @@ class Acquisition:
         """Connect to whatever is available; returns a status per instrument."""
         status = {}
         cs = CaptureSettings(
-            channels=[self.settings.channel],
+            channels=[self.settings.channel_of(k) for k in self.settings.sensor_keys],
             sample_rate=self.settings.sample_rate,
             threshold_volts=self.settings.threshold_volts,
             duration_s=self.settings.duration_s,
@@ -370,39 +401,56 @@ class Acquisition:
         if actual != st.clock_hz:
             st.clock_hz = actual
         # Leave ResetTemp06 deasserted; GR06 asserts it per burst.
-        if st.spec.ui_bit is not None:
-            self.board.set_ui_in(st.spec.ui_bit, 0)
+        for key in st.sensor_keys:
+            bit = SENSORS[key].ui_bit
+            if bit is not None:
+                self.board.set_ui_in(bit, 0)
         return "; ".join(msgs)
 
     # --------------------------------------------------------------- reading
-    def _sync_logic_settings(self) -> None:
+    def _sync_logic_settings(self, channels) -> None:
         st = self.settings
-        self.logic.settings.channels = [st.channel]
+        self.logic.settings.channels = list(channels)
         self.logic.settings.sample_rate = st.sample_rate
         self.logic.settings.threshold_volts = st.threshold_volts
         self.logic.settings.duration_s = st.duration_s
 
-    def read(self, cal: Calibration) -> Reading:
-        """Take one measurement: stimulate if needed, capture, reduce."""
+    def read(self, cals) -> Dict[str, Reading]:
+        """Take one measurement and reduce it for every selected sensor.
+
+        Always returns a dict keyed by sensor, with one entry in single-sensor
+        mode and two when measuring both. In dual mode the two sensors come out
+        of the *same* capture, so they share a time base and a thermal
+        environment - which is the whole point of comparing them.
+
+        ``cals`` may be one Calibration (single mode) or a dict of them.
+        """
         if self.logic is None:
             raise LogicError("not connected to Logic 2")
         st = self.settings
-        spec = st.spec
-        self._sync_logic_settings()
+        keys = st.sensor_keys
+        if not isinstance(cals, dict):
+            cals = {keys[0]: cals}
+
+        channels = [st.channel_of(k) for k in keys]
+        self._sync_logic_settings(channels)
 
         stimulating = False
         n_pulses = 0
-        if spec.needs_stimulus:
+        if st.needs_stimulus:
+            driven = next(k for k in keys if SENSORS[k].needs_stimulus)
             if not self.board_ready:
                 raise LogicError(
-                    f"{spec.key} produces nothing without a ResetTemp06 burst, "
+                    f"{driven} produces nothing without a ResetTemp06 burst, "
                     f"but the demo board is not connected"
                 )
             # Cover the arming latency of start_capture plus the capture itself,
             # so the whole capture window sees pulses rather than a dead line.
             period_us = st.reset_high_us + st.reset_low_us + TTBoard.PULSE_LOOP_OVERHEAD_US
             n_pulses = max(1, int((st.duration_s + 1.0) * 1e6 / period_us))
-            self.board.pulse_ui_in_begin(spec.ui_bit, n_pulses, st.reset_high_us, st.reset_low_us)
+            self.board.pulse_ui_in_begin(
+                SENSORS[driven].ui_bit, n_pulses, st.reset_high_us, st.reset_low_us
+            )
             stimulating = True
 
         try:
@@ -414,15 +462,23 @@ class Acquisition:
                 except Exception as exc:
                     self._log(f"reset burst did not finish cleanly: {exc}")
 
-        train = trains[st.channel]
-        reading = reduce_train(train, spec, cal, band=st.outlier_band, bin_s=st.bin_s)
-        reading.sample_rate = self.logic.actual_sample_rate
         if self.logic.last_rate_note:
             self._log(self.logic.last_rate_note)
             self.logic.last_rate_note = ""
-        if stimulating and reading.n:
-            reading.note = f"{n_pulses} reset pulses, {reading.n} responses captured"
-        return reading
+
+        out: Dict[str, Reading] = {}
+        for key in keys:
+            spec = SENSORS[key]
+            train = trains[st.channel_of(key)]
+            cal = cals.get(key) or Calibration(key)
+            reading = reduce_train(
+                train, spec, cal, band=st.outlier_band, bin_s=st.bin_s
+            )
+            reading.sample_rate = self.logic.actual_sample_rate
+            if spec.needs_stimulus and reading.n:
+                reading.note = f"{n_pulses} reset pulses, {reading.n} responses captured"
+            out[key] = reading
+        return out
 
     def detect_channels(self, channels: Optional[List[int]] = None) -> Dict[int, dict]:
         """Report which Saleae channels are carrying a signal (wiring aid)."""

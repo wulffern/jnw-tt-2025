@@ -41,7 +41,7 @@ class AcquireThread(QThread):
 
     #: connection results, {'logic': str, 'board': str}
     opened = Signal(dict)
-    #: a completed measurement
+    #: a completed measurement: {sensor_key: Reading}, one or two entries
     readingReady = Signal(object)
     #: channel scan results from a 'detect' command
     detected = Signal(dict)
@@ -64,7 +64,9 @@ class AcquireThread(QThread):
     ) -> None:
         super().__init__(parent)
         self._settings = copy.deepcopy(settings)
-        self._cal = copy.deepcopy(calibration)
+        # A calibration per sensor, so dual mode converts each with its own.
+        self._cals = copy.deepcopy(calibration) if isinstance(calibration, dict) \
+            else {getattr(calibration, "sensor", "GR07"): copy.deepcopy(calibration)}
         self._board_port = board_port
         self._use_board = use_board
         self._commands: "queue.Queue[tuple]" = queue.Queue()
@@ -87,7 +89,8 @@ class AcquireThread(QThread):
     def update_settings(self, settings: AcquireSettings) -> None:
         self.submit("settings", copy.deepcopy(settings))
 
-    def update_calibration(self, cal: Calibration) -> None:
+    def update_calibration(self, cal) -> None:
+        """Accepts one Calibration or a {sensor: Calibration} dict."""
         self.submit("calibration", copy.deepcopy(cal))
 
     def request_detect(self, channels=None) -> None:
@@ -123,15 +126,18 @@ class AcquireThread(QThread):
                 self.runStateChanged.emit(self._running)
                 self.statusMessage.emit("Acquiring" if self._running else "Paused")
         elif name == "settings":
-            was_stimulus = self._settings.spec.needs_stimulus
+            was_stimulus = self._settings.needs_stimulus
             self._settings = payload
             if self._acq is not None:
                 self._acq.settings = self._settings
                 # Sensor changes can need a different chip state (clock, reset level).
-                if self._settings.spec.needs_stimulus != was_stimulus:
+                if self._settings.needs_stimulus != was_stimulus:
                     self._safe_configure()
         elif name == "calibration":
-            self._cal = payload
+            if isinstance(payload, dict):
+                self._cals.update(payload)
+            else:
+                self._cals[getattr(payload, "sensor", "GR07")] = payload
         elif name == "configure":
             self._safe_configure()
         elif name == "detect":
@@ -191,7 +197,7 @@ class AcquireThread(QThread):
                     continue
                 try:
                     self.statusMessage.emit("Capturing...")
-                    reading = self._acq.read(self._cal)
+                    reading = self._acq.read(self._cals)
                     self._consecutive_errors = 0
                     self.readingReady.emit(reading)
                     self.statusMessage.emit("Acquiring")

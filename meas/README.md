@@ -95,12 +95,65 @@ successive 1 s readings drift over ~0.3 K in tens of seconds, which is real
 thermal behaviour and two orders of magnitude larger. Use the Allan plot to see
 where averaging stops helping.
 
+## Measuring both sensors at once
+
+The **Both - GR07 + GR06 together** option captures two channels in one go, so
+the sensors share a time base and a thermal environment - which is what makes
+comparing them mean anything. One **Calibrate here** press calibrates both from
+the same capture, since on a die this small they are at the same temperature.
+
+The temperature plot then draws both traces, the second and third hero tiles
+become GR06's temperature and the GR06 − GR07 difference, and the raw-timing and
+spectrum panes follow GR07. Two channels caps the Logic Pro at 125 MS/s (8 ns),
+still finer than GR07's 15.6 ns clock quantum.
+
+Watch the bin readout: at 1 ms GR07 gets ~910 events per point but GR06 only ~4,
+so it warns *"GR06 too thin, widen the bin"*. ~20 ms suits GR06.
+
+## Capture rate, and why it is what it is
+
+Each capture costs a fixed ~0.7 s on top of its own length. Measured breakdown
+per capture at 250 MS/s:
+
+| stage | time | what it is |
+| :--- | ---: | :--- |
+| arm | 0.21 s | `start_capture` round trip |
+| trigger latency | ~0.30 s | `wait()` beyond the requested duration |
+| export | 0.09 s | `export_raw_data_binary`, flat with size |
+| parse | 0.003 s | reading the transitions - effectively free |
+| close | 0.10 s | releasing the capture in Logic 2 |
+
+None of it is ours to optimise: parsing is already 0.3 % of the total and the
+rest is Logic 2 round trips. The lever is therefore capture *length*, because
+the overhead is fixed:
+
+| capture | wall clock | duty | 1 ms points per second |
+| ---: | ---: | ---: | ---: |
+| 0.05 s | 0.90 s | 6 % | 56 |
+| 0.20 s | 0.90 s | 22 % | 222 |
+| 0.50 s | 1.21 s | 41 % | 413 |
+| 1.00 s | 1.71 s | 58 % | 585 |
+| 2.00 s | 2.81 s | 71 % | 712 |
+
+So a longer capture is strictly better for throughput and for gap-free traces;
+it costs only how often the display updates. Requests below ~0.2 s are pointless
+- Logic 2 rounds them up and the duty cycle collapses. The panel shows the
+measured duty next to the bin size.
+
 ## Recording
 
 **Record to CSV...** streams one row per capture straight to disk, flushed every
 row, so a run that goes overnight survives the app dying and the file can be
 plotted while it is still growing. **Stop recording** closes it and reports the
 row count. A red `● REC` badge sits on the temperature plot while it runs.
+
+Recordings run at the trace-bin resolution - the same 1 ms points the plot
+shows, ~1.4 MB/min. Per-event recording was measured and rejected: GR07 emits
+~910k periods a second, which is 77 GB/hour as CSV and still 11 GB/hour as
+Parquet. A single capture's per-event detail is available on demand through
+**Export last capture**. In dual mode the two sensors share bin edges, so they
+are written as aligned wide columns (`GR07_temp_c`, `GR06_temp_c`, ...) rather
+than a long format that would need pivoting to plot.
 
 Each recording writes **two** files: `run.csv` and a `run.meta.json` sidecar.
 The sidecar is the machine-readable provenance - when and by whom (local and UTC

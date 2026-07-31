@@ -45,12 +45,19 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from .acquire import SENSORS, AcquireSettings, Reading
+from .acquire import (
+    BOTH,
+    DEFAULT_CHANNELS as SENSOR_CHANNELS,
+    SENSORS,
+    AcquireSettings,
+    Reading,
+)
 from .board import MAX_PROJECT_CLOCK_HZ, find_ports
 from .logic import OFFERED_RATES, THRESHOLDS_V
 from .plots import (
     GRID,
     SERIES_1,
+    SERIES_2,
     STATUS_BAD,
     STATUS_GOOD,
     STATUS_WARN,
@@ -69,10 +76,6 @@ from .spectrum import History, allan_deviation, integrated_noise, welch_psd
 from .temperature import CalibrationStore, resolution_k
 from .worker import AcquireThread
 
-#: Default wiring, overridable in the GUI. uo_out[0] and uo_out[2] are the two
-#: sensor outputs; which Saleae channel they land on depends on the probe clip,
-#: so "Detect" exists to find out rather than guess.
-DEFAULT_CHANNELS = {"GR07": 0, "GR06": 2}
 
 SPECTRUM_MODES = [
     ("Within capture (conversion noise)", "fast"),
@@ -109,7 +112,6 @@ class MainWindow(QWidget):
         self.setWindowTitle("JNW-TEMP - live temperature sensor demo (TT project 258)")
 
         self.settings = AcquireSettings()
-        self.settings.channel = DEFAULT_CHANNELS[self.settings.sensor]
         self.cal_store = CalibrationStore()
         self._board_port = board_port
         self._use_board = use_board
@@ -121,8 +123,8 @@ class MainWindow(QWidget):
         #           time, so it must not be fed to the PSD or Allan routines.
         #  history: one averaged point per capture - uniform enough in time to
         #           be the basis for the long-term spectrum and Allan deviation.
-        self.trace = History(maxlen=300_000)
-        self.history = History(maxlen=100_000)
+        self.traces: dict = {}     # sensor -> fine binned trace (plot only)
+        self.histories: dict = {}  # sensor -> per-capture means (spectra, Allan)
         self._t0 = time.time()
         self._last: Optional[Reading] = None
         self._readings = 0
@@ -240,6 +242,9 @@ class MainWindow(QWidget):
         self.combo_sensor = QComboBox()
         for key, spec in SENSORS.items():
             self.combo_sensor.addItem(spec.label, key)
+        # Both sensors come out of one two-channel capture, so they share a time
+        # base - the only way the comparison means anything.
+        self.combo_sensor.addItem("Both - GR07 + GR06 together", BOTH)
         self.combo_sensor.currentIndexChanged.connect(self._on_sensor_changed)
         sf.addRow("Sensor", self.combo_sensor)
 
@@ -460,7 +465,7 @@ class MainWindow(QWidget):
     def _collect_settings(self) -> AcquireSettings:
         st = self.settings
         st.sensor = self.combo_sensor.currentData()
-        st.channel = self.spin_channel.value()
+        st.channels[st.sensor_keys[0]] = self.spin_channel.value()
         st.sample_rate = int(self.combo_rate.currentData())
         st.threshold_volts = float(self.combo_threshold.currentData())
         st.duration_s = float(self.spin_duration.value())
@@ -484,20 +489,27 @@ class MainWindow(QWidget):
 
     def _on_sensor_changed(self) -> None:
         key = self.combo_sensor.currentData()
+        keys = list(SENSORS) if key == BOTH else [key]
         self.spin_channel.blockSignals(True)
-        self.spin_channel.setValue(DEFAULT_CHANNELS.get(key, 0))
+        self.spin_channel.setValue(self.settings.channels.get(keys[0], 0))
         self.spin_channel.blockSignals(False)
-        spec = SENSORS[key]
-        self.spin_reset_high.setEnabled(spec.needs_stimulus)
-        self.spin_reset_low.setEnabled(spec.needs_stimulus)
-        self._append_log(f"{spec.key}: {spec.doc}")
+        stim = any(SENSORS[k].needs_stimulus for k in keys)
+        self.spin_reset_high.setEnabled(stim)
+        self.spin_reset_low.setEnabled(stim)
+        for k in keys:
+            self._append_log(f"{k}: {SENSORS[k].doc}")
         self._on_clear_history()
         self._push_settings()
         self._refresh_calibration_labels()
 
     @property
     def cal(self):
-        return self.cal_store.get(self.combo_sensor.currentData() or "GR07")
+        """Calibration of the primary sensor (GR07 leads in dual mode)."""
+        return self.cal_store.get(self.settings.sensor_keys[0])
+
+    @property
+    def cals(self) -> dict:
+        return {k: self.cal_store.get(k) for k in self.settings.sensor_keys}
 
     def _refresh_calibration_labels(self) -> None:
         cal = self.cal
@@ -526,7 +538,7 @@ class MainWindow(QWidget):
         st = self._collect_settings()
         self.thread = AcquireThread(
             st,
-            self.cal,
+            self.cals,
             board_port=self.combo_port.currentData(),
             use_board=self.chk_board.isChecked(),
         )
@@ -600,7 +612,7 @@ class MainWindow(QWidget):
             return
         if self.btn_run.text() == "Start":
             self._push_settings()
-            self.thread.update_calibration(self.cal)
+            self.thread.update_calibration(self.cals)
             self.thread.start_acquiring()
         else:
             self.thread.stop_acquiring()
@@ -616,92 +628,201 @@ class MainWindow(QWidget):
         self.log.appendPlainText(msg)
 
     # ---------------------------------------------------------------- data
-    def _on_reading(self, reading: Reading) -> None:
-        self._last = reading
+    # ---------------------------------------------------------------- data
+    def _trace_for(self, key: str) -> History:
+        if key not in self.traces:
+            self.traces[key] = History(maxlen=300_000)
+        return self.traces[key]
+
+    def _history_for(self, key: str) -> History:
+        if key not in self.histories:
+            self.histories[key] = History(maxlen=100_000)
+        return self.histories[key]
+
+    def _on_reading(self, readings) -> None:
+        """Handle one capture. ``readings`` is {sensor: Reading}, one or two."""
+        if not isinstance(readings, dict):          # single-sensor legacy shape
+            readings = {self.settings.sensor_keys[0]: readings}
+        self._last_readings = readings
+        keys = [k for k in self.settings.sensor_keys if k in readings]
+        if not keys:
+            return
+        primary = readings[keys[0]]
+        self._last = primary
         self._readings += 1
-        if not reading.ok:
-            self._append_log(f"Empty capture: {reading.note}")
+
+        if not primary.ok:
+            self._append_log(f"Empty capture: {primary.note}")
             self.tile_temp.set_value(float("nan"))
             return
 
         st = self.settings
-        spec = st.spec
-        cal = self.cal
-
-        # Hero numbers
-        self.tile_rate.set_value(reading.mean_rate_hz / 1e3, f"{spec.unit_label.lower()} "
-                                 f"{reading.mean_s*1e9:.1f} ns", decimals=3)
-        if cal.calibrated:
-            self.tile_temp.set_value(
-                reading.mean_temp_c,
-                f"{reading.n} events in {reading.duration_s*1e3:.0f} ms"
-                + (f", {reading.n_rejected} rejected" if reading.n_rejected else ""),
+        for key in keys:
+            r = readings[key]
+            if not r.ok:
+                continue
+            cal = self.cal_store.get(key)
+            self._history_for(key).append(
+                r.t_wall - self._t0,
+                r.mean_temp_c if cal.calibrated else float("nan"),
             )
-            self.tile_temp.set_color(SERIES_1)
-            # Standard error of the capture mean is what the headline number is worth.
-            sem = reading.std_temp_c / max(1.0, np.sqrt(reading.n))
-            self.tile_noise.set_value(sem, f"per-event sigma {reading.std_temp_c:.3f} °C",
-                                      decimals=4)
-            self.history.append(reading.t_wall - self._t0, reading.mean_temp_c)
-            self._append_trace(reading)
-        else:
-            self.tile_temp.set_value(float("nan"), "calibrate to convert rate to °C")
-            self.tile_temp.set_color(STATUS_WARN)
-            self.tile_noise.set_value(
-                reading.std_s * 1e9, f"{spec.unit_label.lower()} jitter [ns]", decimals=3
-            )
-            # Track the raw rate so the drift plot still works before calibration.
-            self.history.append(reading.t_wall - self._t0, float("nan"))
-            self._append_trace(reading)
+            self._append_trace(key, r)
 
-        if reading.bin_t.size:
-            ev = reading.events_per_bin
-            sig = reading.bin_sigma_c
-            msg = (f"{reading.bin_t.size} pts/capture at {reading.bin_s*1e3:.2f} ms, "
-                   f"{ev:.0f} events each")
-            if np.isfinite(sig) and cal.calibrated:
-                msg += f"\n≈ {sig*1000:.0f} mK noise per point"
-            # Below a handful of events a point is mostly noise, so say so
-            # rather than letting the trace look like real structure.
-            if ev < 10:
-                msg += " — too few, widen the bin"
-                self.lbl_bin.setStyleSheet(f"color:{STATUS_WARN}; font-size:11px;")
-            else:
-                self.lbl_bin.setStyleSheet(f"color:{TEXT_MUTED}; font-size:11px;")
-            self.lbl_bin.setText(msg)
-        else:
-            self.lbl_bin.setText("one point per capture")
+        self._update_tiles(keys, readings)
+        self._update_bin_label(keys, readings)
 
-        # Recording is fed the reading itself, not the plotted history, so a
-        # "Clear history" during a run cannot punch a hole in the record.
+        # Recording is fed the readings themselves, not the plotted history, so
+        # a "Clear history" during a run cannot punch a hole in the record.
         if self.recorder is not None and self.recorder.active:
-            self.recorder.add(reading)
+            self.recorder.add(readings if st.is_dual else primary)
             self.plot_temp.set_recording(True)
             self._update_record_label()
 
-        # Plots
-        t, temp = self.trace.arrays() if len(self.trace) else self.history.arrays()
-        self.plot_temp.update_series(t, temp)
-        self.plot_obs.update_series(reading.event_t, reading.event_s, spec.unit_label)
+        # Plots. The raw-timing and spectrum panes follow the primary sensor;
+        # the temperature trace shows every selected sensor.
+        t, temp = self._trace_for(keys[0]).arrays()
+        self.plot_temp.update_series(t, temp, stats=len(keys) == 1)
+        if len(keys) > 1:
+            t2, temp2 = self._trace_for(keys[1]).arrays()
+            self.plot_temp.set_second_series(t2, temp2)
+        else:
+            self.plot_temp.clear_second_series()
+        self.plot_temp.setTitle(
+            "Estimated temperature — " + " · ".join(keys),
+            color=TEXT_SECONDARY, size="10pt",
+        )
+        self.plot_obs.update_series(
+            primary.event_t, primary.event_s, SENSORS[keys[0]].unit_label
+        )
         self._redraw_spectrum()
         self._refresh_calibration_labels()
 
-    def _append_trace(self, reading: Reading) -> None:
+    def _update_tiles(self, keys, readings) -> None:
+        """Hero numbers. In dual mode the second tile becomes GR06's temperature."""
+        primary = readings[keys[0]]
+        cal = self.cal_store.get(keys[0])
+        dual = len(keys) > 1
+
+        if cal.calibrated:
+            self.tile_temp.set_caption(
+                f"{keys[0]} TEMPERATURE" if dual else "ESTIMATED TEMPERATURE", " °C"
+            )
+            self.tile_temp.set_value(
+                primary.mean_temp_c,
+                f"{primary.n:,} events in {primary.duration_s*1e3:.0f} ms"
+                + (f", {primary.n_rejected} rejected" if primary.n_rejected else ""),
+            )
+            self.tile_temp.set_color(SERIES_1)
+        else:
+            self.tile_temp.set_value(float("nan"), "calibrate to convert rate to °C")
+            self.tile_temp.set_color(STATUS_WARN)
+
+        if dual:
+            second = readings[keys[1]]
+            cal2 = self.cal_store.get(keys[1])
+            self.tile_rate.set_caption(f"{keys[1]} TEMPERATURE", " °C")
+            self.tile_rate.set_color(SERIES_2)
+            self.tile_rate.set_value(
+                second.mean_temp_c if cal2.calibrated else float("nan"),
+                f"{second.n:,} events" if cal2.calibrated else "not calibrated",
+            )
+            self.tile_noise.set_caption("DIFFERENCE", " °C")
+            if cal.calibrated and cal2.calibrated:
+                self.tile_noise.set_value(
+                    second.mean_temp_c - primary.mean_temp_c,
+                    f"{keys[1]} − {keys[0]}", decimals=3,
+                )
+            else:
+                self.tile_noise.set_value(float("nan"), "calibrate both")
+        else:
+            spec = SENSORS[keys[0]]
+            self.tile_rate.set_caption("SENSOR RATE", " kHz")
+            self.tile_rate.set_color(TEXT_PRIMARY)
+            self.tile_rate.set_value(
+                primary.mean_rate_hz / 1e3,
+                f"{spec.unit_label.lower()} {primary.mean_s*1e9:.1f} ns", decimals=3,
+            )
+            self.tile_noise.set_caption("NOISE (1 SIGMA)", " °C")
+            if cal.calibrated:
+                sem = primary.std_temp_c / max(1.0, np.sqrt(primary.n))
+                self.tile_noise.set_value(
+                    sem, f"per-event sigma {primary.std_temp_c:.3f} °C", decimals=4
+                )
+            else:
+                self.tile_noise.set_caption("JITTER", " ns")
+                self.tile_noise.set_value(
+                    primary.std_s * 1e9, f"{spec.unit_label.lower()} spread",
+                    decimals=3,
+                )
+
+    def _update_bin_label(self, keys, readings) -> None:
+        """Say what a plotted point is worth, judged by the *thinnest* sensor.
+
+        In dual mode GR07 gets ~900 events per millisecond while GR06 gets ~4,
+        so warning on the primary alone would stay silent about a trace that is
+        mostly noise.
+        """
+        binned = [readings[k] for k in keys if readings[k].bin_t.size]
+        if not binned:
+            self.lbl_bin.setText("one point per capture")
+            self.lbl_bin.setStyleSheet(f"color:{TEXT_MUTED}; font-size:11px;")
+            return
+        first = binned[0]
+        duty = first.duration_s / max(first.duration_s, self._cycle_s())
+        parts = []
+        worst_key, worst_ev = None, float("inf")
+        for k in keys:
+            r = readings[k]
+            if not r.bin_t.size:
+                continue
+            ev = r.events_per_bin
+            sig = r.bin_sigma_c
+            bit = f"{k} {ev:.0f} ev"
+            if np.isfinite(sig) and self.cal_store.get(k).calibrated:
+                bit += f"/{sig*1000:.0f} mK"
+            parts.append(bit)
+            if ev < worst_ev:
+                worst_key, worst_ev = k, ev
+        msg = (f"{first.bin_t.size} pts/capture at {first.bin_s*1e3:.2f} ms, "
+               f"{duty*100:.0f}% duty\n" + " · ".join(parts))
+        if worst_ev < 10:
+            msg += f" — {worst_key} too thin, widen the bin"
+            self.lbl_bin.setStyleSheet(f"color:{STATUS_WARN}; font-size:11px;")
+        else:
+            self.lbl_bin.setStyleSheet(f"color:{TEXT_MUTED}; font-size:11px;")
+        self.lbl_bin.setText(msg)
+
+    def _cycle_s(self) -> float:
+        """Wall-clock seconds between captures, measured from recent readings."""
+        h = self.histories.get(self.settings.sensor_keys[0])
+        if h is None or len(h) < 3:
+            return self.settings.duration_s
+        return max(self.settings.duration_s, h.mean_dt())
+
+    def _append_trace(self, key: str, reading: Reading) -> None:
         """Add this capture's binned points, preceded by a gap marker.
 
         The capture covers only part of the wall-clock cycle; the rest is arming
         and export. A NaN between captures makes the plot break there rather than
         drawing a line across time when nothing was measured.
         """
+        trace = self._trace_for(key)
+        cal = self.cal_store.get(key)
         if reading.bin_t.size == 0:
-            self.trace.append(reading.t_wall - self._t0, reading.mean_temp_c)
+            trace.append(
+                reading.t_wall - self._t0,
+                reading.mean_temp_c if cal.calibrated else float("nan"),
+            )
             return
         # t_wall is stamped at the end of the reduction, so the capture started
         # roughly duration_s earlier; bin_t is relative to that start.
         start = reading.t_wall - self._t0 - reading.duration_s
-        if len(self.trace):
-            self.trace.append(start - reading.bin_s, float("nan"))
-        self.trace.extend(start + reading.bin_t, reading.bin_temp_c)
+        if len(trace):
+            trace.append(start - reading.bin_s, float("nan"))
+        temps = reading.bin_temp_c if cal.calibrated else np.full(
+            reading.bin_t.size, np.nan
+        )
+        trace.extend(start + reading.bin_t, temps)
 
     def _redraw_spectrum(self) -> None:
         mode = self.combo_spec.currentData()
@@ -726,7 +847,7 @@ class MainWindow(QWidget):
                 f"PSD [{unit}^2/Hz]",
             )
         elif mode == "slow":
-            t, v = self.history.arrays()
+            t, v = self._history_for(self.settings.sensor_keys[0]).arrays()
             good = np.isfinite(v)
             v = v[good]
             if v.size < 16:
@@ -737,7 +858,7 @@ class MainWindow(QWidget):
                     size="10pt",
                 )
                 return
-            dt = self.history.mean_dt()
+            dt = self._history_for(self.settings.sensor_keys[0]).mean_dt()
             f, psd = welch_psd(v, 1.0 / dt if dt > 0 else 1.0)
             rms = integrated_noise(f, psd)
             span = t[good][-1] - t[good][0] if v.size > 1 else 0.0
@@ -748,9 +869,9 @@ class MainWindow(QWidget):
                 "PSD [degC^2/Hz]",
             )
         else:
-            t, v = self.history.arrays()
+            t, v = self._history_for(self.settings.sensor_keys[0]).arrays()
             v = v[np.isfinite(v)]
-            dt = self.history.mean_dt()
+            dt = self._history_for(self.settings.sensor_keys[0]).mean_dt()
             if v.size < 16 or not np.isfinite(dt):
                 self.plot_spec.clear_data()
                 return
@@ -802,8 +923,12 @@ class MainWindow(QWidget):
         path, rows, dur = self.recorder.stop()
         self.btn_record.setEnabled(True)
         self.btn_record_stop.setEnabled(False)
-        self.lbl_record.setText(f"saved {rows} readings ({dur/60:.1f} min)\n{path}")
-        self._append_log(f"Recording stopped: {rows} readings over {dur/60:.2f} min -> {path}")
+        mb = os.path.getsize(path) / 1e6 if os.path.exists(path) else 0.0
+        self.lbl_record.setText(f"saved {rows:,} rows, {dur/60:.1f} min, {mb:.1f} MB\n{path}")
+        self._append_log(
+            f"Recording stopped: {rows:,} rows over {dur/60:.2f} min "
+            f"({mb:.1f} MB) -> {path}"
+        )
         self.plot_temp.set_recording(False)
 
     def _update_record_label(self) -> None:
@@ -811,8 +936,13 @@ class MainWindow(QWidget):
         if r is None or not r.active:
             self.lbl_record.setText("not recording")
             return
+        mins = r.elapsed() / 60.0
+        mb = r.size_bytes() / 1e6
+        # Rows land at the trace-bin rate, so the file grows a lot faster than
+        # one row per capture. Show the rate rather than let it surprise anyone.
+        rate = f", {mb/mins:.1f} MB/min" if mins > 0.2 else ""
         self.lbl_record.setText(
-            f"● recording {r.rows} readings, {r.elapsed()/60:.1f} min\n"
+            f"● recording {r.rows:,} rows, {mins:.1f} min, {mb:.1f} MB{rate}\n"
             f"{os.path.basename(r.path)}"
         )
         self.lbl_record.setStyleSheet(f"color:{STATUS_BAD}; font-size:11px;")
@@ -843,38 +973,48 @@ class MainWindow(QWidget):
 
     # -------------------------------------------------------------- actions
     def _on_calibrate(self) -> None:
-        r = self._last
-        if r is None or not r.ok:
+        readings = getattr(self, "_last_readings", None)
+        if not readings:
             QMessageBox.warning(self, "Calibrate", "Take a reading first.")
             return
-        cal = self.cal
-        cal.add_point(self.spin_ref.value(), r.mean_rate_hz, note=f"n={r.n}")
+        # In dual mode both sensors sit on the same die and are therefore at the
+        # same temperature, so one reference calibrates both from one capture.
+        done = []
+        for key, r in readings.items():
+            if not r.ok:
+                continue
+            cal = self.cal_store.get(key)
+            cal.add_point(self.spin_ref.value(), r.mean_rate_hz, note=f"n={r.n}")
+            done.append(f"{key} -> {r.mean_rate_hz/1e3:.4f} kHz ({cal.describe()})")
+        if not done:
+            QMessageBox.warning(self, "Calibrate", "No usable reading yet.")
+            return
         self.cal_store.save()
         if self.thread is not None:
-            self.thread.update_calibration(cal)
+            self.thread.update_calibration(self.cals)
         self._append_log(
-            f"Calibrated {cal.sensor} at {self.spin_ref.value():.2f} degC "
-            f"-> {r.mean_rate_hz/1e3:.4f} kHz. {cal.describe()}"
+            f"Calibrated at {self.spin_ref.value():.2f} degC: " + "; ".join(done)
         )
         # Past history was computed with the old model, so it is no longer valid.
-        self.trace.clear()
-        self.history.clear()
+        for h in list(self.traces.values()) + list(self.histories.values()):
+            h.clear()
         self._refresh_calibration_labels()
 
     def _on_clear_cal(self) -> None:
-        cal = self.cal
-        cal.clear()
+        for key in self.settings.sensor_keys:
+            self.cal_store.get(key).clear()
         self.cal_store.save()
         if self.thread is not None:
-            self.thread.update_calibration(cal)
-        self.trace.clear()
-        self.history.clear()
+            self.thread.update_calibration(self.cals)
+        cal = self.cal
+        for h in list(self.traces.values()) + list(self.histories.values()):
+            h.clear()
         self._refresh_calibration_labels()
         self._append_log(f"Cleared calibration for {cal.sensor}")
 
     def _on_clear_history(self) -> None:
-        self.trace.clear()
-        self.history.clear()
+        for h in list(self.traces.values()) + list(self.histories.values()):
+            h.clear()
         self._t0 = time.time()
         self._readings = 0
         self.plot_temp.clear_data()

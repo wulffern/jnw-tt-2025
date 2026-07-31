@@ -293,6 +293,16 @@ class StatTile(QWidget):
     def set_color(self, color: str) -> None:
         self._value.setStyleSheet(f"color:{color};")
 
+    def set_caption(self, caption: str, unit: Optional[str] = None) -> None:
+        """Relabel the tile - dual mode repurposes two of the three.
+
+        The unit travels with the caption: a tile switched from a rate to a
+        temperature must stop saying kHz.
+        """
+        self._caption.setText(caption)
+        if unit is not None:
+            self._unit = unit
+
 
 class TemperaturePlot(CrosshairPlot):
     """Estimated temperature against wall-clock time, with a mean reference."""
@@ -326,14 +336,31 @@ class TemperaturePlot(CrosshairPlot):
         self.addItem(self._rec, ignoreBounds=True)
         self._recording = False
 
+    def ensure_second_curve(self) -> None:
+        """Add the GR06 curve, created lazily so single-sensor mode has one series."""
+        if getattr(self, "_curve2", None) is None:
+            self._curve2 = self.plot([], [], pen=pg.mkPen(SERIES_2, width=2))
+            self._curve2.setZValue(-1)
+
+    def set_second_series(self, t: np.ndarray, temp: np.ndarray) -> None:
+        self.ensure_second_curve()
+        t = np.asarray(t, dtype=float)
+        temp = np.asarray(temp, dtype=float)
+        dx, dy = envelope_decimate(t, temp)
+        self._curve2.setData(dx, dy, connect="finite")
+
+    def clear_second_series(self) -> None:
+        if getattr(self, "_curve2", None) is not None:
+            self._curve2.setData([], [])
+
     def set_recording(self, on: bool) -> None:
         self._recording = bool(on)
         self._rec.setVisible(self._recording)
 
-    def update_series(self, t: np.ndarray, temp: np.ndarray) -> None:
+    def update_series(self, t: np.ndarray, temp: np.ndarray, stats: bool = True) -> None:
         self.set_data(t, temp, keep_gaps=True)
         good = temp[np.isfinite(temp)]
-        if good.size >= 2:
+        if stats and good.size >= 2:
             m, s = float(good.mean()), float(good.std(ddof=1))
             self._mean.setPos(m)
             self._mean.setVisible(True)
