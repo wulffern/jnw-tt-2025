@@ -77,7 +77,10 @@ class LiveWavePlot(QWidget):
         self._x_column = x_column
         self._waves: Dict[str, object] = {}
         self._wfiles: Dict[str, object] = {}
+        self._colors: Dict[str, str] = {}
         self._user_framed = False
+        #: Shown in cicwave's legend and readout as the source of each wave.
+        self._source_name = "jnwtemp"
 
         self.plot = PgWavePlot()
         # PgWavePlot is laid out for a standalone window, where the cursor
@@ -106,33 +109,66 @@ class LiveWavePlot(QWidget):
     def _on_user_range(self, *_) -> None:
         self._user_framed = True
 
-    def set_series(self, name: str, t: np.ndarray, y: np.ndarray) -> None:
-        """Create or update one named series."""
+    def set_series(
+        self, name: str, t: np.ndarray, y: np.ndarray, unit: str = ""
+    ) -> None:
+        """Create or update one named series.
+
+        ``unit`` is applied explicitly rather than left to cicwave's name-based
+        inference: nothing in a name like "GR07" says degrees Celsius, and an
+        unlabelled axis is worse than a wrong one.
+        """
         if not AVAILABLE:
             return
         t = np.asarray(t, dtype=float)
         y = np.asarray(y, dtype=float)
-        if t.size == 0:
-            return
         frame = pd.DataFrame({self._x_column: t, name: y})
 
         if name not in self._waves:
-            wf = WaveFile(f"{name}.csv", self._x_column, df=frame)
+            wf = WaveFile(self._source_name, self._x_column, df=frame)
             wave = PgWave(wf, name, self._x_column)
+            if unit:
+                wave.yunit = unit
+                wave._yclean = name
+                wave.ylabel = f"{name} ({unit})"
             self._wfiles[name] = wf
             self._waves[name] = wave
-            self.plot.show_wave(wave)
+            result = self.plot.show_wave(wave)
+            # cicwave hands out the next palette entry on every add, so a sensor
+            # that is removed and re-added (switching Both -> GR07 -> Both)
+            # would come back a different colour. Pin it to whatever it had the
+            # first time, for the life of the window.
+            if result:
+                chosen = result[1]
+                remembered = self._colors.setdefault(name, chosen)
+                if remembered != chosen:
+                    self._recolour(wave, remembered)
         else:
             self._wfiles[name].df = frame
             self._waves[name].reload()
 
-        if not self._user_framed:
+        if not self._user_framed and t.size:
             self.plot.autoSize()
 
-    def show_traces(self, series: dict) -> None:
+    @staticmethod
+    def _recolour(wave, colour: str) -> None:
+        """Repaint a wave, keeping the pen width cicwave chose."""
+        curve = getattr(wave, "curve", None)
+        if curve is None:
+            return
+        try:
+            pen = curve.opts.get("pen")
+            width = pen.width() if pen is not None else 2
+            from pyqtgraph import mkPen
+            curve.setPen(mkPen(colour, width=width))
+            wave.color = colour
+        except Exception:
+            pass
+
+    def show_traces(self, series: dict, unit: str = "\u00b0C") -> None:
         """Draw one or two named series. Shared interface with TemperaturePlot."""
         for name, (t, v) in series.items():
-            self.set_series(name, t, v)
+            self.set_series(name, t, v, unit=unit)
         for stale in [k for k in self._waves if k not in series]:
             self.drop_series(stale)
 
@@ -144,18 +180,23 @@ class LiveWavePlot(QWidget):
         self.clear()
 
     def clear(self) -> None:
-        for name, wave in list(self._waves.items()):
-            try:
-                self.plot.removeLine(wave)
-            except Exception:
-                pass
-        self._waves.clear()
-        self._wfiles.clear()
+        """Empty every series, keeping the curves alive.
+
+        Removing and re-adding waves would hand each one whatever colour is next
+        in cicwave's palette, so a sensor changes colour every time the history
+        is cleared. Feeding empty data keeps the curve, its colour, and its
+        place in the legend.
+        """
+        empty = np.empty(0)
+        for name in list(self._waves):
+            self.set_series(name, empty, empty)
         self._user_framed = False
 
     def drop_series(self, name: str) -> None:
         wave = self._waves.pop(name, None)
         self._wfiles.pop(name, None)
+        # self._colors deliberately survives: a sensor keeps its colour for the
+        # life of the window, even across being removed and re-added.
         if wave is not None:
             try:
                 self.plot.removeLine(wave)

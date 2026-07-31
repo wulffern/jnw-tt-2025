@@ -696,7 +696,7 @@ class MainWindow(QWidget):
         # Plots. The raw-timing and spectrum panes follow the primary sensor;
         # the temperature trace shows every selected sensor.
         self.plot_temp.show_traces(
-            {f"{k}_temp_c": self._trace_for(k).arrays() for k in keys}
+            {k: self._trace_for(k).arrays() for k in keys}
         )
         if hasattr(self.plot_temp, "setTitle"):
             self.plot_temp.setTitle(

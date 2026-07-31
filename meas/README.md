@@ -337,6 +337,14 @@ the usual keys — **z** zoom in, **Z** zoom out, **a**/**b** cursors, **f** fit
 **l** legend. Without cicwave the app falls back to its own plot and the rest is
 unchanged.
 
+Two things are pinned rather than left to cicwave's defaults. The unit is set
+explicitly to °C - nothing in a name like `GR07` says degrees, and cicwave falls
+back to inferring one from the column name. And each sensor keeps its colour for
+the life of the window: cicwave hands out the next palette entry on every add, so
+clearing the history or switching Both -> GR07 -> Both would otherwise repaint a
+sensor. Clearing now empties the curves in place instead of removing them, and a
+re-added series is repainted to the colour it had.
+
 The bridge is deliberately small (`cicwave_plot.py`): cicwave's `WaveFile`
 accepts an in-memory DataFrame and exposes a `df` setter, and `PgWave.reload()`
 re-reads its column from it, so swapping the frame each capture updates the
