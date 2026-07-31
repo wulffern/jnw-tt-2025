@@ -18,7 +18,6 @@
 
 from __future__ import annotations
 
-import csv
 import os
 import time
 from typing import Optional
@@ -31,14 +30,17 @@ from PySide6.QtWidgets import (
     QDoubleSpinBox,
     QFileDialog,
     QFormLayout,
+    QFrame,
     QGroupBox,
     QHBoxLayout,
     QLabel,
     QMessageBox,
     QPlainTextEdit,
     QPushButton,
+    QScrollArea,
     QSpinBox,
     QSplitter,
+    QToolButton,
     QVBoxLayout,
     QWidget,
 )
@@ -113,7 +115,13 @@ class MainWindow(QWidget):
         self._use_board = use_board
         self.thread: Optional[AcquireThread] = None
 
-        # Long-term history: one averaged reading per capture.
+        # Two histories, deliberately.
+        #  trace:   one point per time bin (~1 ms) - what the plot shows. It is
+        #           NOT uniformly sampled: captures are bursts separated by dead
+        #           time, so it must not be fed to the PSD or Allan routines.
+        #  history: one averaged point per capture - uniform enough in time to
+        #           be the basis for the long-term spectrum and Allan deviation.
+        self.trace = History(maxlen=300_000)
         self.history = History(maxlen=100_000)
         self._t0 = time.time()
         self._last: Optional[Reading] = None
@@ -135,6 +143,10 @@ class MainWindow(QWidget):
         self.status_label = QLabel("Idle")
         self.status_label.setStyleSheet(f"color:{TEXT_MUTED}; font-size:11px;")
 
+        self.btn_connect = QPushButton("Connect")
+        self.btn_connect.clicked.connect(self._on_connect)
+        self.btn_connect.setFixedWidth(110)
+
         top = QHBoxLayout()
         top.setContentsMargins(8, 6, 8, 0)
         top.setSpacing(8)
@@ -142,6 +154,7 @@ class MainWindow(QWidget):
             top.addWidget(chip)
         top.addWidget(self.status_label)
         top.addStretch(1)
+        top.addWidget(self.btn_connect)
 
         # --- hero readouts
         self.tile_temp = StatTile("ESTIMATED TEMPERATURE", " °C", SERIES_1)
@@ -180,110 +193,100 @@ class MainWindow(QWidget):
         root.addLayout(top, 0)
         root.addLayout(body, 1)
 
+    def _collapsible(self, title: str, inner: QWidget) -> QWidget:
+        """A section that folds away. Used for controls set once and forgotten.
+
+        Everything in here has a working default - the sample rate is negotiated
+        with the device, the threshold suits both logic levels, the clock runs as
+        fast as it goes - so showing it permanently costs panel height for
+        settings nobody touches twice.
+        """
+        box = QWidget()
+        lay = QVBoxLayout(box)
+        lay.setContentsMargins(0, 0, 0, 0)
+        lay.setSpacing(6)
+
+        btn = QToolButton()
+        btn.setText(title)
+        btn.setCheckable(True)
+        btn.setChecked(False)
+        btn.setArrowType(Qt.ArrowType.RightArrow)
+        btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        btn.setStyleSheet(
+            f"QToolButton {{ border:none; color:{TEXT_MUTED}; font-size:11px;"
+            f" letter-spacing:1px; padding:2px 0; }}"
+            f"QToolButton:hover {{ color:{SERIES_1}; }}"
+        )
+        inner.setVisible(False)
+
+        def toggled(on: bool) -> None:
+            inner.setVisible(on)
+            btn.setArrowType(Qt.ArrowType.DownArrow if on else Qt.ArrowType.RightArrow)
+
+        btn.toggled.connect(toggled)
+        lay.addWidget(btn)
+        lay.addWidget(inner)
+        return box
+
     def _build_controls(self) -> QWidget:
         panel = QWidget()
-        panel.setFixedWidth(340)
         outer = QVBoxLayout(panel)
-        outer.setContentsMargins(0, 6, 0, 0)
+        outer.setContentsMargins(0, 6, 6, 0)
         outer.setSpacing(8)
 
-        # ---- connection
-        conn = QGroupBox("Instruments")
-        cf = QVBoxLayout(conn)
-        self.btn_connect = QPushButton("Connect")
-        self.btn_connect.clicked.connect(self._on_connect)
-        self.btn_detect = QPushButton("Detect active channels")
-        self.btn_detect.clicked.connect(self._on_detect)
-        self.btn_detect.setEnabled(False)
-        self.chk_board = QCheckBox("Use demo board (closed loop)")
-        self.chk_board.setChecked(self._use_board)
-        self.combo_port = QComboBox()
-        self.combo_port.addItem("auto", None)
-        for p in find_ports():
-            self.combo_port.addItem(p, p)
-        cf.addWidget(self.chk_board)
-        cf.addWidget(self.combo_port)
-        cf.addWidget(self.btn_connect)
-        cf.addWidget(self.btn_detect)
-        outer.addWidget(conn)
-
-        # ---- sensor
-        sens = QGroupBox("Sensor")
-        sf = QFormLayout(sens)
+        # Connect lives in the status bar, beside the chips it affects.
+        meas = QGroupBox("Measure")
+        sf = QFormLayout(meas)
         self.combo_sensor = QComboBox()
         for key, spec in SENSORS.items():
             self.combo_sensor.addItem(spec.label, key)
         self.combo_sensor.currentIndexChanged.connect(self._on_sensor_changed)
         sf.addRow("Sensor", self.combo_sensor)
 
-        self.spin_channel = QSpinBox()
-        self.spin_channel.setRange(0, 15)
-        self.spin_channel.setValue(self.settings.channel)
-        self.spin_channel.valueChanged.connect(self._push_settings)
-        sf.addRow("Saleae D", self.spin_channel)
-
-        self.combo_rate = QComboBox()
-        for rate in OFFERED_RATES:
-            self.combo_rate.addItem(f"{rate/1e6:.0f} MS/s", rate)
-        self.combo_rate.currentIndexChanged.connect(self._push_settings)
-        sf.addRow("Sample rate", self.combo_rate)
-
-        # The Logic Pro accepts exactly three digital thresholds; a free spin
-        # box would just let the user pick one the device rejects.
-        self.combo_threshold = QComboBox()
-        for v in THRESHOLDS_V:
-            self.combo_threshold.addItem(f"{v:.1f} V", v)
-        self.combo_threshold.currentIndexChanged.connect(self._push_settings)
-        sf.addRow("Threshold", self.combo_threshold)
-
         self.spin_duration = QDoubleSpinBox()
         self.spin_duration.setRange(0.005, 5.0)
         self.spin_duration.setDecimals(3)
-        self.spin_duration.setSingleStep(0.01)
+        self.spin_duration.setSingleStep(0.05)
         self.spin_duration.setSuffix(" s")
         self.spin_duration.setValue(self.settings.duration_s)
         self.spin_duration.valueChanged.connect(self._push_settings)
         sf.addRow("Capture", self.spin_duration)
-        outer.addWidget(sens)
 
-        # ---- chip control
-        chip = QGroupBox("Chip control")
-        cf2 = QFormLayout(chip)
-        self.spin_clock = QSpinBox()
-        self.spin_clock.setRange(1, MAX_PROJECT_CLOCK_HZ // 1_000_000)
-        self.spin_clock.setValue(self.settings.clock_hz // 1_000_000)
-        self.spin_clock.setSuffix(" MHz")
-        self.spin_clock.valueChanged.connect(self._push_settings)
-        cf2.addRow("Project clock", self.spin_clock)
+        # Each capture is re-reduced into bins this wide, so the trace shows
+        # what happened *inside* a capture instead of one averaged dot.
+        self.spin_bin = QDoubleSpinBox()
+        self.spin_bin.setRange(0.0, 500.0)
+        self.spin_bin.setDecimals(2)
+        self.spin_bin.setSingleStep(0.5)
+        self.spin_bin.setSuffix(" ms")
+        self.spin_bin.setSpecialValueText("off (1 pt/capture)")
+        self.spin_bin.setValue(self.settings.bin_ms)
+        self.spin_bin.setToolTip(
+            "Time resolution of the temperature trace. Smaller bins show more "
+            "noise; each point is worth fewer events, so it is also noisier."
+        )
+        self.spin_bin.valueChanged.connect(self._on_bin_changed)
+        sf.addRow("Trace bin", self.spin_bin)
 
-        self.spin_reset_high = QSpinBox()
-        self.spin_reset_high.setRange(1, 10_000)
-        self.spin_reset_high.setValue(self.settings.reset_high_us)
-        self.spin_reset_high.setSuffix(" us")
-        self.spin_reset_high.valueChanged.connect(self._push_settings)
-        cf2.addRow("Reset high", self.spin_reset_high)
+        self.lbl_bin = QLabel("")
+        self.lbl_bin.setWordWrap(True)
+        self.lbl_bin.setMinimumHeight(30)
+        self.lbl_bin.setStyleSheet(f"color:{TEXT_MUTED}; font-size:11px;")
+        sf.addRow(self.lbl_bin)
 
-        self.spin_reset_low = QSpinBox()
-        self.spin_reset_low.setRange(1, 100_000)
-        self.spin_reset_low.setValue(self.settings.reset_low_us)
-        self.spin_reset_low.setSuffix(" us")
-        self.spin_reset_low.valueChanged.connect(self._push_settings)
-        cf2.addRow("Reset low", self.spin_reset_low)
+        self.btn_run = QPushButton("Start")
+        self.btn_run.setEnabled(False)
+        self.btn_run.clicked.connect(self._on_run_toggled)
+        sf.addRow(self.btn_run)
+        outer.addWidget(meas)
 
-        self.btn_apply_chip = QPushButton("Apply to chip")
-        self.btn_apply_chip.clicked.connect(self._on_apply_chip)
-        self.btn_apply_chip.setEnabled(False)
-        cf2.addRow(self.btn_apply_chip)
-        outer.addWidget(chip)
-
-        # ---- calibration
         calib = QGroupBox("Calibration")
         kf = QFormLayout(calib)
         self.spin_ref = QDoubleSpinBox()
         self.spin_ref.setRange(-50.0, 150.0)
         self.spin_ref.setDecimals(2)
         self.spin_ref.setValue(23.0)
-        self.spin_ref.setSuffix(" °C")
+        self.spin_ref.setSuffix(" \u00b0C")
         kf.addRow("Reference", self.spin_ref)
 
         self.btn_calibrate = QPushButton("Calibrate here")
@@ -305,29 +308,7 @@ class MainWindow(QWidget):
         kf.addRow(self.lbl_cal)
         outer.addWidget(calib)
 
-        # ---- display
-        disp = QGroupBox("Display")
-        df = QFormLayout(disp)
-        self.combo_spec = QComboBox()
-        for label, key in SPECTRUM_MODES:
-            self.combo_spec.addItem(label, key)
-        self.combo_spec.currentIndexChanged.connect(self._redraw_spectrum)
-        df.addRow("Bottom plot", self.combo_spec)
-
-        self.btn_run = QPushButton("Start")
-        self.btn_run.setEnabled(False)
-        self.btn_run.clicked.connect(self._on_run_toggled)
-        self.btn_reset = QPushButton("Clear history")
-        self.btn_reset.clicked.connect(self._on_clear_history)
-        self.btn_save = QPushButton("Save CSV...")
-        self.btn_save.clicked.connect(self._on_save)
-        df.addRow(self.btn_run)
-        df.addRow(self.btn_reset)
-        df.addRow(self.btn_save)
-        outer.addWidget(disp)
-
-        # ---- recording
-        rec = QGroupBox("Recording")
+        rec = QGroupBox("Record")
         rf = QVBoxLayout(rec)
         self.btn_record = QPushButton("Record to CSV...")
         self.btn_record.clicked.connect(self._on_record)
@@ -338,27 +319,122 @@ class MainWindow(QWidget):
         self.lbl_record.setWordWrap(True)
         self.lbl_record.setMinimumHeight(30)
         self.lbl_record.setStyleSheet(f"color:{TEXT_MUTED}; font-size:11px;")
+        rf.addWidget(self.btn_record)
+        rf.addWidget(self.btn_record_stop)
+        rf.addWidget(self.lbl_record)
+        outer.addWidget(rec)
+
+        disp = QGroupBox("Display")
+        df = QFormLayout(disp)
+        self.combo_spec = QComboBox()
+        for label, key in SPECTRUM_MODES:
+            self.combo_spec.addItem(label, key)
+        self.combo_spec.currentIndexChanged.connect(self._redraw_spectrum)
+        df.addRow("Bottom plot", self.combo_spec)
+        self.btn_reset = QPushButton("Clear history")
+        self.btn_reset.clicked.connect(self._on_clear_history)
+        df.addRow(self.btn_reset)
+        outer.addWidget(disp)
+
+        # ---- setup: wiring and one-time configuration --------------------
+        setup = QWidget()
+        gf = QFormLayout(setup)
+        gf.setContentsMargins(0, 4, 0, 0)
+
+        self.chk_board = QCheckBox("Use demo board (closed loop)")
+        self.chk_board.setChecked(self._use_board)
+        gf.addRow(self.chk_board)
+
+        self.combo_port = QComboBox()
+        self.combo_port.addItem("auto", None)
+        for port in find_ports():
+            self.combo_port.addItem(port, port)
+        gf.addRow("Serial port", self.combo_port)
+
+        self.spin_channel = QSpinBox()
+        self.spin_channel.setRange(0, 15)
+        self.spin_channel.setValue(self.settings.channel)
+        self.spin_channel.valueChanged.connect(self._push_settings)
+        gf.addRow("Saleae D", self.spin_channel)
+
+        self.btn_detect = QPushButton("Detect active channels")
+        self.btn_detect.clicked.connect(self._on_detect)
+        self.btn_detect.setEnabled(False)
+        gf.addRow(self.btn_detect)
+
+        self.combo_rate = QComboBox()
+        for rate in OFFERED_RATES:
+            self.combo_rate.addItem(f"{rate/1e6:.0f} MS/s", rate)
+        self.combo_rate.setToolTip(
+            "Requested rate. The device is asked for this and negotiates down "
+            "if the channel count does not allow it."
+        )
+        self.combo_rate.currentIndexChanged.connect(self._push_settings)
+        gf.addRow("Sample rate", self.combo_rate)
+
+        # The Logic Pro accepts exactly three digital thresholds; a free spin
+        # box would just let the user pick one the device rejects.
+        self.combo_threshold = QComboBox()
+        for v in THRESHOLDS_V:
+            self.combo_threshold.addItem(f"{v:.1f} V", v)
+        self.combo_threshold.currentIndexChanged.connect(self._push_settings)
+        gf.addRow("Threshold", self.combo_threshold)
+
+        self.spin_clock = QSpinBox()
+        self.spin_clock.setRange(1, MAX_PROJECT_CLOCK_HZ // 1_000_000)
+        self.spin_clock.setValue(self.settings.clock_hz // 1_000_000)
+        self.spin_clock.setSuffix(" MHz")
+        self.spin_clock.valueChanged.connect(self._push_settings)
+        gf.addRow("Project clock", self.spin_clock)
+
+        self.spin_reset_high = QSpinBox()
+        self.spin_reset_high.setRange(1, 10_000)
+        self.spin_reset_high.setValue(self.settings.reset_high_us)
+        self.spin_reset_high.setSuffix(" us")
+        self.spin_reset_high.valueChanged.connect(self._push_settings)
+        gf.addRow("Reset high", self.spin_reset_high)
+
+        self.spin_reset_low = QSpinBox()
+        self.spin_reset_low.setRange(1, 100_000)
+        self.spin_reset_low.setValue(self.settings.reset_low_us)
+        self.spin_reset_low.setSuffix(" us")
+        self.spin_reset_low.valueChanged.connect(self._push_settings)
+        gf.addRow("Reset low", self.spin_reset_low)
+
+        self.btn_apply_chip = QPushButton("Apply to chip")
+        self.btn_apply_chip.clicked.connect(self._on_apply_chip)
+        self.btn_apply_chip.setEnabled(False)
+        gf.addRow(self.btn_apply_chip)
+
         self.btn_export_capture = QPushButton("Export last capture...")
         self.btn_export_capture.setToolTip(
             "Per-event data of the most recent capture (every period/pulse), "
             "for plotting in cicwave. .csv, .parquet or .feather."
         )
         self.btn_export_capture.clicked.connect(self._on_export_capture)
-        rf.addWidget(self.btn_record)
-        rf.addWidget(self.btn_record_stop)
-        rf.addWidget(self.btn_export_capture)
-        rf.addWidget(self.lbl_record)
-        outer.addWidget(rec)
+        gf.addRow(self.btn_export_capture)
+
+        outer.addWidget(self._collapsible("SETUP / WIRING", setup))
 
         self.log = QPlainTextEdit()
         self.log.setReadOnly(True)
         self.log.setMaximumBlockCount(500)
+        self.log.setMinimumHeight(90)
         self.log.setStyleSheet(
             f"QPlainTextEdit {{ background:{SURFACE_2}; color:{TEXT_MUTED};"
             f" border:1px solid {GRID}; border-radius:6px; font-size:11px; }}"
         )
         outer.addWidget(self.log, 1)
-        return panel
+
+        # The panel must never dictate the window height: on a laptop screen the
+        # full stack is taller than the display, so it scrolls instead.
+        scroll = QScrollArea()
+        scroll.setWidget(panel)
+        scroll.setWidgetResizable(True)
+        scroll.setFixedWidth(356)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        return scroll
 
     def _apply_dark_theme(self) -> None:
         self.setStyleSheet(
@@ -391,12 +467,20 @@ class MainWindow(QWidget):
         st.clock_hz = self.spin_clock.value() * 1_000_000
         st.reset_high_us = self.spin_reset_high.value()
         st.reset_low_us = self.spin_reset_low.value()
+        st.bin_ms = float(self.spin_bin.value())
         return st
 
     def _push_settings(self) -> None:
         st = self._collect_settings()
         if self.thread is not None:
             self.thread.update_settings(st)
+
+    def _on_bin_changed(self) -> None:
+        # Points already in the trace were binned at the old width; mixing
+        # resolutions in one series would misrepresent the noise.
+        self.trace.clear()
+        self.plot_temp.clear_data()
+        self._push_settings()
 
     def _on_sensor_changed(self) -> None:
         key = self.combo_sensor.currentData()
@@ -559,6 +643,7 @@ class MainWindow(QWidget):
             self.tile_noise.set_value(sem, f"per-event sigma {reading.std_temp_c:.3f} °C",
                                       decimals=4)
             self.history.append(reading.t_wall - self._t0, reading.mean_temp_c)
+            self._append_trace(reading)
         else:
             self.tile_temp.set_value(float("nan"), "calibrate to convert rate to °C")
             self.tile_temp.set_color(STATUS_WARN)
@@ -567,6 +652,25 @@ class MainWindow(QWidget):
             )
             # Track the raw rate so the drift plot still works before calibration.
             self.history.append(reading.t_wall - self._t0, float("nan"))
+            self._append_trace(reading)
+
+        if reading.bin_t.size:
+            ev = reading.events_per_bin
+            sig = reading.bin_sigma_c
+            msg = (f"{reading.bin_t.size} pts/capture at {reading.bin_s*1e3:.2f} ms, "
+                   f"{ev:.0f} events each")
+            if np.isfinite(sig) and cal.calibrated:
+                msg += f"\n≈ {sig*1000:.0f} mK noise per point"
+            # Below a handful of events a point is mostly noise, so say so
+            # rather than letting the trace look like real structure.
+            if ev < 10:
+                msg += " — too few, widen the bin"
+                self.lbl_bin.setStyleSheet(f"color:{STATUS_WARN}; font-size:11px;")
+            else:
+                self.lbl_bin.setStyleSheet(f"color:{TEXT_MUTED}; font-size:11px;")
+            self.lbl_bin.setText(msg)
+        else:
+            self.lbl_bin.setText("one point per capture")
 
         # Recording is fed the reading itself, not the plotted history, so a
         # "Clear history" during a run cannot punch a hole in the record.
@@ -576,11 +680,28 @@ class MainWindow(QWidget):
             self._update_record_label()
 
         # Plots
-        t, temp = self.history.arrays()
+        t, temp = self.trace.arrays() if len(self.trace) else self.history.arrays()
         self.plot_temp.update_series(t, temp)
         self.plot_obs.update_series(reading.event_t, reading.event_s, spec.unit_label)
         self._redraw_spectrum()
         self._refresh_calibration_labels()
+
+    def _append_trace(self, reading: Reading) -> None:
+        """Add this capture's binned points, preceded by a gap marker.
+
+        The capture covers only part of the wall-clock cycle; the rest is arming
+        and export. A NaN between captures makes the plot break there rather than
+        drawing a line across time when nothing was measured.
+        """
+        if reading.bin_t.size == 0:
+            self.trace.append(reading.t_wall - self._t0, reading.mean_temp_c)
+            return
+        # t_wall is stamped at the end of the reduction, so the capture started
+        # roughly duration_s earlier; bin_t is relative to that start.
+        start = reading.t_wall - self._t0 - reading.duration_s
+        if len(self.trace):
+            self.trace.append(start - reading.bin_s, float("nan"))
+        self.trace.extend(start + reading.bin_t, reading.bin_temp_c)
 
     def _redraw_spectrum(self) -> None:
         mode = self.combo_spec.currentData()
@@ -736,6 +857,7 @@ class MainWindow(QWidget):
             f"-> {r.mean_rate_hz/1e3:.4f} kHz. {cal.describe()}"
         )
         # Past history was computed with the old model, so it is no longer valid.
+        self.trace.clear()
         self.history.clear()
         self._refresh_calibration_labels()
 
@@ -745,31 +867,18 @@ class MainWindow(QWidget):
         self.cal_store.save()
         if self.thread is not None:
             self.thread.update_calibration(cal)
+        self.trace.clear()
         self.history.clear()
         self._refresh_calibration_labels()
         self._append_log(f"Cleared calibration for {cal.sensor}")
 
     def _on_clear_history(self) -> None:
+        self.trace.clear()
         self.history.clear()
         self._t0 = time.time()
         self._readings = 0
         self.plot_temp.clear_data()
         self.plot_spec.clear_data()
-
-    def _on_save(self) -> None:
-        path, _ = QFileDialog.getSaveFileName(
-            self, "Save temperature history", "jnwtemp.csv", "CSV files (*.csv)"
-        )
-        if not path:
-            return
-        t, v = self.history.arrays()
-        with open(path, "w", newline="") as fh:
-            w = csv.writer(fh)
-            w.writerow(["time_s", "temperature_c", "sensor", "calibration"])
-            cal = self.cal
-            for ti, vi in zip(t, v):
-                w.writerow([f"{ti:.6f}", f"{vi:.6f}", cal.sensor, cal.describe()])
-        self._append_log(f"Wrote {len(t)} readings to {path}")
 
     # ------------------------------------------------------------- shutdown
     def closeEvent(self, event) -> None:  # noqa: N802 (Qt naming)

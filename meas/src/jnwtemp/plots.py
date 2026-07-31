@@ -59,32 +59,71 @@ pg.setConfigOptions(antialias=True)
 MAX_PLOT_POINTS = 4000
 
 
+def _decimate_block(x, y, max_points):
+    """Min/max envelope thinning of a gap-free block."""
+    n = y.size
+    if n <= max_points or max_points < 2:
+        return x, y
+    bins = max(1, max_points // 2)
+    edges = np.linspace(0, n, bins + 1, dtype=int)
+    idx = []
+    for i in range(bins):
+        a, b = edges[i], edges[i + 1]
+        if b <= a:
+            continue
+        seg = y[a:b]
+        j0 = a + int(np.argmin(seg))
+        j1 = a + int(np.argmax(seg))
+        idx.append(j0)
+        if j1 != j0:
+            idx.append(j1)
+    idx = np.unique(np.asarray(idx, dtype=int))
+    return x[idx], y[idx]
+
+
 def envelope_decimate(
     x: np.ndarray, y: np.ndarray, max_points: int = MAX_PLOT_POINTS
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Thin a series to ``max_points`` while keeping its min/max envelope.
+    """Thin a series to ~``max_points`` while keeping its min/max envelope.
 
     Plain slicing would drop exactly the outliers worth seeing, so each output
     bin contributes its minimum and its maximum, in time order. What is drawn
     then still spans the true range of the data at every x.
+
+    NaNs mark real gaps in the record - the dead time between captures - and
+    must survive thinning, otherwise the curve is drawn straight across a period
+    when nothing was measured. So the series is split on NaN, each block is
+    thinned on its own budget, and the breaks are put back.
     """
-    n = y.size
-    if n <= max_points:
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    if y.size == 0:
         return x, y
-    bins = max(1, max_points // 2)
-    edges = np.linspace(0, n, bins + 1, dtype=int)
-    lo = np.empty(bins, dtype=int)
-    hi = np.empty(bins, dtype=int)
-    for i in range(bins):
-        a, b = edges[i], edges[i + 1]
-        if b <= a:
-            lo[i] = hi[i] = min(a, n - 1)
-            continue
-        seg = y[a:b]
-        lo[i] = a + int(np.argmin(seg))
-        hi[i] = a + int(np.argmax(seg))
-    idx = np.sort(np.concatenate([lo, hi]))
-    return x[idx], y[idx]
+
+    finite = np.isfinite(y)
+    if finite.all():
+        return _decimate_block(x, y, max_points)
+
+    # Contiguous runs of finite samples, i.e. one per capture.
+    edges = np.flatnonzero(np.diff(finite.astype(np.int8)))
+    starts = np.concatenate(([0], edges + 1))
+    stops = np.concatenate((edges + 1, [y.size]))
+    blocks = [(a, b) for a, b in zip(starts, stops) if finite[a]]
+    if not blocks:
+        return x[:0], y[:0]
+
+    total = sum(b - a for a, b in blocks)
+    out_x, out_y = [], []
+    for k, (a, b) in enumerate(blocks):
+        share = max(4, int(max_points * (b - a) / total))
+        bx, by = _decimate_block(x[a:b], y[a:b], share)
+        if k:
+            # One NaN between blocks is all a "connect=finite" curve needs.
+            out_x.append(np.array([x[a - 1] if a else x[a]]))
+            out_y.append(np.array([np.nan]))
+        out_x.append(bx)
+        out_y.append(by)
+    return np.concatenate(out_x), np.concatenate(out_y)
 
 
 class DecadeLogAxis(pg.AxisItem):
@@ -159,15 +198,25 @@ class CrosshairPlot(pg.PlotWidget):
         self.scene().sigMouseMoved.connect(self._on_mouse)
 
     # ------------------------------------------------------------------ data
-    def set_data(self, x: np.ndarray, y: np.ndarray) -> None:
+    def set_data(self, x: np.ndarray, y: np.ndarray, keep_gaps: bool = False) -> None:
+        """Plot ``y`` against ``x``.
+
+        With ``keep_gaps`` the NaNs in ``y`` are kept and the curve is drawn with
+        ``connect="finite"``, so breaks in the record stay visible as breaks. The
+        crosshair still indexes only the finite points.
+        """
         x = np.asarray(x, dtype=float)
         y = np.asarray(y, dtype=float)
-        good = np.isfinite(x) & np.isfinite(y)
-        x, y = x[good], y[good]
+        if not keep_gaps:
+            # Without gap preservation, drop non-finite points entirely.
+            good = np.isfinite(x) & np.isfinite(y)
+            x, y = x[good], y[good]
         # Keep the full series for the crosshair readout, but only ever hand the
         # painter an envelope-preserving thinning of it.
-        self._data = (x, y)
-        self.curve.setData(*envelope_decimate(x, y))
+        finite = np.isfinite(x) & np.isfinite(y)
+        self._data = (x[finite], y[finite])
+        dx, dy = envelope_decimate(x, y)
+        self.curve.setData(dx, dy, connect="finite" if keep_gaps else "all")
 
     def clear_data(self) -> None:
         self.set_data(np.empty(0), np.empty(0))
@@ -282,7 +331,7 @@ class TemperaturePlot(CrosshairPlot):
         self._rec.setVisible(self._recording)
 
     def update_series(self, t: np.ndarray, temp: np.ndarray) -> None:
-        self.set_data(t, temp)
+        self.set_data(t, temp, keep_gaps=True)
         good = temp[np.isfinite(temp)]
         if good.size >= 2:
             m, s = float(good.mean()), float(good.std(ddof=1))

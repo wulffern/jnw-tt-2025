@@ -150,8 +150,23 @@ Two deliberate choices make that work:
 
 ## Reading the plots
 
-* **Estimated temperature** - the temperature-vs-time trace, one averaged point
-  per capture, with the mean and ±1σ band.
+* **Estimated temperature** - the temperature-vs-time trace, with the mean and
+  ±1σ band. Each capture is re-reduced into **trace bins** (1 ms by default), so
+  a 0.5 s capture contributes ~500 points rather than one average, and the
+  millisecond-scale noise is visible instead of being smoothed away. The line
+  breaks between captures: the arming and export time is real dead time, and
+  drawing across it would invent data.
+
+  Smaller bins mean fewer events per point and so a noisier point; the panel
+  reports both, e.g. *"569 pts/capture at 1.00 ms, 910 events each, ≈ 69 mK
+  noise per point"*, and warns when a bin holds fewer than ten events. GR07 at
+  ~910 kHz suits 1 ms; GR06 only fires ~4500 times a second, so it needs ~20 ms
+  bins to get a comparable number of events per point. Set the bin to 0 to go
+  back to one point per capture.
+
+  Note the trace is deliberately **not** what feeds the spectra: it is sampled
+  in bursts with gaps, which would violate the uniform-sampling assumption in
+  the PSD and Allan routines. Those use the per-capture averages instead.
 * **Last capture - raw timing** - every individual period or pulse in the most
   recent capture. For GR07 expect a *staircase*: the comparator output is
   re-timed by the project clock, so one clock period is roughly 4-5 K at 64 MHz.
@@ -239,6 +254,13 @@ new capture.
 | `scripts/analyse_dual.py` | Compare the two, emit deck data |
 | `scripts/build_presentation.py` | Inject measured data into the deck |
 | `plots.py` / `main_window.py` | The GUI |
+
+The control panel keeps the everyday controls visible - sensor, capture length,
+trace bin, calibrate, record - and folds wiring and one-time configuration into
+a collapsed **Setup / wiring** section: the sample rate is negotiated with the
+device, the threshold suits both logic levels and the clock always runs flat
+out, so those cost panel height for settings nobody touches twice. The panel
+scrolls, so it never dictates a minimum window height.
 
 ## Measured behaviour (room temperature, 64 MHz project clock)
 

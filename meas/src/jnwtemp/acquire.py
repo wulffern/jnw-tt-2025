@@ -103,6 +103,14 @@ class AcquireSettings:
     #: keep events within +/- this fraction of the median interval; wide
     #: enough to pass any real dither, tight enough to catch a missed edge
     outlier_band: float = 0.4
+    #: Bin width for the live trace. Each capture is re-reduced into bins this
+    #: wide so the plot shows structure inside a capture rather than one dot.
+    #: 0 disables binning and reverts to one point per capture.
+    bin_ms: float = 1.0
+
+    @property
+    def bin_s(self) -> float:
+        return self.bin_ms / 1000.0
 
     @property
     def spec(self) -> SensorSpec:
@@ -146,17 +154,69 @@ class Reading:
     sample_rate: int = 0
     note: str = ""
 
+    #: The capture re-reduced into short time bins, so the live trace can show
+    #: structure inside a capture instead of one averaged dot. Times are seconds
+    #: from the start of the capture.
+    bin_t: np.ndarray = field(repr=False, default_factory=lambda: np.empty(0))
+    bin_temp_c: np.ndarray = field(repr=False, default_factory=lambda: np.empty(0))
+    bin_rate_hz: np.ndarray = field(repr=False, default_factory=lambda: np.empty(0))
+    bin_n: np.ndarray = field(repr=False, default_factory=lambda: np.empty(0))
+    bin_s: float = 0.0
+
     @property
     def ok(self) -> bool:
         return self.n > 0
+
+    @property
+    def events_per_bin(self) -> float:
+        """Median events per bin - how much each plotted point is worth."""
+        if self.bin_n.size == 0:
+            return float("nan")
+        return float(np.median(self.bin_n))
+
+    @property
+    def bin_sigma_c(self) -> float:
+        """Expected noise on a single binned point, from the per-event spread."""
+        ev = self.events_per_bin
+        if not np.isfinite(ev) or ev < 1 or not np.isfinite(self.std_temp_c):
+            return float("nan")
+        return float(self.std_temp_c / np.sqrt(ev))
 
 
 #: Refuse to drop more than this fraction of a capture as "outliers".
 MAX_REJECT_FRACTION = 0.2
 
 
+def bin_series(
+    rel_t: np.ndarray, rate: np.ndarray, duration: float, bin_s: float
+) -> tuple:
+    """Average ``rate`` into fixed time bins across the capture.
+
+    Averaging happens in the *rate* domain, like everywhere else, because rate
+    is the quantity linear in temperature; converting each event to degrees and
+    then averaging would bias the result.
+
+    Returns ``(centre_times, mean_rate, count)`` with empty bins carrying NaN so
+    a plot can break its line rather than interpolate across a hole.
+    """
+    if bin_s <= 0 or rel_t.size == 0 or duration <= 0:
+        return (np.empty(0), np.empty(0), np.empty(0))
+    nb = max(1, int(np.ceil(duration / bin_s)))
+    idx = np.clip((rel_t / bin_s).astype(np.int64), 0, nb - 1)
+    count = np.bincount(idx, minlength=nb).astype(float)
+    total = np.bincount(idx, weights=rate, minlength=nb)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        mean = np.where(count > 0, total / count, np.nan)
+    centres = (np.arange(nb) + 0.5) * bin_s
+    return (centres, mean, count)
+
+
 def reduce_train(
-    train: EdgeTrain, spec: SensorSpec, cal: Calibration, band: float = 0.4
+    train: EdgeTrain,
+    spec: SensorSpec,
+    cal: Calibration,
+    band: float = 0.4,
+    bin_s: float = 0.0,
 ) -> Reading:
     """Turn one channel's edges into a :class:`Reading`."""
     if spec.observable == "period":
@@ -223,6 +283,14 @@ def reduce_train(
     finite_temp = temp[np.isfinite(temp)]
     r.std_temp_c = float(finite_temp.std(ddof=1)) if finite_temp.size > 1 else 0.0
     r.event_rate_hz = float(s.size / train.duration) if train.duration > 0 else float("nan")
+
+    if bin_s > 0:
+        centres, mean_rate, count = bin_series(r.event_t, rate, train.duration, bin_s)
+        r.bin_t = centres
+        r.bin_rate_hz = mean_rate
+        r.bin_temp_c = np.asarray(cal.temp_c(mean_rate), dtype=float)
+        r.bin_n = count
+        r.bin_s = float(bin_s)
     return r
 
 
@@ -347,7 +415,7 @@ class Acquisition:
                     self._log(f"reset burst did not finish cleanly: {exc}")
 
         train = trains[st.channel]
-        reading = reduce_train(train, spec, cal, band=st.outlier_band)
+        reading = reduce_train(train, spec, cal, band=st.outlier_band, bin_s=st.bin_s)
         reading.sample_rate = self.logic.actual_sample_rate
         if self.logic.last_rate_note:
             self._log(self.logic.last_rate_note)
