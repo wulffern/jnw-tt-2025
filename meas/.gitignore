@@ -14,5 +14,10 @@ dist/
 # ...except measurement runs deliberately kept with the repo.
 !data/*.csv
 
-# Regenerated from data/ by scripts/analyse_dual.py.
+# Regenerated from data/ by the analysis scripts.
 data/deck_data.json
+data/event_data.json
+
+# Only the runs the presentation actually uses are kept in the repo; other
+# captures are 1 ms recordings of ~5 MB/minute and stay local.
+data/jnwtemp-GR07-*.csv
