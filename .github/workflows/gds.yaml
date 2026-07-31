@@ -44,6 +44,31 @@ jobs:
       pages: write      # to deploy to Pages
       id-token: write   # to verify the deployment originates from an appropriate source
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # The TT viewer action publishes whatever ends up in gh-pages/: it fills
+      # that directory with download-artifact (which merges into an existing
+      # one) and then uploads the lot. Staging extra files here therefore gets
+      # them published alongside the 3D viewer without forking the action.
+      # Deliberately not index.html - that stays TT's redirect to the viewer.
+      - name: Stage the measurement slides
+        run: |
+          if [ -f meas/docs/presentation.html ]; then
+            mkdir -p gh-pages
+            cp meas/docs/presentation.html gh-pages/presentation.html
+            echo "staged=true" >> "$GITHUB_ENV"
+          else
+            echo "meas/docs/presentation.html not found, skipping" >&2
+          fi
+
       - uses: TinyTapeout/tt-gds-action/viewer@ttsky25a
         with:
           pdk: sky130
+
+      - name: Link the slides from the workflow summary
+        if: env.staged == 'true'
+        run: |
+          URL="https://${{ github.repository_owner }}.github.io/${GITHUB_REPOSITORY#*/}/presentation.html"
+          echo "# Measurement slides" >> "$GITHUB_STEP_SUMMARY"
+          echo "[JNW-TEMP: two temperature sensors, measured]($URL)" >> "$GITHUB_STEP_SUMMARY"

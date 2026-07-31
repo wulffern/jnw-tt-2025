@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Build the standalone presentation by injecting measured data into the template.
 
-    python3 scripts/analyse_dual.py      # data/*.csv  -> data/deck_data.json
-    python3 scripts/build_presentation.py # + docs/presentation.html -> presentation-built.html
+    python3 scripts/analyse_dual.py       # data/*.csv -> data/deck_data.json
+    python3 scripts/build_presentation.py  # + the template -> docs/presentation.html
 
-The template keeps a __DATA__ placeholder so it stays readable and diffable; every
-number in the deck comes from the run rather than being typed in.
+docs/presentation.template.html keeps a __DATA__ placeholder so the layout stays
+readable and diffable; docs/presentation.html is the built, self-contained result
+and is the file committed and published to GitHub Pages. Every number in the deck
+comes from the run rather than being typed in, so the two cannot drift apart.
 """
 import json
 import os
@@ -14,8 +16,8 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(HERE, "..")
 DATA = os.path.join(ROOT, "data", "deck_data.json")
-TEMPLATE = os.path.join(ROOT, "docs", "presentation.html")
-OUT = os.path.join(ROOT, "docs", "presentation-built.html")
+TEMPLATE = os.path.join(ROOT, "docs", "presentation.template.html")
+OUT = os.path.join(ROOT, "docs", "presentation.html")
 
 with open(DATA) as fh:
     d = json.load(fh)

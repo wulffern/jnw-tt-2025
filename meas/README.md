@@ -199,9 +199,27 @@ Two results worth keeping in mind when using either sensor:
   event advantage buys a better single reading, not a better long-term
   measurement. Past a few seconds GR06 is the more trustworthy of the two.
 
+### The slides
+
 `docs/presentation.html` is a standalone deck covering the sensors, the setup and
-these results; it carries a `__DATA__` placeholder that `build_presentation.py`
-fills from the analysis, so no number in it is typed by hand.
+these results. It is published with the project's GitHub Pages site:
+
+<https://wulffern.github.io/jnw-tt-2025/presentation.html>
+
+The site root stays what Tiny Tapeout's action makes it - a redirect to the 3D
+GDS viewer. The `viewer` job in `.github/workflows/gds.yaml` gained two steps
+that stage the deck into `gh-pages/` *before* `tt-gds-action/viewer` runs: that
+action fills the directory with `download-artifact` (which merges into an
+existing directory rather than replacing it) and then uploads the whole thing,
+so anything staged first gets published alongside the viewer. Nothing about the
+TT action is forked or overridden, and the copy is guarded by a file-exists test
+so a missing deck can never fail the Pages deploy.
+
+Editing: `docs/presentation.template.html` holds the layout with a `__DATA__`
+placeholder; `build_presentation.py` fills it from `data/deck_data.json` to
+produce the committed `docs/presentation.html`. No number in the deck is typed by
+hand, so it cannot drift from the measurements. Re-run all three scripts after a
+new capture.
 
 ## Layout
 

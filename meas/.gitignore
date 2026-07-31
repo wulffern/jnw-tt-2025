@@ -16,4 +16,3 @@ dist/
 
 # Regenerated from data/ by scripts/analyse_dual.py.
 data/deck_data.json
-presentation-built.html
