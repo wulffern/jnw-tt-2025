@@ -3,6 +3,14 @@
 .vscode
 *.vcd
 runs
+# Raw recordings are tens of MB each and stay local. The reduced, dwell-only
+# extract below is the committed source of truth for the chamber figures.
+meas/data/*
+!meas/data/2026-08-03_chamber_dwell.csv
+!meas/data/2026-08-03_chamber_summary.csv
+!meas/data/2026-08-03_chamber_trace.csv
+!meas/data/2026-08-03_chamber_dnl.csv
+!meas/data/2026-08-03_chamber.meta.json
 tt_submission
 src/user_config.tcl
 test/sim_build

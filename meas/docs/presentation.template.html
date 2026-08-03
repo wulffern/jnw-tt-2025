@@ -879,10 +879,286 @@
   </div>
 </section>
 
-<!-- ═══════════════ 11 · corrections ═══════════════ -->
+<!-- ═══════════════ 11 · the chamber ═══════════════ -->
 <section class="slide">
   <div class="wrap">
-    <span class="num"><b>11</b> / What I got wrong</span>
+    <span class="num"><b>11</b> / Against a real reference</span>
+    <h2>A climate chamber, <span id="ch-span">—</span>, and the first honest transfer curve</h2>
+    <p class="lede">
+      Everything up to here calibrated each sensor against itself at one room-temperature
+      point, so it could measure <em>change</em> but never accuracy. A Vötsch chamber
+      stepping through <span id="ch-npts">—</span> set points, logging its own probe beside
+      both sensors, finally supplies an outside opinion. Each point below is the mean of
+      the last <span id="ch-tail">—</span> s of a dwell, after the oven and the die have
+      both stopped moving.
+    </p>
+
+    <figure>
+      <div class="chartbox">
+        <div class="legend">
+          <span class="pill"><i class="dot a"></i>GR07</span>
+          <span class="pill"><i class="dot b"></i>GR06</span>
+          <span class="pill" style="margin-left:auto;color:var(--ink-3)">residual after the best straight line — lower is better</span>
+        </div>
+        <svg class="chart" id="chart-inl" viewBox="0 0 980 360" role="img"
+             aria-label="Integral nonlinearity of both sensors against the chamber reference"></svg>
+      </div>
+      <figcaption>
+        Integral nonlinearity, in kelvin so the two are comparable despite rates that
+        differ sixfold. <span id="inl-note"></span>
+      </figcaption>
+    </figure>
+
+    <div class="grid g3" style="margin-top:30px">
+      <div class="card">
+        <span class="pill">GR07 slope</span>
+        <div class="big stat" id="ch-slope-a" style="margin-top:8px">—</div>
+        <p>Rate per kelvin. A PTAT current into a fixed capacitor, so the rate should
+           be proportional to absolute temperature — and it is, to within the curve above.</p>
+      </div>
+      <div class="card">
+        <span class="pill">GR06 slope</span>
+        <div class="big stat" id="ch-slope-b" style="margin-top:8px">—</div>
+        <p>Six times lower, because GR06 is read once per reset rather than free-running.
+           Fewer events per capture, but no clock anywhere near it.</p>
+      </div>
+      <div class="card">
+        <span class="pill">GR07 quantisation</span>
+        <div class="big stat" id="ch-lsb" style="margin-top:8px">—</div>
+        <p>One 64 MHz clock cycle, in kelvin. Measured across <span id="ch-codes">—</span>
+           fully-traversed codes; worst DNL <span id="ch-dnl">—</span> LSB.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 12 · calibration ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>12</b> / What calibration buys</span>
+    <h2>One point, two points, three points</h2>
+    <p class="lede">
+      The question a product asks is not "how linear is it" but "how many oven visits
+      must I pay for". Nothing here fits more than three points: fitting all fourteen
+      chamber set points measures how well a polynomial can chase <em>this</em> part,
+      which is not a calibration anybody performs and flatters the sensor.
+    </p>
+
+    <figure>
+      <div class="chartbox">
+        <div class="legend">
+          <span class="pill"><i class="dot a"></i>GR07</span>
+          <span class="pill"><i class="dot b"></i>GR06</span>
+          <span class="pill" style="margin-left:auto;color:var(--ink-3)">reading − reference, shared scale</span>
+        </div>
+        <svg class="chart" id="chart-cal" viewBox="0 0 980 380" role="img"
+             aria-label="Calibration residual for one-, two- and three-point calibration"></svg>
+      </div>
+      <figcaption id="cal-note"></figcaption>
+    </figure>
+
+    <div class="scroll">
+      <table style="margin-top:26px">
+        <thead><tr><th>Calibration</th><th class="a">GR07 worst error</th>
+                   <th class="b">GR06 worst error</th><th>Cost</th></tr></thead>
+        <tbody id="cal-rows"></tbody>
+      </table>
+    </div>
+
+    <p style="margin-top:26px">
+      <b>GR06 behaves the way a sensor should</b> — each extra trim point buys accuracy,
+      down to <span id="cal-best-b">—</span> over 5–70 °C. <b>GR07 gets worse from one
+      point to two</b>, which looks like a mistake until you remember what its error is
+      made of. A two-point fit corrects a slope; GR07's error is not a slope, it is the
+      4.75 K staircase from re-timing the output on the project clock. Trimming the line
+      just pivots it and drops the residual somewhere else. No amount of calibration
+      removes a quantiser — only sampling the edge with something finer than the clock does.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════ 13 · burst noise ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>13</b> / The trap</span>
+    <h2>GR06 does not drift — it switches</h2>
+    <p class="lede">
+      Ninety seconds of GR06 at a fixed <span id="rts-ref">—</span>, with the dwell
+      drift removed. If this were thermal noise it would be a fuzzy band around zero.
+      Instead it sits flat, drops <span id="rts-step">—</span> to a second flat level,
+      stays there for a second or two, and comes back. That is random telegraph
+      noise: one charge trap in the silicon capturing and emitting a single carrier.
+    </p>
+
+    <figure>
+      <div class="chartbox">
+        <div class="legend">
+          <span class="pill"><i class="dot b"></i>GR06, 0.3 s median</span>
+          <span class="pill" style="margin-left:auto;color:var(--ink-3)">two levels, not one distribution</span>
+        </div>
+        <svg class="chart" id="chart-rts" viewBox="0 0 980 300" role="img"
+             aria-label="GR06 rate switching between two discrete levels"></svg>
+      </div>
+      <figcaption>
+        The histogram on the right of the trace is the same data seen end-on. A single
+        noise process gives one hump; this has two.
+      </figcaption>
+    </figure>
+
+    <div class="grid g3" style="margin-top:30px">
+      <div class="card">
+        <span class="pill">Step size</span>
+        <div class="big stat" id="rts-amp" style="margin-top:8px">—</div>
+        <p>How far one trapped carrier moves the reading. Flat from 5 to 55 °C — it is
+           one trap, not a population of them.</p>
+      </div>
+      <div class="card">
+        <span class="pill">Lifetime</span>
+        <div class="big stat" id="rts-life" style="margin-top:8px">—</div>
+        <p>Mean time in the low state, cold to hot. Thermally activated:
+           <span id="rts-ea">—</span>, which is what identifies it as a trap rather
+           than anything in the instrument.</p>
+      </div>
+      <div class="card">
+        <span class="pill">Occupancy</span>
+        <div class="big stat" id="rts-frac" style="margin-top:8px">—</div>
+        <p>Fraction of the time spent in the low state. Not a rare glitch — at some
+           temperatures it is where the sensor lives half its life.</p>
+      </div>
+    </div>
+
+    <figure>
+      <div class="chartbox">
+        <div class="legend">
+          <span class="pill"><i class="dot b"></i>mean burst lifetime</span>
+          <span class="pill" style="margin-left:auto;color:var(--ink-3)">log scale — a straight line here means Arrhenius</span>
+        </div>
+        <svg class="chart" id="chart-rts-life" viewBox="0 0 980 300" role="img"
+             aria-label="Burst lifetime against temperature, log scale"></svg>
+      </div>
+      <figcaption>
+        Above about 55 °C the two levels merge into the noise and the fit stops being
+        meaningful, so those points are drawn hollow and excluded.
+      </figcaption>
+    </figure>
+
+    <div class="grid g2" style="margin-top:30px">
+      <div class="card">
+        <span class="pill">Why it matters</span>
+        <p style="margin-top:10px">
+          GR06's <b>±0.35 K</b> three-point calibration is a <em>ninety-second-mean</em>
+          number. A single reading can be <b><span id="rts-half">—</span></b> off whenever
+          the trap is occupied. That, not linearity, is GR06's real accuracy limit — and
+          unlike GR07's quantisation it is cheap to fix, because a median over a second
+          or two removes it. The dark line on the trace above is that filter.
+        </p>
+      </div>
+      <div class="card">
+        <span class="pill">How this was nearly got wrong</span>
+        <p style="margin-top:10px">
+          The natural move is to reach for a PSD, and it gives a confident false answer.
+          Detrending with a 5 s Savitzky–Golay filter is a 0.2 Hz high-pass, and the
+          filter's own corner appears as a beautiful Lorentzian peak — fitting to
+          298 meV with r = −0.96. The tell was that <b>GR07 showed the same peak while
+          being incoherent with GR06</b>, and two independent sensors cannot share a
+          noise process and be incoherent. RTS is a time-domain claim; it has to be
+          settled in the time domain.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 14 · the day ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>14</b> / The day</span>
+    <h2>Scripts, data, instruments</h2>
+    <p class="lede">
+      One day, from "can we see the period of output 0" to a characterised pair of
+      sensors with an external reference. What follows is the inventory, so the next
+      person knows what exists and what it cost to make.
+    </p>
+
+    <div class="grid g3">
+      <div class="card">
+        <span class="pill">Instruments</span>
+        <h3 style="margin-top:10px">Three, all driven from Python</h3>
+        <p>
+          <b>Saleae Logic Pro 16</b> over the Logic 2 automation API on port 10430.
+          Sample rate is negotiated with the device rather than assumed — it does
+          250 MS/s on one channel, 125 on two, and the first version of this hard-coded
+          500 and was quietly wrong.<br><br>
+          <b>TinyTapeout RP2350B demo board</b> over a MicroPython raw REPL, which
+          selects project 258, sets the 64 MHz project clock, and pulses
+          <code>ui_in[0]</code> to trigger GR06.<br><br>
+          <b>Vötsch climate chamber</b> over ASCII-2 on Ethernet, stepping 5 → 70 °C
+          and logging its own probe alongside the sensors.
+        </p>
+      </div>
+      <div class="card">
+        <span class="pill">Software</span>
+        <h3 style="margin-top:10px">A live instrument, not a script</h3>
+        <p>
+          <code>meas/src/jnwtemp</code> — PySide6 readout with sensor select, dual
+          capture, calibration, a streaming recorder, and plotting handed to cicwave
+          so the keymap matches every other waveform tool here.<br><br>
+          <code>meas/scripts</code> — the analysis half: <code>chamber_extract</code>
+          reduces a run to committable form, <code>chamber_analyse</code> and
+          <code>chamber_figures</code> produce the numbers and the plots,
+          <code>chamber_burst</code> finds the trap,
+          <code>chamber_deck</code> and <code>build_presentation</code> put them in
+          these slides. Every figure here regenerates from the repo alone.
+        </p>
+      </div>
+      <div class="card">
+        <span class="pill">Data</span>
+        <h3 style="margin-top:10px">Reduced, not truncated</h3>
+        <p>
+          The chamber run is 82 MB of 10 ms samples, most of it the oven slewing —
+          and slewing data is unusable anyway, because the chamber's probe does not
+          represent the die while the loop is moving.<br><br>
+          What is committed is the settled tail of each dwell:
+          <b>119 810 samples, 5.5 MB</b>, reproducing every number in these slides to
+          under 30 µK. Rates are stored to 0.1 Hz — 1 600× below GR07's own per-sample
+          noise, so the digits dropped were noise, and noise is what compresses worst.
+          Binary was measured and rejected: git already compresses objects, so parquet
+          saved 80 kB in the repo and cost a dependency.
+        </p>
+      </div>
+    </div>
+
+    <div class="grid g2" style="margin-top:26px">
+      <div class="card">
+        <span class="pill">What the day actually established</span>
+        <p style="margin-top:10px">
+          Both sensors work. <b>GR06 reaches <span id="day-gr06">—</span> over 65 K
+          with three trim points</b> and is the better part despite being the slower,
+          quieter one. <b>GR07 is floored near <span id="day-gr07">—</span></b>, and
+          not by its analog front end — by the decision to re-time its output on the
+          project clock. Its earlier "gain difference" against GR06 was the same
+          quantiser seen from a different angle, not a design error. And GR06's own floor
+          is not thermal noise but a single charge trap worth half a kelvin.
+        </p>
+      </div>
+      <div class="card">
+        <span class="pill">What it cost to find out</span>
+        <p style="margin-top:10px">
+          Four wrong answers that looked right: an outlier filter that deleted 49 % of
+          GR07's events and returned a plausible temperature; a hard-coded sample rate;
+          a settling estimate from a reference that only reports every 2 s; and a dwell
+          extract averaging a different window than the analysis, off by 360 mK. Each
+          was caught by checking a number against a second, independent route to it.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 15 · corrections ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>15</b> / What I got wrong</span>
     <h2>Four corrections worth recording</h2>
     <p class="lede">
       Three were mine. The measurement one mattered most, because it was silently
@@ -936,10 +1212,10 @@
   </div>
 </section>
 
-<!-- ═══════════════ 12 · shipped ═══════════════ -->
+<!-- ═══════════════ 16 · shipped ═══════════════ -->
 <section class="slide">
   <div class="wrap">
-    <span class="num"><b>12</b> / Shipped</span>
+    <span class="num"><b>16</b> / Shipped</span>
     <h2>What exists now</h2>
 
     <div class="grid g2">
@@ -980,10 +1256,10 @@
   </div>
 </section>
 
-<!-- ═══════════════ 13 · running it ═══════════════ -->
+<!-- ═══════════════ 17 · running it ═══════════════ -->
 <section class="slide">
   <div class="wrap">
-    <span class="num"><b>13</b> / Running it yourself</span>
+    <span class="num"><b>17</b> / Running it yourself</span>
     <h2>From a bare board to a live trace</h2>
     <p class="lede">
       Two USB cables, three probe clips and one calibration press. The whole
@@ -1403,6 +1679,270 @@ if (DATA.staircase && DATA.staircase.bins) {
   svg.appendChild(xl);
   const yl = el("text", { x: 16, y: 20, class: "sm" });
   yl.textContent = "σ(τ)";
+  svg.appendChild(yl);
+})();
+
+/* ---------- chamber · shared frame ----------
+   Both chamber charts are the same picture: reference temperature across,
+   an error in kelvin up, one line per series, zero marked. Drawing them with
+   one routine keeps the two slides visually identical, which is the point -
+   the reader is meant to compare INL against calibration residual directly. */
+function chamberChart(svgId, series, opts) {
+  const svg = $(svgId);
+  if (!svg || !series.length) return;
+  const o = opts || {};
+  const W = 980, H = +svg.getAttribute("viewBox").split(" ")[3];
+  const M = { t: 20, r: 118, b: 48, l: 68 };
+  const xs = DATA.chamber.ref_c;
+  const all = series.flatMap((s) => s.y).filter((v) => isFinite(v));
+  const x0 = Math.min(...xs), x1 = Math.max(...xs);
+  let y0 = Math.min(...all), y1 = Math.max(...all);
+  const pad = (y1 - y0) * 0.16 || 0.5; y0 -= pad; y1 += pad;
+  const X = (v) => M.l + (v - x0) / (x1 - x0) * (W - M.l - M.r);
+  const Y = (v) => M.t + (1 - (v - y0) / (y1 - y0)) * (H - M.t - M.b);
+
+  // y gridlines on a 1-2-5 step, so the spacing is readable at any range
+  const raw = (y1 - y0) / 6;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 5, 10].map((m) => m * mag).find((v) => v >= raw) || mag;
+  for (let v = Math.ceil(y0 / step) * step; v <= y1; v += step) {
+    const y = Y(v), zero = Math.abs(v) < step / 100;
+    svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: y, y2: y,
+      stroke: zero ? "var(--ink-3)" : "var(--rule)",
+      "stroke-width": zero ? 1 : 0.6, opacity: zero ? 0.8 : 0.6 }));
+    const tx = el("text", { x: M.l - 10, y: y + 4, "text-anchor": "end", class: "sm" });
+    tx.textContent = (Math.abs(v) < 1e-9 ? 0 : v).toFixed(step < 1 ? 1 : 0);
+    svg.appendChild(tx);
+  }
+  for (const v of [10, 20, 30, 40, 50, 60, 70]) {
+    if (v < x0 || v > x1) continue;
+    const x = X(v);
+    svg.appendChild(el("line", { x1: x, x2: x, y1: H - M.b, y2: H - M.b + 5,
+      stroke: "var(--rule)" }));
+    const tx = el("text", { x, y: H - M.b + 21, "text-anchor": "middle", class: "sm" });
+    tx.textContent = v + " °C";
+    svg.appendChild(tx);
+  }
+  svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: H - M.b, y2: H - M.b,
+    stroke: "var(--rule)" }));
+
+  series.forEach((s) => {
+    const pts = s.y.map((v, i) => [xs[i], v]).filter((p) => isFinite(p[1]));
+    const d = pts.map((p, i) => (i ? "L" : "M") + X(p[0]).toFixed(1) + " " +
+      Y(p[1]).toFixed(1)).join(" ");
+    svg.appendChild(el("path", { d, fill: "none", stroke: s.colour,
+      "stroke-width": s.dash ? 1.6 : 2.2, "stroke-dasharray": s.dash || "",
+      opacity: s.dash ? 0.75 : 1,
+      "stroke-linejoin": "round", "stroke-linecap": "round" }));
+    pts.forEach((p) => svg.appendChild(el("circle", { cx: X(p[0]), cy: Y(p[1]),
+      r: s.dash ? 2.4 : 3.2, fill: s.colour, opacity: s.dash ? 0.75 : 1 })));
+    const last = pts[pts.length - 1];
+    const tx = el("text", { x: W - M.r + 8, y: Y(last[1]) + 4, class: "sm",
+      fill: s.colour });
+    tx.textContent = s.label;
+    svg.appendChild(tx);
+  });
+
+  const yl = el("text", { x: 16, y: 20, class: "sm" });
+  yl.textContent = o.ylabel || "K";
+  svg.appendChild(yl);
+}
+
+/* ---------- chart 6 · chamber transfer / INL ---------- */
+(() => {
+  const C = DATA.chamber;
+  if (!C) return;
+  $("ch-span").textContent = fmt(Math.min(...C.ref_c), 0) + "–" +
+    fmt(Math.max(...C.ref_c), 0) + " °C";
+  $("ch-npts").textContent = C.n_points;
+  $("ch-tail").textContent = C.tail_s;
+  $("ch-slope-a").textContent = fmt(C.sensors.GR07.slope_hz_per_k / 1000, 2) + " kHz/K";
+  $("ch-slope-b").textContent = fmt(C.sensors.GR06.slope_hz_per_k / 1000, 2) + " kHz/K";
+  $("ch-lsb").textContent = fmt(C.dnl.lsb_k, 2) + " K";
+  $("ch-codes").textContent = C.dnl.codes;
+  $("ch-dnl").textContent = fmt(C.dnl.peak_lsb, 2);
+
+  chamberChart("chart-inl", [
+    { y: C.sensors.GR07.inl_k, colour: "var(--gr07)", label: "GR07" },
+    { y: C.sensors.GR06.inl_k, colour: "var(--gr06)", label: "GR06" },
+  ], { ylabel: "INL [K]" });
+
+  const a = C.sensors.GR07.inl_peak_k, b = C.sensors.GR06.inl_peak_k;
+  $("inl-note").innerHTML = "Peak " + fmt(a, 2) + " K for GR07 and " + fmt(b, 2) +
+    " K for GR06 — close enough that linearity is <em>not</em> what separates them. " +
+    "GR07's curve is not a smooth bow like GR06's; it is a staircase, because its " +
+    "period is re-timed onto whole 64 MHz clock cycles worth " + fmt(C.dnl.lsb_k, 2) +
+    " K each. The wiggle is the quantiser, not the bandgap.";
+})();
+
+/* ---------- chart 7 · calibration residual ---------- */
+(() => {
+  const C = DATA.chamber;
+  if (!C) return;
+  const dashes = ["", "6 4", "2 3"];
+  const series = [];
+  ["GR07", "GR06"].forEach((name) => {
+    C.sensors[name].cal.forEach((m, i) => series.push({
+      y: m.err_k, colour: "var(--" + name.toLowerCase() + ")",
+      dash: dashes[i], label: i === 0 ? name : "",
+    }));
+  });
+  chamberChart("chart-cal", series, { ylabel: "error [K]" });
+
+  const cost = ["one oven visit, or a probe on a bench",
+                "two oven visits — the usual production compromise",
+                "three oven visits, plus a quadratic in firmware"];
+  const rows = $("cal-rows");
+  C.sensors.GR07.cal.forEach((m, i) => {
+    const b = C.sensors.GR06.cal[i];
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td>" + m.name + "</td>" +
+      '<td class="n a">' + fmt(m.max_k, 2) + " K</td>" +
+      '<td class="n b">' + fmt(b.max_k, 2) + " K</td>" +
+      '<td style="text-align:right;color:var(--ink-3)">' + cost[i] + "</td>";
+    rows.appendChild(tr);
+  });
+
+  const best = C.sensors.GR06.cal.reduce((m, c) => (c.max_k < m.max_k ? c : m));
+  $("cal-best-b").textContent = "±" + fmt(best.max_k, 2) + " K";
+  $("day-gr06").textContent = "±" + fmt(best.max_k, 2) + " K";
+  $("day-gr07").textContent = "±" + fmt(
+    C.sensors.GR07.cal.reduce((m, c) => (c.max_k < m.max_k ? c : m)).max_k, 1) + " K";
+  $("cal-note").innerHTML = "Solid, dashed and dotted are one-, two- and three-point " +
+    "calibration; blue is GR07 and orange GR06, on a shared scale. Every curve is " +
+    "forced through zero at its own trim points — what matters is how far it strays " +
+    "between them.";
+})();
+
+/* ---------- chart 8 · the telegraph trace ---------- */
+(() => {
+  const B = DATA.chamber && DATA.chamber.burst;
+  if (!B) return;
+  $("rts-ref").textContent = fmt(B.ref_c, 0) + " °C";
+  $("rts-step").textContent = "about " + fmt(B.mean_step_mk, 0) + " mK";
+  $("rts-amp").textContent = fmt(B.mean_step_mk, 0) + " mK";
+  $("rts-life").textContent = (B.life_slow_ms / 1000).toFixed(1) + " s → " +
+    fmt(B.life_fast_ms, 0) + " ms";
+  $("rts-ea").textContent = "Eₐ ≈ " + fmt(B.ea_mev, 0) + " meV, r = " + fmt(B.r, 2);
+  $("rts-frac").textContent = fmt(B.frac_lo * 100, 0) + "–" + fmt(B.frac_hi * 100, 0) + " %";
+  $("rts-half").textContent = "half a kelvin";
+
+  const svg = $("chart-rts");
+  const W = 980, H = 300, M = { t: 16, r: 150, b: 44, l: 66 };
+  const tr = B.trace_mk;
+  const xs = tr.map((p) => p[0]), ys = tr.map((p) => p[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs);
+  let y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const pad = (y1 - y0) * 0.18; y0 -= pad; y1 += pad;
+  const X = (v) => M.l + (v - x0) / (x1 - x0) * (W - M.l - M.r);
+  const Y = (v) => M.t + (1 - (v - y0) / (y1 - y0)) * (H - M.t - M.b);
+
+  for (let v = Math.ceil(y0 / 200) * 200; v <= y1; v += 200) {
+    const y = Y(v), zero = v === 0;
+    svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: y, y2: y,
+      stroke: zero ? "var(--ink-3)" : "var(--rule)", "stroke-width": zero ? 1 : 0.6 }));
+    const tx = el("text", { x: M.l - 10, y: y + 4, "text-anchor": "end", class: "sm" });
+    tx.textContent = v + " mK";
+    svg.appendChild(tx);
+  }
+  for (let v = 0; v <= x1; v += 10) {
+    const x = X(v);
+    svg.appendChild(el("line", { x1: x, x2: x, y1: H - M.b, y2: H - M.b + 5,
+      stroke: "var(--rule)" }));
+    const tx = el("text", { x, y: H - M.b + 20, "text-anchor": "middle", class: "sm" });
+    tx.textContent = v + " s";
+    svg.appendChild(tx);
+  }
+  svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: H - M.b, y2: H - M.b,
+    stroke: "var(--rule)" }));
+  svg.appendChild(el("path", {
+    d: tr.map((p, i) => (i ? "L" : "M") + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1)).join(" "),
+    fill: "none", stroke: "var(--gr06)", "stroke-width": 1.7,
+    "stroke-linejoin": "round", "stroke-linecap": "round" }));
+
+  // the same data end-on: one hump would mean ordinary noise, two means a trap
+  const hx0 = W - M.r + 16, hw = M.r - 34;
+  const maxC = Math.max(...B.hist.map((h) => h[1]));
+  const bh = (H - M.t - M.b) / B.hist.length;
+  B.hist.forEach((h) => {
+    const y = Y(h[0]);
+    if (y < M.t || y > H - M.b) return;
+    svg.appendChild(el("rect", { x: hx0, y: y - bh / 2,
+      width: Math.max(0.6, h[1] / maxC * hw), height: Math.max(1, bh * 0.92),
+      fill: "var(--gr06)", opacity: 0.8 }));
+  });
+  const hl = el("text", { x: hx0, y: M.t - 2, class: "sm", fill: "var(--ink-3)" });
+  hl.textContent = "distribution";
+  svg.appendChild(hl);
+  const yl = el("text", { x: 14, y: 18, class: "sm" });
+  yl.textContent = "deviation";
+  svg.appendChild(yl);
+})();
+
+/* ---------- chart 9 · burst lifetime vs temperature (log y) ---------- */
+(() => {
+  const B = DATA.chamber && DATA.chamber.burst;
+  if (!B) return;
+  const svg = $("chart-rts-life");
+  const W = 980, H = 300, M = { t: 20, r: 30, b: 46, l: 76 };
+  const pts = B.per_dwell.filter((p) => p.life_ms);
+  const ok = pts.filter((p) => p.resolved);
+  if (!ok.length) return;
+  const x0 = 0, x1 = 75;
+  const ly = pts.map((p) => Math.log10(p.life_ms));
+  let y0 = Math.min(...ly) - 0.25, y1 = Math.max(...ly) + 0.25;
+  const X = (v) => M.l + (v - x0) / (x1 - x0) * (W - M.l - M.r);
+  const Y = (v) => M.t + (1 - (Math.log10(v) - y0) / (y1 - y0)) * (H - M.t - M.b);
+
+  for (let d = Math.floor(y0); d <= Math.ceil(y1); d++) {
+    for (const m of [1, 2, 5]) {
+      const v = Math.pow(10, d) * m, y = Y(v);
+      if (y < M.t || y > H - M.b) continue;
+      svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: y, y2: y,
+        stroke: "var(--rule)", "stroke-width": .6, opacity: m === 1 ? .7 : .35 }));
+      const tx = el("text", { x: M.l - 10, y: y + 4, "text-anchor": "end", class: "sm" });
+      tx.textContent = v >= 1000 ? (v / 1000) + " s" : v + " ms";
+      svg.appendChild(tx);
+    }
+  }
+  for (let v = 0; v <= 70; v += 10) {
+    const x = X(v);
+    svg.appendChild(el("line", { x1: x, x2: x, y1: H - M.b, y2: H - M.b + 5,
+      stroke: "var(--rule)" }));
+    const tx = el("text", { x, y: H - M.b + 20, "text-anchor": "middle", class: "sm" });
+    tx.textContent = v + " °C";
+    svg.appendChild(tx);
+  }
+  svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: H - M.b, y2: H - M.b,
+    stroke: "var(--rule)" }));
+
+  // Arrhenius line through the resolved points only
+  const K = 8.617333e-5, KE = 273.15;
+  const ix = ok.map((p) => 1 / (K * (p.ref_c + KE)));
+  const iy = ok.map((p) => Math.log(1 / (p.life_ms / 1000)));
+  const n = ix.length;
+  const mx = ix.reduce((a, b) => a + b) / n, my = iy.reduce((a, b) => a + b) / n;
+  const sl = ix.reduce((s, v, i) => s + (v - mx) * (iy[i] - my), 0) /
+             ix.reduce((s, v) => s + (v - mx) ** 2, 0);
+  const ic = my - sl * mx;
+  const life = (c) => 1000 / Math.exp(sl / (K * (c + KE)) + ic);
+  const seg = [];
+  for (let c = 5; c <= 70; c += 1) seg.push([c, life(c)]);
+  svg.appendChild(el("path", {
+    d: seg.map((p, i) => (i ? "L" : "M") + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1)).join(" "),
+    fill: "none", stroke: "var(--ink-3)", "stroke-width": 1.6, "stroke-dasharray": "7 4" }));
+
+  pts.forEach((p) => svg.appendChild(el("circle", {
+    cx: X(p.ref_c), cy: Y(p.life_ms), r: 5.5,
+    fill: p.resolved ? "var(--gr06)" : "var(--ground)",
+    stroke: "var(--gr06)", "stroke-width": p.resolved ? 0 : 1.8 })));
+
+  const tx = el("text", { x: W - M.r - 6, y: M.t + 16, "text-anchor": "end",
+    class: "sm", fill: "var(--ink-2)" });
+  tx.textContent = "Eₐ = " + fmt(B.ea_mev, 0) + " meV   ·   r = " + fmt(B.r, 2);
+  svg.appendChild(tx);
+  const yl = el("text", { x: 14, y: 18, class: "sm" });
+  yl.textContent = "lifetime";
   svg.appendChild(yl);
 })();
 

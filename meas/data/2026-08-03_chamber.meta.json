@@ -1,0 +1,104 @@
+{
+  "format": "jnwtemp-recording/1",
+  "created": {
+    "iso8601": "2026-08-03T17:06:50+0200",
+    "utc": "2026-08-03T15:06:50Z",
+    "unix": 1785769610.87613,
+    "timezone": "W. Europe Daylight Time",
+    "local": "2026-08-03 17:06:50 W. Europe Daylight Time"
+  },
+  "operator": {
+    "user": "cawu",
+    "host": "cawu3"
+  },
+  "software": {
+    "jnwtemp": "0.1.0",
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "git": {
+      "commit": "106a342a35b93fbf8b629b5ef0bebbd03d45cea1",
+      "branch": "main",
+      "dirty": true
+    }
+  },
+  "dut": {
+    "project": "tt_um_jnw_wulffern",
+    "shuttle_index": 258,
+    "shuttle": "ttsky25a",
+    "sensor": "BOTH",
+    "sensor_description": "",
+    "output_pin": "",
+    "stimulus_pin": null,
+    "project_clock_hz": 64000000
+  },
+  "acquisition": {
+    "saleae_channel": 0,
+    "requested_sample_rate_hz": 500000000,
+    "threshold_volts": 1.2,
+    "capture_duration_s": 0.05,
+    "observable": "",
+    "outlier_band": 0.4,
+    "trace_bin_ms": 10.0,
+    "row_resolution": "10 ms bins",
+    "reset_high_us": 20,
+    "reset_low_us": 200
+  },
+  "calibration": {
+    "model": "3-point fit: r = 2481*T_K + 1.658e+05 Hz  (2.481 kHz/K)",
+    "a_hz_per_k": 2481.1822854167094,
+    "b_hz": 165815.96676667966,
+    "points": [
+      {
+        "temp_c": 20.0,
+        "rate_hz": 888685.5398739236,
+        "note": "n=106704, reference"
+      },
+      {
+        "temp_c": 25.0,
+        "rate_hz": 911454.9771320958,
+        "note": "n=117910, reference"
+      },
+      {
+        "temp_c": 41.2,
+        "rate_hz": 944390.1200816617,
+        "note": "n=113436, chamber"
+      }
+    ]
+  },
+  "instruments": {
+    "logic2": "not used",
+    "demo_board": "MicroPython 670d775365 on 2026-05-08; TinyTapeout RP2350B Core with RP2350 | <DemoBoard in ASIC_RP_CONTROL, auto-clocking @ 64000000 ttsky25a project 'tt_um_jnw_wulffern (258) @ '>",
+    "chamber": "Votsch VT @ 192.168.17.52 (ASCII-2)"
+  },
+  "columns": [
+    "t_rel_s",
+    "t_unix",
+    "GR07_temp_c",
+    "GR07_sem_c",
+    "GR07_rate_hz",
+    "GR07_events",
+    "GR06_temp_c",
+    "GR06_sem_c",
+    "GR06_rate_hz",
+    "GR06_events",
+    "capture",
+    "chamber_set_c",
+    "chamber_actual_c",
+    "chamber_on"
+  ],
+  "derived": {
+    "from": "jnwtemp-BOTH-20260803-170642.csv",
+    "tool": "scripts/chamber_extract.py",
+    "dwell_tail_s": 90.0,
+    "note": "Only the settled tail of each dwell is kept. Data recorded while the chamber was slewing is excluded: its own probe does not represent the die then, which appears as a sawtooth locked to the set-point spacing. DNL needs those sweeps to find code boundaries, so it is precomputed into the _dnl.csv.",
+    "dwells": 14,
+    "rate_resolution_hz": 0.1,
+    "constant_columns": {
+      "GR06_events_per_10ms_bin": 45
+    },
+    "reference_range_c": [
+      4.9,
+      69.4
+    ]
+  }
+}
