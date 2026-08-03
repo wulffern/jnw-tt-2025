@@ -95,12 +95,24 @@ BOTH = "BOTH"
 #: Default Saleae channel per sensor, matching uo_out[0] and uo_out[2].
 DEFAULT_CHANNELS = {"GR07": 0, "GR06": 2}
 
+#: Where the timing comes from. The demo board measures the chip with its own
+#: PIO and needs no other instrument, so it is the default; Logic 2 is what you
+#: pick when you want the per-event streams a 500 MS/s capture can give.
+SOURCE_BOARD = "board"
+SOURCE_LOGIC = "logic"
+SOURCES = [
+    ("Demo board (RP2350 PIO counter)", SOURCE_BOARD),
+    ("Logic 2 (Saleae, per-event)", SOURCE_LOGIC),
+]
+
 
 @dataclass
 class AcquireSettings:
     """Everything the GUI can change about how a reading is taken."""
 
     sensor: str = "GR07"
+    #: SOURCE_BOARD or SOURCE_LOGIC - which instrument does the timing
+    source: str = SOURCE_BOARD
     channels: Dict[str, int] = field(default_factory=lambda: dict(DEFAULT_CHANNELS))
     sample_rate: int = 500_000_000
     threshold_volts: float = 1.2
@@ -116,6 +128,14 @@ class AcquireSettings:
     #: wide so the plot shows structure inside a capture rather than one dot.
     #: 0 disables binning and reverts to one point per capture.
     bin_ms: float = 1.0
+    #: Board source only: seconds of counting per REPL round trip. There is no
+    #: arming and no capture buffer to size, so this is purely how often the
+    #: trace grows - not a property of the measurement.
+    window_s: float = 0.25
+
+    @property
+    def uses_board_timing(self) -> bool:
+        return self.source == SOURCE_BOARD
 
     @property
     def bin_s(self) -> float:
@@ -256,19 +276,49 @@ def reduce_train(
         t, s = train.high_widths()
     else:
         t, s = train.low_widths()
+    return reduce_events(
+        spec.key,
+        t - train.begin_time if t.size else t,
+        s,
+        train.duration,
+        cal,
+        band=band,
+        bin_s=bin_s,
+        empty_note=(
+            f"no {spec.observable} events on the selected channel "
+            f"({train.num_edges} edges seen)"
+        ),
+    )
 
+
+def reduce_events(
+    sensor: str,
+    event_t: np.ndarray,
+    s: np.ndarray,
+    duration: float,
+    cal: Calibration,
+    band: float = 0.4,
+    bin_s: float = 0.0,
+    empty_note: str = "no events",
+) -> Reading:
+    """Reduce a per-event series to a :class:`Reading`.
+
+    Split out of :func:`reduce_train` so the demo board's PIO counter reaches
+    the same statistics from its own timing rather than a second, subtly
+    different implementation. ``event_t`` is relative to the start of the
+    capture and ``s`` is the observable in seconds.
+    """
     r = Reading(
         t_wall=time.time(),
-        sensor=spec.key,
-        duration_s=train.duration,
+        sensor=sensor,
+        duration_s=duration,
         n=0,
     )
     if s.size == 0:
-        r.note = (
-            f"no {spec.observable} events on the selected channel "
-            f"({train.num_edges} edges seen)"
-        )
+        r.note = empty_note
         return r
+    t = np.asarray(event_t, dtype=float)
+    s = np.asarray(s, dtype=float)
 
     # Reject only *gross* outliers, by ratio to the median.
     #
@@ -301,7 +351,7 @@ def reduce_train(
     rate = 1.0 / s
     temp = np.asarray(cal.temp_c(rate), dtype=float)
 
-    r.event_t = t - train.begin_time
+    r.event_t = t
     r.event_s = s
     r.rate_hz = rate
     r.temp_c = temp
@@ -313,10 +363,10 @@ def reduce_train(
     r.mean_temp_c = float(cal.temp_c(r.mean_rate_hz))
     finite_temp = temp[np.isfinite(temp)]
     r.std_temp_c = float(finite_temp.std(ddof=1)) if finite_temp.size > 1 else 0.0
-    r.event_rate_hz = float(s.size / train.duration) if train.duration > 0 else float("nan")
+    r.event_rate_hz = float(s.size / duration) if duration > 0 else float("nan")
 
     if bin_s > 0:
-        centres, mean_rate, count = bin_series(r.event_t, rate, train.duration, bin_s)
+        centres, mean_rate, count = bin_series(r.event_t, rate, duration, bin_s)
         r.bin_t = centres
         r.bin_rate_hz = mean_rate
         r.bin_temp_c = np.asarray(cal.temp_c(mean_rate), dtype=float)
@@ -344,6 +394,7 @@ class Acquisition:
         self.board_port = board_port
         self.logic: Optional[LogicCapture] = None
         self.board: Optional[TTBoard] = None
+        self._meas = None                 # BoardMeasurement, built on first use
         self._log = log or (lambda msg: None)
 
     # ------------------------------------------------------------- lifecycle
@@ -365,15 +416,22 @@ class Acquisition:
         # abort open() before the board was touched, so a disabled automation
         # server also left the project clock stopped after a power cycle - and
         # then nothing worked, for two unrelated reasons at once.
-        self.logic = LogicCapture(cs)
         logic_error = None
-        try:
-            status["logic"] = self.logic.connect()
-            self._log(f"Logic 2: {status['logic']}")
-        except Exception as exc:
-            logic_error = exc
-            status["logic"] = f"failed: {exc}"
-            self._log(f"Logic 2 unavailable: {exc}")
+        if self.settings.uses_board_timing:
+            # Nothing to connect: the RP2350 does the timing. Touching Logic 2
+            # here would only produce an error about an instrument this session
+            # was never going to use.
+            self.logic = None
+            status["logic"] = "not used - timing from the demo board"
+        else:
+            self.logic = LogicCapture(cs)
+            try:
+                status["logic"] = self.logic.connect()
+                self._log(f"Logic 2: {status['logic']}")
+            except Exception as exc:
+                logic_error = exc
+                status["logic"] = f"failed: {exc}"
+                self._log(f"Logic 2 unavailable: {exc}")
 
         if self.use_board:
             try:
@@ -381,10 +439,16 @@ class Acquisition:
                 info = self.board.connect()
                 status["board"] = f"{info.banner} | {info.project}"
                 self._log(f"Demo board: {info.port} @ {info.clock_hz/1e6:.0f} MHz project clock")
+                if self.settings.uses_board_timing:
+                    self._log(self.meas.setup())
             except Exception as exc:
                 self.board = None
                 status["board"] = f"unavailable: {exc}"
                 self._log(f"Demo board unavailable: {exc}")
+                if self.settings.uses_board_timing:
+                    # Here the board *is* the instrument, so this is fatal in
+                    # the way a missing Logic 2 is for the other source.
+                    raise
         else:
             status["board"] = "disabled"
 
@@ -398,6 +462,9 @@ class Acquisition:
         if self.logic is not None:
             self.logic.close()
             self.logic = None
+        if self._meas is not None:
+            self._meas.close()
+            self._meas = None
         if self.board is not None:
             self.board.disconnect()
             self.board = None
@@ -405,6 +472,15 @@ class Acquisition:
     @property
     def board_ready(self) -> bool:
         return self.board is not None and self.board.connected
+
+    @property
+    def meas(self):
+        """The demo board's PIO measurement driver, built on first use."""
+        from .boardmeas import BoardMeasurement
+
+        if self._meas is None or self._meas.board is not self.board:
+            self._meas = BoardMeasurement(self.board, log=self._log)
+        return self._meas
 
     # ---------------------------------------------------------- board config
     def configure_board(self) -> str:
@@ -424,11 +500,14 @@ class Acquisition:
             # A stopped clock is silent failure for GR07: the pin simply never
             # toggles and the capture looks like a wiring fault.
             msgs.append("WARNING: project clock is stopped - GR07 will be dead")
-        # Leave ResetTemp06 deasserted; GR06 asserts it per burst.
-        for key in st.sensor_keys:
-            bit = SENSORS[key].ui_bit
-            if bit is not None:
-                self.board.set_ui_in(bit, 0)
+        # Leave ResetTemp06 deasserted; GR06 asserts it per burst. Under board
+        # timing the pin belongs to the PIO reset generator instead - taking it
+        # back here would switch the pad to SIO and kill the stimulus.
+        if not st.uses_board_timing:
+            for key in st.sensor_keys:
+                bit = SENSORS[key].ui_bit
+                if bit is not None:
+                    self.board.set_ui_in(bit, 0)
         return "; ".join(msgs)
 
     # --------------------------------------------------------------- reading
@@ -449,6 +528,10 @@ class Acquisition:
 
         ``cals`` may be one Calibration (single mode) or a dict of them.
         """
+        if self.settings.uses_board_timing:
+            if not self.board_ready:
+                raise LogicError("not connected to the demo board")
+            return self.meas.read(self.settings, cals)
         if self.logic is None:
             raise LogicError("not connected to Logic 2")
         st = self.settings

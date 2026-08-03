@@ -48,6 +48,7 @@ from PySide6.QtWidgets import (
 
 from .acquire import (
     BOTH,
+    SOURCE_LOGIC,
     DEFAULT_CHANNELS as SENSOR_CHANNELS,
     SENSORS,
     AcquireSettings,
@@ -103,6 +104,11 @@ TRACE_UNITS = {"temp": "°C", "rate": "kHz", "ppm": "ppm", "hz": "Hz"}
 #: What the lower pane shows. The raw per-event trace lives here rather than in
 #: a permanent third pane: it is worth looking at occasionally, not constantly,
 #: and two panes leave the temperature trace room to be read.
+#: Floor on how often the lower pane is recomputed while readings stream in.
+#: A spectrum of one window is a diagnostic you read, not a meter you watch;
+#: recomputing and repainting it at the reading rate was pure overhead.
+SPECTRUM_MIN_INTERVAL_S = 1.0
+
 SPECTRUM_MODES = [
     ("Within capture (conversion noise)", "fast"),
     ("Long term (drift + 1/f)", "slow"),
@@ -112,12 +118,19 @@ SPECTRUM_MODES = [
 ]
 
 
+#: A chip never grows past this. Instrument errors arrive as whole exception
+#: strings - a gRPC failure is a paragraph - and a QLabel sized to one would
+#: drag the window wider than the screen. The full text is in the tooltip.
+CHIP_MAX_PX = 260
+
+
 class StatusChip(QLabel):
     """A small colored pill showing the state of one instrument."""
 
     def __init__(self, name: str) -> None:
         super().__init__()
         self._name = name
+        self.setMaximumWidth(CHIP_MAX_PX)
         self.set_state("unknown", "not connected")
 
     def set_state(self, state: str, detail: str = "") -> None:
@@ -126,8 +139,12 @@ class StatusChip(QLabel):
             "warn": STATUS_WARN,
             "bad": STATUS_BAD,
         }.get(state, TEXT_MUTED)
-        self.setText(f"{self._name}: {detail}" if detail else self._name)
-        self.setToolTip(detail)
+        detail = " ".join(detail.split())          # collapse multi-line errors
+        full = f"{self._name}: {detail}" if detail else self._name
+        # Elide against the chip's own budget, less the padding and border.
+        self.setText(self.fontMetrics().elidedText(
+            full, Qt.TextElideMode.ElideRight, CHIP_MAX_PX - 24))
+        self.setToolTip(full)
         self.setStyleSheet(
             f"QLabel {{ color:{color}; border:1px solid {color}; border-radius:6px;"
             f" padding:3px 10px; background:{SURFACE_2}; font-size:11px; }}"
@@ -139,7 +156,7 @@ class MainWindow(QWidget):
         super().__init__()
         self.setWindowTitle("JNW-TEMP - live temperature sensor demo (TT project 258)")
 
-        self.settings = AcquireSettings()
+        self.settings = self._make_settings()
         self.cal_store = CalibrationStore()
         self._board_port = board_port
         self._use_board = use_board
@@ -169,6 +186,10 @@ class MainWindow(QWidget):
         self._apply_dark_theme()
         self.resize(1500, 940)
         self._refresh_calibration_labels()
+
+    def _make_settings(self) -> AcquireSettings:
+        """Defaults for this window's instrument."""
+        return AcquireSettings(source=SOURCE_LOGIC)
 
     # ------------------------------------------------------------------- UI
     def _build_ui(self) -> None:
@@ -273,32 +294,55 @@ class MainWindow(QWidget):
         return box
 
     def _build_controls(self) -> QWidget:
+        """Assemble the right-hand panel from its groups.
+
+        The groups are separate methods so a window for a different instrument
+        can replace the ones that are instrument-specific and inherit the rest;
+        see :class:`~jnwtemp.board_window.BoardWindow`.
+        """
         panel = QWidget()
         outer = QVBoxLayout(panel)
         outer.setContentsMargins(0, 6, 6, 0)
         outer.setSpacing(8)
+        for group in (self._group_measure(), self._group_calibration(),
+                      self._group_record(), self._group_display()):
+            outer.addWidget(group)
+        outer.addWidget(self._collapsible("SETUP / WIRING", self._group_setup()))
+        outer.addWidget(self._build_log(), 1)
 
-        # Connect lives in the status bar, beside the chips it affects.
-        meas = QGroupBox("Measure")
-        sf = QFormLayout(meas)
+        # The panel must never dictate the window height: on a laptop screen the
+        # full stack is taller than the display, so it scrolls instead.
+        scroll = QScrollArea()
+        scroll.setWidget(panel)
+        scroll.setWidgetResizable(True)
+        scroll.setFixedWidth(356)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        return scroll
+
+    def _build_log(self) -> QWidget:
+        self.log = QPlainTextEdit()
+        self.log.setReadOnly(True)
+        self.log.setMaximumBlockCount(500)
+        self.log.setMinimumHeight(90)
+        self.log.setStyleSheet(
+            f"QPlainTextEdit {{ background:{SURFACE_2}; color:{TEXT_MUTED};"
+            f" border:1px solid {GRID}; border-radius:6px; font-size:11px; }}"
+        )
+        return self.log
+
+    def _sensor_row(self, form) -> None:
+        """The sensor selector, shared by every window."""
         self.combo_sensor = QComboBox()
         for key, spec in SENSORS.items():
             self.combo_sensor.addItem(spec.label, key)
-        # Both sensors come out of one two-channel capture, so they share a time
-        # base - the only way the comparison means anything.
+        # Both sensors are measured together, so they share a time base - the
+        # only way the comparison means anything.
         self.combo_sensor.addItem("Both - GR07 + GR06 together", BOTH)
         self.combo_sensor.currentIndexChanged.connect(self._on_sensor_changed)
-        sf.addRow("Sensor", self.combo_sensor)
+        form.addRow("Sensor", self.combo_sensor)
 
-        self.spin_duration = QDoubleSpinBox()
-        self.spin_duration.setRange(0.005, 5.0)
-        self.spin_duration.setDecimals(3)
-        self.spin_duration.setSingleStep(0.05)
-        self.spin_duration.setSuffix(" s")
-        self.spin_duration.setValue(self.settings.duration_s)
-        self.spin_duration.valueChanged.connect(self._push_settings)
-        sf.addRow("Capture", self.spin_duration)
-
+    def _trace_bin_row(self, form) -> None:
         # Each capture is re-reduced into bins this wide, so the trace shows
         # what happened *inside* a capture instead of one averaged dot.
         self.spin_bin = QDoubleSpinBox()
@@ -313,20 +357,40 @@ class MainWindow(QWidget):
             "noise; each point is worth fewer events, so it is also noisier."
         )
         self.spin_bin.valueChanged.connect(self._on_bin_changed)
-        sf.addRow("Trace bin", self.spin_bin)
+        form.addRow("Trace bin", self.spin_bin)
 
         self.lbl_bin = QLabel("")
         self.lbl_bin.setWordWrap(True)
         self.lbl_bin.setMinimumHeight(30)
         self.lbl_bin.setStyleSheet(f"color:{TEXT_MUTED}; font-size:11px;")
-        sf.addRow(self.lbl_bin)
+        form.addRow(self.lbl_bin)
 
+    def _run_row(self, form) -> None:
         self.btn_run = QPushButton("Start")
         self.btn_run.setEnabled(False)
         self.btn_run.clicked.connect(self._on_run_toggled)
-        sf.addRow(self.btn_run)
-        outer.addWidget(meas)
+        form.addRow(self.btn_run)
 
+    def _group_measure(self) -> QWidget:
+        # Connect lives in the status bar, beside the chips it affects.
+        meas = QGroupBox("Measure")
+        sf = QFormLayout(meas)
+        self._sensor_row(sf)
+
+        self.spin_duration = QDoubleSpinBox()
+        self.spin_duration.setRange(0.005, 5.0)
+        self.spin_duration.setDecimals(3)
+        self.spin_duration.setSingleStep(0.05)
+        self.spin_duration.setSuffix(" s")
+        self.spin_duration.setValue(self.settings.duration_s)
+        self.spin_duration.valueChanged.connect(self._push_settings)
+        sf.addRow("Capture", self.spin_duration)
+
+        self._trace_bin_row(sf)
+        self._run_row(sf)
+        return meas
+
+    def _group_calibration(self) -> QWidget:
         calib = QGroupBox("Calibration")
         kf = QFormLayout(calib)
         self.spin_ref = QDoubleSpinBox()
@@ -353,8 +417,9 @@ class MainWindow(QWidget):
         self.lbl_cal.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.lbl_cal.setStyleSheet(f"color:{TEXT_MUTED}; font-size:11px;")
         kf.addRow(self.lbl_cal)
-        outer.addWidget(calib)
+        return calib
 
+    def _group_record(self) -> QWidget:
         rec = QGroupBox("Record")
         rf = QVBoxLayout(rec)
         self.btn_record = QPushButton("Record to CSV...")
@@ -369,8 +434,9 @@ class MainWindow(QWidget):
         rf.addWidget(self.btn_record)
         rf.addWidget(self.btn_record_stop)
         rf.addWidget(self.lbl_record)
-        outer.addWidget(rec)
+        return rec
 
+    def _group_display(self) -> QWidget:
         disp = QGroupBox("Display")
         df = QFormLayout(disp)
         self.combo_trace = QComboBox()
@@ -393,9 +459,10 @@ class MainWindow(QWidget):
         self.btn_reset = QPushButton("Clear history")
         self.btn_reset.clicked.connect(self._on_clear_history)
         df.addRow(self.btn_reset)
-        outer.addWidget(disp)
+        return disp
 
-        # ---- setup: wiring and one-time configuration --------------------
+    def _group_setup(self) -> QWidget:
+        """Wiring and one-time configuration: Saleae channel, rate, threshold."""
         setup = QWidget()
         gf = QFormLayout(setup)
         gf.setContentsMargins(0, 4, 0, 0)
@@ -472,28 +539,7 @@ class MainWindow(QWidget):
         )
         self.btn_export_capture.clicked.connect(self._on_export_capture)
         gf.addRow(self.btn_export_capture)
-
-        outer.addWidget(self._collapsible("SETUP / WIRING", setup))
-
-        self.log = QPlainTextEdit()
-        self.log.setReadOnly(True)
-        self.log.setMaximumBlockCount(500)
-        self.log.setMinimumHeight(90)
-        self.log.setStyleSheet(
-            f"QPlainTextEdit {{ background:{SURFACE_2}; color:{TEXT_MUTED};"
-            f" border:1px solid {GRID}; border-radius:6px; font-size:11px; }}"
-        )
-        outer.addWidget(self.log, 1)
-
-        # The panel must never dictate the window height: on a laptop screen the
-        # full stack is taller than the display, so it scrolls instead.
-        scroll = QScrollArea()
-        scroll.setWidget(panel)
-        scroll.setWidgetResizable(True)
-        scroll.setFixedWidth(356)
-        scroll.setFrameShape(QFrame.Shape.NoFrame)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        return scroll
+        return setup
 
     def _apply_dark_theme(self) -> None:
         self.setStyleSheet(
@@ -519,15 +565,29 @@ class MainWindow(QWidget):
     def _collect_settings(self) -> AcquireSettings:
         st = self.settings
         st.sensor = self.combo_sensor.currentData()
-        st.channels[st.sensor_keys[0]] = self.spin_channel.value()
-        st.sample_rate = int(self.combo_rate.currentData())
-        st.threshold_volts = float(self.combo_threshold.currentData())
-        st.duration_s = float(self.spin_duration.value())
         st.clock_hz = self.spin_clock.value() * 1_000_000
         st.reset_high_us = self.spin_reset_high.value()
         st.reset_low_us = self.spin_reset_low.value()
         st.bin_ms = float(self.spin_bin.value())
+        self._collect_instrument_settings(st)
         return st
+
+    def _collect_instrument_settings(self, st: AcquireSettings) -> None:
+        """Fields that only exist for this window's instrument."""
+        st.source = SOURCE_LOGIC
+        st.channels[st.sensor_keys[0]] = self.spin_channel.value()
+        st.sample_rate = int(self.combo_rate.currentData())
+        st.threshold_volts = float(self.combo_threshold.currentData())
+        st.duration_s = float(self.spin_duration.value())
+
+    def _sync_channel_widget(self, keys) -> None:
+        """Point the Saleae channel box at the primary sensor's channel."""
+        self.spin_channel.blockSignals(True)
+        self.spin_channel.setValue(self.settings.channels.get(keys[0], 0))
+        self.spin_channel.blockSignals(False)
+
+    def _use_board_now(self) -> bool:
+        return self.chk_board.isChecked()
 
     def _push_settings(self) -> None:
         st = self._collect_settings()
@@ -546,9 +606,7 @@ class MainWindow(QWidget):
     def _on_sensor_changed(self) -> None:
         key = self.combo_sensor.currentData()
         keys = list(SENSORS) if key == BOTH else [key]
-        self.spin_channel.blockSignals(True)
-        self.spin_channel.setValue(self.settings.channels.get(keys[0], 0))
-        self.spin_channel.blockSignals(False)
+        self._sync_channel_widget(keys)
         stim = any(SENSORS[k].needs_stimulus for k in keys)
         self.spin_reset_high.setEnabled(stim)
         self.spin_reset_low.setEnabled(stim)
@@ -596,7 +654,7 @@ class MainWindow(QWidget):
             st,
             self.cals,
             board_port=self.combo_port.currentData(),
-            use_board=self.chk_board.isChecked(),
+            use_board=self._use_board_now(),
         )
         self.thread.opened.connect(self._on_opened)
         self.thread.readingReady.connect(self._on_reading)
@@ -737,10 +795,7 @@ class MainWindow(QWidget):
         # Plots. The raw-timing and spectrum panes follow the primary sensor;
         # the temperature trace shows every selected sensor.
         self._redraw_trace()
-        self.plot_obs.update_series(
-            primary.event_t, primary.event_s, SENSORS[keys[0]].unit_label
-        )
-        self._redraw_spectrum()
+        self._redraw_spectrum_throttled()
         self._refresh_calibration_labels()
 
     def _update_tiles(self, keys, readings) -> None:
@@ -860,7 +915,17 @@ class MainWindow(QWidget):
             # started roughly duration_s earlier; bin_t is relative to that.
             start = reading.t_wall - self._t0 - reading.duration_s
             if len(trace):
-                trace.append(start - reading.bin_s, float("nan"))
+                # Only break the line where measurement actually stopped. The
+                # board counter runs through the round trip between windows, so
+                # a marker at every window boundary would draw gaps that are
+                # not there - and t_wall carries a few ms of host jitter, so
+                # butt a continuous window against the last point rather than
+                # trusting the arithmetic to line up.
+                last = trace.t[-1]
+                if start - last > 1.5 * reading.bin_s:
+                    trace.append(start - reading.bin_s, float("nan"))
+                else:
+                    start = last + reading.bin_s
             trace.extend(start + reading.bin_t, reading.bin_rate_hz / 1e3)
         self._ref_rate.setdefault(key, reading.mean_rate_hz / 1e3)
 
@@ -909,18 +974,132 @@ class MainWindow(QWidget):
                 color=TEXT_SECONDARY, size="10pt",
             )
 
+    #: Samples per Welch segment when the spectrum comes from the trace. At a
+    #: 10 ms bin this is ~10 s per segment, so the spectrum reaches 0.1 Hz.
+    TRACE_PSD_NPERSEG = 1024
+
+    def _continuous_psd(self, key: str):
+        """Spectrum of the whole binned trace of ``key``.
+
+        The board counter runs continuously, so the trace is a uniformly
+        sampled record - a spectrum in its own right, reaching from half the
+        bin rate down to a fraction of a hertz, which is where a thermometer
+        actually lives. It is not a substitute for the per-event spectrum: that
+        one is about the conversion, this one about the temperature.
+
+        Breaks in the record are respected rather than interpolated across:
+        each contiguous run is transformed on its own and the results are
+        averaged, weighted by length, which is Welch's method applied to a
+        record that happens to have holes in it.
+        """
+        t, khz = self._trace_for(key).arrays()
+        if t.size < 8:
+            return None
+        values, unit = self._trace_values(key, "temp", khz)
+        finite = np.isfinite(values) & np.isfinite(t)
+        if not finite.any():
+            return None
+        edges = np.flatnonzero(np.diff(finite.astype(np.int8)))
+        starts = np.concatenate(([0], edges + 1))
+        stops = np.concatenate((edges + 1, [values.size]))
+        runs = [(a, b) for a, b in zip(starts, stops) if finite[a] and b - a >= 8]
+        if not runs:
+            return None
+        dt = float(np.median(np.concatenate([np.diff(t[a:b]) for a, b in runs])))
+        if not np.isfinite(dt) or dt <= 0:
+            return None
+        fs = 1.0 / dt
+
+        nperseg = min(self.TRACE_PSD_NPERSEG, max(b - a for a, b in runs))
+        psds, weights = [], []
+        for a, b in runs:
+            if b - a < nperseg:
+                continue
+            f, p = welch_psd(values[a:b], fs, nperseg=nperseg)
+            if f.size:
+                psds.append(p)
+                weights.append(b - a)
+        if not psds:                      # nothing long enough: use the longest
+            a, b = max(runs, key=lambda ab: ab[1] - ab[0])
+            f, p = welch_psd(values[a:b], fs)
+            if f.size == 0:
+                return None
+            psds, weights = [p], [b - a]
+        psd = np.average(np.vstack(psds), axis=0, weights=weights)
+        covered = sum(weights) * dt
+        return f, psd, ("degC" if unit == "\u00b0C" else unit), fs, covered
+
+    def _missing_events_note(self, readings, shown) -> str:
+        """Name the selected sensors this view cannot show, and why.
+
+        With the demo board GR07 has no per-event series, so a pane titled for
+        two sensors would quietly be about one - and the curve that remains is
+        GR06, in GR06's colour, which reads as the wrong sensor rather than as
+        a missing one.
+        """
+        missing = [k for k in self.settings.sensor_keys
+                   if k in readings and k not in shown]
+        if not missing:
+            return ""
+        return (f"  |  no per-event data for {' · '.join(missing)}"
+                f" (demo board reports one value per bin)")
+
+    def _redraw_spectrum_throttled(self) -> None:
+        """Redraw the lower pane, but not on every reading.
+
+        A PSD plus a repaint is most of the GUI's per-reading cost, and the
+        lower pane is a diagnostic rather than a live meter - at ten readings a
+        second, recomputing it ten times a second buys nothing and costs the
+        responsiveness of the trace.
+        """
+        now = time.time()
+        if now - getattr(self, "_last_spec_t", 0.0) < SPECTRUM_MIN_INTERVAL_S:
+            return
+        self._last_spec_t = now
+        self._redraw_spectrum()
+
     def _redraw_spectrum(self) -> None:
         mode = self.combo_spec.currentData()
         if mode == "raw":
             self.lower.setCurrentWidget(self.plot_obs)
+            readings = getattr(self, "_last_readings", None) or {}
+            keys = [k for k in self.settings.sensor_keys if k in readings]
+            if keys and readings[keys[0]].event_s.size:
+                r = readings[keys[0]]
+                self.plot_obs.update_series(
+                    r.event_t, r.event_s, SENSORS[keys[0]].unit_label
+                )
+            elif keys:
+                self.plot_obs.clear_data()
+                self.plot_obs.setTitle(
+                    f"No per-event data for {keys[0]} - the demo board reports "
+                    f"one value per bin",
+                    color=TEXT_MUTED, size="10pt",
+                )
             return
         self.lower.setCurrentWidget(self.plot_spec)
         if mode != "allan":
             self.plot_spec.restore_frequency_axis()
 
         readings = getattr(self, "_last_readings", None) or {}
+        # These two views are built from the per-event series, which the demo
+        # board's counter does not produce for GR07 - it reports one number per
+        # bin. Select on what is actually there rather than on the event count,
+        # so the pane can say so instead of drawing an empty axis.
         keys = [k for k in self.settings.sensor_keys if k in readings
-                and readings[k].ok and readings[k].n >= 64]
+                and readings[k].ok and readings[k].event_s.size >= 64]
+        if not keys and mode == "phase":
+            missing = [k for k in self.settings.sensor_keys if k in readings]
+            self.plot_spec.clear_data()
+            self.plot_spec.clear_second_psd()
+            self.plot_spec.setTitle(
+                ("No per-event data for " + " \u00b7 ".join(missing) +
+                 " - the demo board reports one value per bin; "
+                 "run with --source logic for this view")
+                if missing else "Waiting for a capture",
+                color=TEXT_MUTED, size="10pt",
+            )
+            return
 
         if mode == "phase":
             # Timing noise of each sensor, referred to its own carrier.
@@ -945,6 +1124,7 @@ class MainWindow(QWidget):
                 self.plot_spec.clear_second_psd()
             note = " · GR06 is re-triggered: width jitter, not oscillator phase noise" \
                 if "GR06" in keys else ""
+            note += self._missing_events_note(readings, keys)
             self.plot_spec.setTitle(
                 "Phase noise - " + " · ".join(bits) + note,
                 color=TEXT_SECONDARY, size="10pt",
@@ -954,32 +1134,45 @@ class MainWindow(QWidget):
         self.plot_spec.set_log_mode(True, True)
 
         if mode == "fast":
-            if not keys:
-                self.plot_spec.clear_data()
-                self.plot_spec.clear_second_psd()
-                return
-            bits = []
-            for i, k in enumerate(keys):
-                r = readings[k]
-                cal = self.cal_store.get(k)
-                series = r.temp_c if cal.calibrated else r.event_s * 1e9
-                unit = "degC" if cal.calibrated else "ns"
-                f, psd = welch_psd(series, r.event_rate_hz)
+            # Per-event where there is a per-event stream; otherwise the
+            # continuous trace, which is a real spectrum too - just of the
+            # temperature rather than of the conversion.
+            drawn, bits, unit = 0, [], "degC"
+            for k in self.settings.sensor_keys:
+                r = readings.get(k)
+                if r is None or not r.ok:
+                    continue
+                if k in keys:
+                    cal = self.cal_store.get(k)
+                    series = r.temp_c if cal.calibrated else r.event_s * 1e9
+                    unit = "degC" if cal.calibrated else "ns"
+                    f, psd = welch_psd(series, r.event_rate_hz)
+                    label = f"({r.n:,} ev at {r.event_rate_hz/1e3:.0f} kHz)"
+                else:
+                    got = self._continuous_psd(k)
+                    if got is None:
+                        continue
+                    f, psd, unit, fs, covered = got
+                    label = f"({covered:.0f} s of trace at {fs:.0f} Hz)"
                 if f.size == 0:
                     continue
-                self.plot_spec.set_curve_color(i, SENSOR_COLORS.get(k, SERIES_2))
-                if i == 0:
-                    self.plot_spec.update_psd(
-                        f, psd, "", f"PSD [{unit}^2/Hz]"
-                    )
+                self.plot_spec.set_curve_color(drawn, SENSOR_COLORS.get(k, SERIES_2))
+                if drawn == 0:
+                    self.plot_spec.update_psd(f, psd, "", f"PSD [{unit}^2/Hz]")
                 else:
                     self.plot_spec.set_second_psd(f, psd)
-                bits.append(f"{k} {integrated_noise(f, psd):.3g} {unit} rms "
-                            f"({r.n:,} ev at {r.event_rate_hz/1e3:.0f} kHz)")
-            if len(keys) < 2:
+                drawn += 1
+                bits.append(f"{k} {integrated_noise(f, psd):.3g} {unit} rms {label}")
+            if drawn == 0:
+                self.plot_spec.clear_data()
+                self.plot_spec.clear_second_psd()
+                self.plot_spec.setTitle("Waiting for a capture",
+                                        color=TEXT_MUTED, size="10pt")
+                return
+            if drawn < 2:
                 self.plot_spec.clear_second_psd()
             self.plot_spec.setTitle(
-                "Conversion noise within one capture - " + " · ".join(bits),
+                "Noise spectrum - " + " · ".join(bits),
                 color=TEXT_SECONDARY, size="10pt",
             )
         elif mode == "slow":
@@ -1093,6 +1286,16 @@ class MainWindow(QWidget):
         r = self._last
         if r is None or not r.ok:
             QMessageBox.warning(self, "Export capture", "No capture to export yet.")
+            return
+        if r.event_s.size == 0:
+            QMessageBox.information(
+                self,
+                "Export capture",
+                f"{r.sensor} has no per-event data to export: the demo board's "
+                f"counter reports one value per bin, not one per period. The "
+                f"binned trace is still recorded by 'Record to CSV', and "
+                f"--source logic gives the per-event series.",
+            )
             return
         default = time.strftime(f"jnwtemp-{self.settings.sensor}-capture-%Y%m%d-%H%M%S.csv")
         path, _ = QFileDialog.getSaveFileName(
