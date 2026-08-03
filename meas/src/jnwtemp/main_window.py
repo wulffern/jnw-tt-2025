@@ -117,6 +117,18 @@ SPECTRUM_MODES = [
     ("Last capture - raw timing", "raw"),
 ]
 
+#: What the demo board offers instead. Its counters never stop, so the trace is
+#: one uninterrupted record and a spectrum of the whole of it beats a spectrum
+#: of one averaged point per update - same quantity, a hundred times the
+#: sampling. "Long term" is dropped because this is it, done properly.
+BOARD_SPECTRUM_MODES = [
+    ("Whole record (drift + 1/f)", "trace"),
+    ("Within capture (per-event)", "fast"),
+    ("Allan deviation", "allan"),
+    ("Phase noise (per-event)", "phase"),
+    ("Last capture - raw timing", "raw"),
+]
+
 
 #: A chip never grows past this. Instrument errors arrive as whole exception
 #: strings - a gRPC failure is a paragraph - and a QLabel sized to one would
@@ -175,6 +187,12 @@ class MainWindow(QWidget):
         self.histories: dict = {}  # sensor -> per-capture means (spectra, Allan)
         #: rate each sensor started at, the reference for the ppm/Hz trace modes
         self._ref_rate: dict = {}
+        #: seconds since _t0 that the lower pane analyses from. A spectrum of
+        #: the whole record is only meaningful while the record is one thing:
+        #: warm a finger on the chip and the step dominates every average for
+        #: minutes afterwards, so it has to be possible to start again without
+        #: throwing away the trace you were watching.
+        self._spec_from = 0.0
         self._t0 = time.time()
         self._last: Optional[Reading] = None
         self._readings = 0
@@ -186,6 +204,10 @@ class MainWindow(QWidget):
         self._apply_dark_theme()
         self.resize(1500, 940)
         self._refresh_calibration_labels()
+
+    #: Lower-pane modes offered by this window; the instrument decides which
+    #: spectra are meaningful.
+    spectrum_modes = SPECTRUM_MODES
 
     def _make_settings(self) -> AcquireSettings:
         """Defaults for this window's instrument."""
@@ -452,10 +474,19 @@ class MainWindow(QWidget):
         self.combo_trace.currentIndexChanged.connect(self._redraw_trace)
         df.addRow("Top plot", self.combo_trace)
         self.combo_spec = QComboBox()
-        for label, key in SPECTRUM_MODES:
+        for label, key in self.spectrum_modes:
             self.combo_spec.addItem(label, key)
         self.combo_spec.currentIndexChanged.connect(self._redraw_spectrum)
         df.addRow("Bottom plot", self.combo_spec)
+        self.btn_reset_spec = QPushButton("Restart spectrum")
+        self.btn_reset_spec.setToolTip(
+            "Analyse the lower pane from now on. The trace, the tiles and the "
+            "recording are untouched - this only discards the history the "
+            "spectrum and the Allan deviation average over, which is what you "
+            "want after the temperature has deliberately moved."
+        )
+        self.btn_reset_spec.clicked.connect(self._on_reset_spectrum)
+        df.addRow(self.btn_reset_spec)
         self.btn_reset = QPushButton("Clear history")
         self.btn_reset.clicked.connect(self._on_clear_history)
         df.addRow(self.btn_reset)
@@ -974,9 +1005,19 @@ class MainWindow(QWidget):
                 color=TEXT_SECONDARY, size="10pt",
             )
 
-    #: Samples per Welch segment when the spectrum comes from the trace. At a
-    #: 10 ms bin this is ~10 s per segment, so the spectrum reaches 0.1 Hz.
-    TRACE_PSD_NPERSEG = 1024
+    #: Welch segments to aim for when the spectrum comes from the trace.
+    #:
+    #: Welch trades resolution for confidence: one periodogram of the whole
+    #: record has ~100% scatter per bin and reads as hair, while K averaged
+    #: segments cut it to ~1/sqrt(K). Eight (sixteen with the 50% overlap) puts
+    #: the ripple near 25% and still lets the lowest bin follow the record - a
+    #: fixed segment length would peg the low-frequency edge for ever, so a run
+    #: of minutes would never show anything slower than the first ten seconds.
+    TRACE_PSD_SEGMENTS = 8
+    #: Bounds on that segment, in samples: enough bins to be a spectrum, not so
+    #: many that one segment swallows the record.
+    TRACE_PSD_MIN = 256
+    TRACE_PSD_MAX = 8192
 
     def _continuous_psd(self, key: str):
         """Spectrum of the whole binned trace of ``key``.
@@ -993,6 +1034,9 @@ class MainWindow(QWidget):
         record that happens to have holes in it.
         """
         t, khz = self._trace_for(key).arrays()
+        if self._spec_from > 0:
+            keep = t >= self._spec_from
+            t, khz = t[keep], khz[keep]
         if t.size < 8:
             return None
         values, unit = self._trace_values(key, "temp", khz)
@@ -1010,7 +1054,10 @@ class MainWindow(QWidget):
             return None
         fs = 1.0 / dt
 
-        nperseg = min(self.TRACE_PSD_NPERSEG, max(b - a for a, b in runs))
+        longest = max(b - a for a, b in runs)
+        nperseg = int(np.clip(2 ** int(np.log2(max(longest // self.TRACE_PSD_SEGMENTS, 1))),
+                              self.TRACE_PSD_MIN, self.TRACE_PSD_MAX))
+        nperseg = min(nperseg, longest)
         psds, weights = [], []
         for a, b in runs:
             if b - a < nperseg:
@@ -1088,7 +1135,7 @@ class MainWindow(QWidget):
         # so the pane can say so instead of drawing an empty axis.
         keys = [k for k in self.settings.sensor_keys if k in readings
                 and readings[k].ok and readings[k].event_s.size >= 64]
-        if not keys and mode == "phase":
+        if not keys and mode in ("fast", "phase"):
             missing = [k for k in self.settings.sensor_keys if k in readings]
             self.plot_spec.clear_data()
             self.plot_spec.clear_second_psd()
@@ -1133,27 +1180,47 @@ class MainWindow(QWidget):
 
         self.plot_spec.set_log_mode(True, True)
 
-        if mode == "fast":
-            # Per-event where there is a per-event stream; otherwise the
-            # continuous trace, which is a real spectrum too - just of the
-            # temperature rather than of the conversion.
-            drawn, bits, unit = 0, [], "degC"
+        if mode == "trace":
+            # The whole record, for every selected sensor: with the counters
+            # running continuously the trace is one uniformly sampled series,
+            # so this is the same measurement the tiles show, transformed.
+            drawn, bits = 0, []
             for k in self.settings.sensor_keys:
-                r = readings.get(k)
-                if r is None or not r.ok:
+                got = self._continuous_psd(k)
+                if got is None:
                     continue
-                if k in keys:
-                    cal = self.cal_store.get(k)
-                    series = r.temp_c if cal.calibrated else r.event_s * 1e9
-                    unit = "degC" if cal.calibrated else "ns"
-                    f, psd = welch_psd(series, r.event_rate_hz)
-                    label = f"({r.n:,} ev at {r.event_rate_hz/1e3:.0f} kHz)"
+                f, psd, unit, fs, covered = got
+                self.plot_spec.set_curve_color(drawn, SENSOR_COLORS.get(k, SERIES_2))
+                if drawn == 0:
+                    self.plot_spec.update_psd(f, psd, "", f"PSD [{unit}^2/Hz]")
                 else:
-                    got = self._continuous_psd(k)
-                    if got is None:
-                        continue
-                    f, psd, unit, fs, covered = got
-                    label = f"({covered:.0f} s of trace at {fs:.0f} Hz)"
+                    self.plot_spec.set_second_psd(f, psd)
+                drawn += 1
+                bits.append(f"{k} {integrated_noise(f, psd):.3g} {unit} rms over "
+                            f"{f[0]:.2g}-{f[-1]:.0f} Hz ({covered:.0f} s)")
+            if drawn == 0:
+                self.plot_spec.clear_data()
+                self.plot_spec.clear_second_psd()
+                self.plot_spec.setTitle("Not enough trace yet",
+                                        color=TEXT_MUTED, size="10pt")
+                return
+            if drawn < 2:
+                self.plot_spec.clear_second_psd()
+            self.plot_spec.setTitle(
+                "Whole record - " + " · ".join(bits),
+                color=TEXT_SECONDARY, size="10pt",
+            )
+            return
+
+        if mode == "fast":
+            drawn, bits, unit = 0, [], "degC"
+            for k in keys:
+                r = readings[k]
+                cal = self.cal_store.get(k)
+                series = r.temp_c if cal.calibrated else r.event_s * 1e9
+                unit = "degC" if cal.calibrated else "ns"
+                f, psd = welch_psd(series, r.event_rate_hz)
+                label = f"({r.n:,} ev at {r.event_rate_hz/1e3:.0f} kHz)"
                 if f.size == 0:
                     continue
                 self.plot_spec.set_curve_color(drawn, SENSOR_COLORS.get(k, SERIES_2))
@@ -1172,12 +1239,16 @@ class MainWindow(QWidget):
             if drawn < 2:
                 self.plot_spec.clear_second_psd()
             self.plot_spec.setTitle(
-                "Noise spectrum - " + " · ".join(bits),
+                "Conversion noise within one capture - " + " · ".join(bits)
+                + self._missing_events_note(readings, keys),
                 color=TEXT_SECONDARY, size="10pt",
             )
         elif mode == "slow":
             self.plot_spec.clear_second_psd()
             t, v = self._history_for(self.settings.sensor_keys[0]).arrays()
+            if self._spec_from > 0:
+                keep = t >= self._spec_from
+                t, v = t[keep], v[keep]
             good = np.isfinite(v)
             v = v[good]
             if v.size < 16:
@@ -1203,6 +1274,8 @@ class MainWindow(QWidget):
         else:
             self.plot_spec.clear_second_psd()
             t, v = self._history_for(self.settings.sensor_keys[0]).arrays()
+            if self._spec_from > 0:
+                t, v = t[t >= self._spec_from], v[t >= self._spec_from]
             v = v[np.isfinite(v)]
             dt = self._history_for(self.settings.sensor_keys[0]).mean_dt()
             self.plot_spec.set_curve_color(
@@ -1363,10 +1436,18 @@ class MainWindow(QWidget):
         self._refresh_calibration_labels()
         self._append_log(f"Cleared calibration for {cal.sensor}")
 
+    def _on_reset_spectrum(self) -> None:
+        """Start the lower pane's averaging again, from now."""
+        self._spec_from = time.time() - self._t0
+        self._last_spec_t = 0.0            # redraw at once, do not wait out the throttle
+        self._redraw_spectrum()
+        self._append_log(f"Spectrum restarted at t = {self._spec_from:.1f} s")
+
     def _on_clear_history(self) -> None:
         for h in list(self.traces.values()) + list(self.histories.values()):
             h.clear()
         self._ref_rate.clear()
+        self._spec_from = 0.0
         self._t0 = time.time()
         self._readings = 0
         self.plot_temp.clear_data()

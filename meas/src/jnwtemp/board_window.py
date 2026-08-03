@@ -31,7 +31,7 @@ from PySide6.QtWidgets import QComboBox, QFormLayout, QGroupBox, QPushButton, QS
 
 from .acquire import SENSORS, SOURCE_BOARD, AcquireSettings
 from .board import MAX_PROJECT_CLOCK_HZ, find_ports
-from .main_window import MainWindow
+from .main_window import BOARD_SPECTRUM_MODES, MainWindow
 from .plots import STATUS_WARN, TEXT_MUTED
 
 
@@ -50,6 +50,8 @@ class BoardWindow(MainWindow):
             "Per-event views (conversion noise, phase noise, raw timing) need "
             "--source logic for GR07; GR06 has them either way."
         )
+
+    spectrum_modes = BOARD_SPECTRUM_MODES
 
     def _make_settings(self) -> AcquireSettings:
         """Ten-millisecond bins, tenth-of-a-second updates.
