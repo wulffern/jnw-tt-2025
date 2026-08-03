@@ -385,6 +385,30 @@ class TemperaturePlot(CrosshairPlot):
         if getattr(self, "_curve2", None) is not None:
             self._curve2.setData([], [])
 
+    def set_reference(self, t: np.ndarray, temp: np.ndarray) -> None:
+        """Overlay an independent thermometer - the chamber - on the trace.
+
+        Dashed and in a third colour so it never reads as one of the sensors,
+        and deliberately outside the mean/sigma statistics: this is what the
+        sensors are being compared *to*, not another one of them.
+        """
+        if getattr(self, "_ref", None) is None:
+            self._ref = self.plot(
+                [], [],
+                pen=pg.mkPen(SERIES_3, width=1, style=Qt.PenStyle.DashLine),
+            )
+            self._ref.setZValue(-2)
+            self._ref.opts["antialias"] = TRACE_ANTIALIAS
+        self._ref.setData(
+            np.asarray(t, dtype=float),
+            np.asarray(temp, dtype=float),
+            connect="finite",
+        )
+
+    def clear_reference(self) -> None:
+        if getattr(self, "_ref", None) is not None:
+            self._ref.setData([], [])
+
     def show_traces(self, series: dict, units=None) -> None:
         """Draw one or two named series. Shared interface with LiveWavePlot.
 

@@ -36,7 +36,7 @@ import socket
 import subprocess
 import sys
 import time
-from typing import Optional, TextIO
+from typing import List, Optional, TextIO
 
 from . import __version__
 from .acquire import SENSORS, AcquireSettings, Reading
@@ -176,6 +176,13 @@ class TemperatureRecorder:
         #: timestamps negative.
         self._t_first: Optional[float] = None
         self.provenance: dict = {}
+        #: Extra trailing columns whose value is stamped onto every row from a
+        #: live source outside the reading itself - the chamber setpoint and
+        #: actual temperature during a sweep. Names are fixed at start(); the
+        #: values are read fresh from ``extra_values`` for each row so a slow
+        #: chamber poll simply repeats until it updates.
+        self.extra_columns: List[str] = []
+        self.extra_values: dict = {}
 
     # ------------------------------------------------------------- lifecycle
     @property
@@ -218,6 +225,7 @@ class TemperatureRecorder:
             cols.append("capture")
         else:
             cols = list(COLUMNS)
+        cols += list(self.extra_columns)
         self.columns = cols
         self.provenance["columns"] = cols
         self._write_sidecar()
@@ -227,6 +235,13 @@ class TemperatureRecorder:
         self.rows = 0
         self._capture = 0
         self._t_first = None
+
+    def _emit_row(self, row) -> None:
+        """Write one data row, appending the live extra columns to it."""
+        if self.extra_columns:
+            row = list(row) + [self.extra_values.get(c, "") for c in self.extra_columns]
+        self._writer.writerow(row)
+        self.rows += 1
 
     def add(self, reading) -> None:
         """Append a reading at trace-bin resolution.
@@ -270,7 +285,7 @@ class TemperatureRecorder:
             for t_rel, t_abs, temp, se, rate, n in rows:
                 if not np.isfinite(rate):
                     continue  # empty bin: no events, nothing measured
-                self._writer.writerow(
+                self._emit_row(
                     [
                         f"{t_rel:.6f}", f"{t_abs:.6f}",
                         f"{temp:.5f}" if np.isfinite(temp) else "",
@@ -281,10 +296,9 @@ class TemperatureRecorder:
                         self._capture,
                     ]
                 )
-                self.rows += 1
         else:
             sem = reading.std_temp_c / max(1.0, np.sqrt(reading.n))
-            self._writer.writerow(
+            self._emit_row(
                 [
                     f"{reading.t_wall - self._t_first:.6f}", f"{reading.t_wall:.6f}",
                     f"{reading.mean_temp_c:.5f}", f"{sem:.5f}",
@@ -292,7 +306,6 @@ class TemperatureRecorder:
                     reading.n, self._capture,
                 ]
             )
-            self.rows += 1
 
         self._capture += 1
         # Flush every capture: a recording is worthless if a crash loses the tail.
@@ -317,8 +330,7 @@ class TemperatureRecorder:
                 sem = r.std_temp_c / max(1.0, np.sqrt(r.n))
                 row += [f"{r.mean_temp_c:.5f}", f"{sem:.5f}", f"{r.mean_rate_hz:.4f}", r.n]
             row.append(self._capture)
-            self._writer.writerow(row)
-            self.rows += 1
+            self._emit_row(row)
         else:
             for i in range(nbins):
                 rates = [readings[k].bin_rate_hz[i] for k in keys]
@@ -338,8 +350,7 @@ class TemperatureRecorder:
                         int(r.bin_n[i]),
                     ]
                 row.append(self._capture)
-                self._writer.writerow(row)
-                self.rows += 1
+                self._emit_row(row)
 
         self._capture += 1
         self._fh.flush()

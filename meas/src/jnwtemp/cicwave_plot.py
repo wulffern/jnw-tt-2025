@@ -48,7 +48,14 @@ except Exception:  # pragma: no cover - depends on the environment
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 
-from .plots import MAX_PLOT_POINTS, TRACE_ANTIALIAS, envelope_decimate
+from .plots import MAX_PLOT_POINTS, SERIES_3, TRACE_ANTIALIAS, envelope_decimate
+
+#: Series name for an independent thermometer drawn alongside the sensors -
+#: the chamber. Held apart from the sensor series everywhere: it is not one of
+#: them, it is what they are being compared to, so ``show_traces`` must not
+#: retire it just because it is absent from the sensor set.
+REFERENCE_NAME = "chamber"
+REFERENCE_UNIT = "°C"
 
 #: Keys cicwave's own window binds, mirrored here so the muscle memory carries
 #: over. Kept as data so the help text and the handler cannot drift apart.
@@ -200,7 +207,8 @@ class LiveWavePlot(QWidget):
         # axis until every wave is gone. So changing quantity - or dropping a
         # sensor - is a rebuild, not a reload: otherwise the retired unit stays
         # on the left axis while the new curve is drawn against the right one.
-        stale = [k for k in self._waves if k not in series]
+        stale = [k for k in self._waves
+                 if k not in series and k != REFERENCE_NAME]
         changed = any(self._units.get(n, u) != u for n, u in want.items())
         if stale or changed:
             self._reset_waves()
@@ -226,6 +234,23 @@ class LiveWavePlot(QWidget):
         self._units.clear()
         # Whatever the user had framed was in the old quantity's scale.
         self._user_framed = False
+
+    def set_reference(self, t: np.ndarray, temp: np.ndarray) -> None:
+        """Draw the chamber's own thermometer as a further named series.
+
+        A wave rather than a bare curve so it joins the legend and the cursor
+        readout: comparing the sensors against the chamber at a cursor is the
+        whole point of showing it. Its colour is pinned before the first add so
+        it does not take a sensor's palette entry.
+        """
+        self._colors.setdefault(REFERENCE_NAME, SERIES_3)
+        self.set_series(REFERENCE_NAME, t, temp, unit=REFERENCE_UNIT)
+
+    def clear_reference(self) -> None:
+        # Dropped rather than emptied: an empty wave would keep a degrees axis
+        # alive while the sensors are being shown as a rate.
+        if REFERENCE_NAME in self._waves:
+            self.drop_series(REFERENCE_NAME)
 
     # --- no-ops so the two plot implementations are interchangeable ---------
     def set_recording(self, on: bool) -> None:

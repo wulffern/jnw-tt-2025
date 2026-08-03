@@ -24,6 +24,7 @@ from typing import Optional
 
 import numpy as np
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -34,6 +35,7 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
     QMessageBox,
     QPlainTextEdit,
     QPushButton,
@@ -55,6 +57,8 @@ from .acquire import (
     Reading,
 )
 from .board import MAX_PROJECT_CLOCK_HZ, find_ports
+from .chamber import DEFAULT_ADDRESS, DEFAULT_HOST, DEFAULT_PORT
+from .chamber_worker import ChamberThread, SweepPlan
 from .logic import OFFERED_RATES, THRESHOLDS_V
 from .plots import (
     GRID,
@@ -100,6 +104,12 @@ TRACE_MODES = [
 
 #: Unit of each trace mode, which is also the y axis it lands on.
 TRACE_UNITS = {"temp": "°C", "rate": "kHz", "ppm": "ppm", "hz": "Hz"}
+
+#: How often the chamber is interrogated. Fast enough that its curve reads as a
+#: line next to the sensors rather than a staircase, and still far slower than
+#: a chamber can actually move; the socket is on its own thread, so the trace
+#: never waits for it.
+CHAMBER_POLL_S = 1.0
 
 #: What the lower pane shows. The raw per-event trace lives here rather than in
 #: a permanent third pane: it is worth looking at occasionally, not constantly,
@@ -199,10 +209,21 @@ class MainWindow(QWidget):
         self.recorder: Optional[TemperatureRecorder] = None
         #: identities reported by the instruments at connect, for provenance
         self._instruments: dict = {}
+        #: The Vötsch chamber runs in its own thread, like the instruments.
+        self.chamber_thread: Optional[ChamberThread] = None
+        #: Latest chamber reading, kept so a manual calibration and the recorder
+        #: can both stamp the temperature the chamber is actually holding.
+        self._chamber_state: Optional[object] = None
+        #: The chamber's own thermometer over time, drawn under the sensors as a
+        #: reference. Same clock as the sensor traces, so it is directly
+        #: comparable; it is not a History of a *measurement* and so takes no
+        #: part in the statistics or the spectrum.
+        self._chamber_trace = History(maxlen=200_000)
+        self._sweeping = False
 
         self._build_ui()
         self._apply_dark_theme()
-        self.resize(1500, 940)
+        self.resize(*self._initial_size())
         self._refresh_calibration_labels()
 
     #: Lower-pane modes offered by this window; the instrument decides which
@@ -213,11 +234,33 @@ class MainWindow(QWidget):
         """Defaults for this window's instrument."""
         return AcquireSettings(source=SOURCE_LOGIC)
 
+    #: What the window would like to be, given a screen big enough for it.
+    PREFERRED_SIZE = (1500, 940)
+
+    def _initial_size(self) -> tuple:
+        """The preferred size, clipped to what the screen can actually show.
+
+        The side panel scrolls, but only inside the window: a window taller
+        than the display puts its lower edge - and the bottom of the panel with
+        it - somewhere that cannot be reached or scrolled to. So the opening
+        size follows the available geometry, which already excludes the taskbar.
+        """
+        want_w, want_h = self.PREFERRED_SIZE
+        screen = self.screen() or QGuiApplication.primaryScreen()
+        if screen is not None:
+            avail = screen.availableGeometry()
+            # Slack for the window frame and title bar, which availableGeometry
+            # does not account for.
+            want_w = min(want_w, avail.width() - 20)
+            want_h = min(want_h, avail.height() - 60)
+        return max(640, want_w), max(480, want_h)
+
     # ------------------------------------------------------------------- UI
     def _build_ui(self) -> None:
         self.chip_logic = StatusChip("Logic 2")
         self.chip_board = StatusChip("Demo board")
         self.chip_project = StatusChip("Project")
+        self.chip_chamber = StatusChip("Chamber")
         self.status_label = QLabel("Idle")
         self.status_label.setStyleSheet(f"color:{TEXT_MUTED}; font-size:11px;")
 
@@ -228,7 +271,8 @@ class MainWindow(QWidget):
         top = QHBoxLayout()
         top.setContentsMargins(8, 6, 8, 0)
         top.setSpacing(8)
-        for chip in (self.chip_logic, self.chip_board, self.chip_project):
+        for chip in (self.chip_logic, self.chip_board, self.chip_project,
+                     self.chip_chamber):
             top.addWidget(chip)
         top.addWidget(self.status_label)
         top.addStretch(1)
@@ -327,7 +371,8 @@ class MainWindow(QWidget):
         outer.setContentsMargins(0, 6, 6, 0)
         outer.setSpacing(8)
         for group in (self._group_measure(), self._group_calibration(),
-                      self._group_record(), self._group_display()):
+                      self._group_chamber(), self._group_record(),
+                      self._group_display()):
             outer.addWidget(group)
         outer.addWidget(self._collapsible("SETUP / WIRING", self._group_setup()))
         outer.addWidget(self._build_log(), 1)
@@ -440,6 +485,147 @@ class MainWindow(QWidget):
         self.lbl_cal.setStyleSheet(f"color:{TEXT_MUTED}; font-size:11px;")
         kf.addRow(self.lbl_cal)
         return calib
+
+    def _group_chamber(self) -> QWidget:
+        """Vötsch VT chamber: connect, hold a setpoint, and sweep temperature.
+
+        The chamber is a second, independent instrument. It is connected and
+        driven on its own thread so its ~2 s polling never stalls the trace, and
+        its temperature is folded into the recording so a sweep and the sensor
+        readings land in one file.
+        """
+        box = QGroupBox("Temperature chamber")
+        form = QFormLayout(box)
+
+        self.edit_chamber_host = QLineEdit(DEFAULT_HOST)
+        self.spin_chamber_port = QSpinBox()
+        self.spin_chamber_port.setRange(1, 65535)
+        self.spin_chamber_port.setValue(DEFAULT_PORT)
+        addr = QHBoxLayout()
+        addr.setContentsMargins(0, 0, 0, 0)
+        addr.addWidget(self.edit_chamber_host, 1)
+        addr.addWidget(self.spin_chamber_port, 0)
+        form.addRow("Address", addr)
+
+        # This unit answers on 01; 00 (the usual default) is met with silence.
+        self.spin_chamber_addr = QSpinBox()
+        self.spin_chamber_addr.setRange(0, 99)
+        self.spin_chamber_addr.setValue(DEFAULT_ADDRESS)
+        self.spin_chamber_addr.setToolTip(
+            "ASCII-2 device address. The VT on this bench answers on 01, not "
+            "the more common 00."
+        )
+        form.addRow("Device no.", self.spin_chamber_addr)
+
+        self.btn_chamber_connect = QPushButton("Connect chamber")
+        self.btn_chamber_connect.clicked.connect(self._on_chamber_connect)
+        form.addRow(self.btn_chamber_connect)
+
+        self.lbl_chamber = QLabel("not connected")
+        self.lbl_chamber.setWordWrap(True)
+        self.lbl_chamber.setMinimumHeight(30)
+        self.lbl_chamber.setStyleSheet(f"color:{TEXT_MUTED}; font-size:11px;")
+        form.addRow(self.lbl_chamber)
+
+        self.spin_chamber_set = QDoubleSpinBox()
+        self.spin_chamber_set.setRange(-80.0, 190.0)
+        self.spin_chamber_set.setDecimals(1)
+        self.spin_chamber_set.setSingleStep(1.0)
+        self.spin_chamber_set.setValue(25.0)
+        self.spin_chamber_set.setSuffix(" °C")
+        form.addRow("Setpoint", self.spin_chamber_set)
+
+        self.btn_chamber_set = QPushButton("Set + start")
+        self.btn_chamber_set.clicked.connect(self._on_chamber_set)
+        self.btn_chamber_off = QPushButton("Stop chamber")
+        self.btn_chamber_off.clicked.connect(self._on_chamber_off)
+        setrow = QHBoxLayout()
+        setrow.addWidget(self.btn_chamber_set)
+        setrow.addWidget(self.btn_chamber_off)
+        form.addRow(setrow)
+
+        self.btn_cal_chamber = QPushButton("Calibrate at chamber temp")
+        self.btn_cal_chamber.setToolTip(
+            "Add a calibration point using the chamber's actual temperature as "
+            "the reference and the latest sensor reading's rate. Let the chamber "
+            "stabilise first."
+        )
+        self.btn_cal_chamber.clicked.connect(self._on_calibrate_chamber)
+        form.addRow(self.btn_cal_chamber)
+
+        # --- sweep. The four parameters fold away: they are set once for a run
+        # and then left alone, and this group is the tallest in the panel. The
+        # button and the progress line stay out where they can be reached.
+        sweep_box = QWidget()
+        sf = QFormLayout(sweep_box)
+        sf.setContentsMargins(0, 0, 0, 0)
+
+        self.spin_sweep_start = self._sweep_spin(-40.0)
+        self.spin_sweep_stop = self._sweep_spin(85.0)
+        self.spin_sweep_step = self._sweep_spin(10.0, low=-100.0)
+        sweep_range = QHBoxLayout()
+        sweep_range.setContentsMargins(0, 0, 0, 0)
+        for w in (self.spin_sweep_start, self.spin_sweep_stop, self.spin_sweep_step):
+            sweep_range.addWidget(w)
+        sf.addRow("Sweep °C", sweep_range)
+        self.spin_sweep_start.setToolTip("Start temperature")
+        self.spin_sweep_stop.setToolTip("Stop temperature (inclusive)")
+        self.spin_sweep_step.setToolTip("Step; sign is taken from start→stop")
+
+        self.spin_sweep_tol = QDoubleSpinBox()
+        self.spin_sweep_tol.setRange(0.05, 10.0)
+        self.spin_sweep_tol.setDecimals(2)
+        self.spin_sweep_tol.setValue(0.3)
+        self.spin_sweep_tol.setSuffix(" °C")
+        sf.addRow("Stabilise ±", self.spin_sweep_tol)
+
+        self.spin_sweep_soak = QSpinBox()
+        self.spin_sweep_soak.setRange(0, 7200)
+        self.spin_sweep_soak.setValue(120)
+        self.spin_sweep_soak.setSuffix(" s")
+        self.spin_sweep_soak.setToolTip(
+            "How long the actual temperature must stay within tolerance before "
+            "the point counts as stabilised."
+        )
+        sf.addRow("Soak", self.spin_sweep_soak)
+
+        self.spin_sweep_dwell = QSpinBox()
+        self.spin_sweep_dwell.setRange(0, 86400)
+        self.spin_sweep_dwell.setValue(300)
+        self.spin_sweep_dwell.setSuffix(" s")
+        self.spin_sweep_dwell.setToolTip(
+            "How long to hold each point after it stabilises - the measurement "
+            "plateau that gets recorded."
+        )
+        sf.addRow("Dwell", self.spin_sweep_dwell)
+        form.addRow(self._collapsible("SWEEP SETTINGS", sweep_box))
+
+        self.btn_sweep = QPushButton("Start sweep")
+        self.btn_sweep.clicked.connect(self._on_sweep_toggled)
+        form.addRow(self.btn_sweep)
+
+        self.lbl_sweep = QLabel("idle")
+        self.lbl_sweep.setWordWrap(True)
+        self.lbl_sweep.setMinimumHeight(30)
+        self.lbl_sweep.setStyleSheet(f"color:{TEXT_MUTED}; font-size:11px;")
+        form.addRow(self.lbl_sweep)
+
+        self._set_chamber_controls_enabled(False)
+        return box
+
+    def _sweep_spin(self, value: float, low: float = -80.0) -> QDoubleSpinBox:
+        s = QDoubleSpinBox()
+        s.setRange(low, 190.0)
+        s.setDecimals(1)
+        s.setSingleStep(5.0)
+        s.setValue(value)
+        s.setSuffix(" °C")
+        return s
+
+    def _set_chamber_controls_enabled(self, on: bool) -> None:
+        for w in (self.btn_chamber_set, self.btn_chamber_off, self.btn_cal_chamber,
+                  self.btn_sweep):
+            w.setEnabled(on)
 
     def _group_record(self) -> QWidget:
         rec = QGroupBox("Record")
@@ -995,6 +1181,7 @@ class MainWindow(QWidget):
             series[key] = (t, values)
             units[key] = unit
         self.plot_temp.show_traces(series, units=units)
+        self._draw_reference()
         if hasattr(self.plot_temp, "setTitle"):
             fell_back = [k for k in keys if units[k] != TRACE_UNITS[mode]]
             note = (f" — {' · '.join(fell_back)} uncalibrated, shown as rate"
@@ -1004,6 +1191,22 @@ class MainWindow(QWidget):
                 f"{label} — " + " · ".join(keys) + note,
                 color=TEXT_SECONDARY, size="10pt",
             )
+
+    def _draw_reference(self) -> None:
+        """Put the chamber's thermometer under the sensor traces, or take it away.
+
+        Only in the temperature mode: the other modes are rates and errors, and
+        a curve in degrees on a kHz axis would be nonsense. cicwave's plot has
+        no reference series, so there it is simply skipped.
+        """
+        if not hasattr(self.plot_temp, "set_reference"):
+            return
+        mode = self.combo_trace.currentData() or "temp"
+        if mode != "temp" or not len(self._chamber_trace):
+            self.plot_temp.clear_reference()
+            return
+        t, temp = self._chamber_trace.arrays()
+        self.plot_temp.set_reference(t, temp)
 
     #: Welch segments to aim for when the spectrum comes from the trace.
     #:
@@ -1286,6 +1489,145 @@ class MainWindow(QWidget):
             taus, devs = allan_deviation(v, dt)
             self.plot_spec.update_allan(taus, devs)
 
+    # -------------------------------------------------------------- chamber
+    def _on_chamber_connect(self) -> None:
+        if self.chamber_thread is not None:
+            self._teardown_chamber()
+            self.btn_chamber_connect.setText("Connect chamber")
+            self.chip_chamber.set_state("unknown", "not connected")
+            self.lbl_chamber.setText("not connected")
+            self._set_chamber_controls_enabled(False)
+            self._chamber_state = None
+            self._chamber_trace.clear()
+            self._draw_reference()
+            return
+
+        host = self.edit_chamber_host.text().strip() or DEFAULT_HOST
+        port = self.spin_chamber_port.value()
+        self.chamber_thread = ChamberThread(host, port, self.spin_chamber_addr.value(),
+                                            poll_s=CHAMBER_POLL_S)
+        self.chamber_thread.opened.connect(self._on_chamber_opened)
+        self.chamber_thread.statusChanged.connect(self._on_chamber_status)
+        self.chamber_thread.sweepChanged.connect(self._on_sweep_changed)
+        self.chamber_thread.logMessage.connect(self._append_log)
+        self.chamber_thread.errorMessage.connect(self._on_chamber_error)
+        self.chamber_thread.start()
+        self.btn_chamber_connect.setText("Disconnect chamber")
+        self.chip_chamber.set_state("warn", f"connecting {host}...")
+
+    def _teardown_chamber(self) -> None:
+        if self.chamber_thread is None:
+            return
+        self.chamber_thread.shutdown()
+        if not self.chamber_thread.wait(4000):
+            self.chamber_thread.terminate()
+            self.chamber_thread.wait(1000)
+        self.chamber_thread = None
+        self._sweeping = False
+        self.btn_sweep.setText("Start sweep")
+
+    def _on_chamber_opened(self, result) -> None:
+        if isinstance(result, str):            # a "failed: ..." string
+            self.chip_chamber.set_state("bad", result)
+            self.lbl_chamber.setText(result)
+            self._set_chamber_controls_enabled(False)
+            return
+        self.chip_chamber.set_state("ok", result.describe())
+        self._set_chamber_controls_enabled(True)
+        self._instruments["chamber"] = (
+            f"Votsch VT @ {self.edit_chamber_host.text().strip()} (ASCII-2)"
+        )
+        self._append_log(f"Chamber connected: {result.describe()}")
+
+    def _on_chamber_error(self, msg: str) -> None:
+        """Surface a refused command where the controls are, not just in the log.
+
+        A chamber that is not in remote mode reports its temperature perfectly
+        and ignores every write, so the only sign anything is wrong is this
+        message - it must not be easy to miss.
+        """
+        self._append_log(f"Chamber error: {msg}")
+        self.lbl_sweep.setText(msg)
+        self.lbl_sweep.setStyleSheet(f"color:{STATUS_BAD}; font-size:11px;")
+
+    def _on_chamber_status(self, status) -> None:
+        self._chamber_state = status
+        self.chip_chamber.set_state(
+            "ok" if status.running else "warn", status.describe()
+        )
+        self.lbl_chamber.setText(status.describe())
+        # One point per poll, on the sensors' own clock, redrawn as it arrives:
+        # the reference is slow enough that it costs nothing to keep it live.
+        self._chamber_trace.append(time.time() - self._t0, status.actual_c)
+        self._draw_reference()
+        # Fold the chamber into the live recording so a sweep and the sensor
+        # readings share one file.
+        if self.recorder is not None and self.recorder.active:
+            self.recorder.extra_values.update(
+                {
+                    "chamber_set_c": f"{status.setpoint_c:.2f}",
+                    "chamber_actual_c": f"{status.actual_c:.2f}",
+                    "chamber_on": int(bool(status.running)),
+                }
+            )
+
+    def _on_chamber_set(self) -> None:
+        if self.chamber_thread is not None:
+            self.chamber_thread.set_temp(self.spin_chamber_set.value(), on=True)
+
+    def _on_chamber_off(self) -> None:
+        if self.chamber_thread is not None:
+            self.chamber_thread.stop_chamber()
+
+    def _on_calibrate_chamber(self) -> None:
+        if self._chamber_state is None:
+            QMessageBox.warning(
+                self, "Calibrate", "Connect the chamber and wait for a reading first."
+            )
+            return
+        actual = self._chamber_state.actual_c
+        self.spin_ref.setValue(actual)     # reflect it in the reference field too
+        self._do_calibrate(actual, source="chamber")
+        for h in self.histories.values():
+            h.clear()
+        self._redraw_trace()
+        self._refresh_calibration_labels()
+
+    def _on_sweep_toggled(self) -> None:
+        if self.chamber_thread is None:
+            return
+        if self._sweeping:
+            self.chamber_thread.stop_sweep()
+            return
+        plan = SweepPlan(
+            start_c=self.spin_sweep_start.value(),
+            stop_c=self.spin_sweep_stop.value(),
+            step_c=self.spin_sweep_step.value(),
+            tol_c=self.spin_sweep_tol.value(),
+            soak_s=float(self.spin_sweep_soak.value()),
+            dwell_s=float(self.spin_sweep_dwell.value()),
+        )
+        self.chamber_thread.start_sweep(plan)
+        self._sweeping = True
+        self.btn_sweep.setText("Stop sweep")
+        # A sweep is meaningless unless something is being measured, so make sure
+        # the acquisition loop is running.
+        if self.thread is not None and self.btn_run.text() == "Start":
+            self._on_run_toggled()
+
+    def _on_sweep_changed(self, payload: dict) -> None:
+        phase = payload.get("phase", "")
+        self.lbl_sweep.setText(payload.get("message", phase))
+        if phase in ("done", "idle"):
+            self._sweeping = False
+            self.btn_sweep.setText("Start sweep")
+            color = STATUS_GOOD if phase == "done" else TEXT_MUTED
+            self.lbl_sweep.setStyleSheet(f"color:{color}; font-size:11px;")
+        else:
+            self._sweeping = True
+            self.btn_sweep.setText("Stop sweep")
+            self.lbl_sweep.setStyleSheet(f"color:{STATUS_WARN}; font-size:11px;")
+
     # ------------------------------------------------------------ recording
     def _on_record(self) -> None:
         if self.recorder is not None and self.recorder.active:
@@ -1306,6 +1648,16 @@ class MainWindow(QWidget):
                 "be converted later.",
             )
         self.recorder = TemperatureRecorder(path)
+        # If the chamber is connected, add its setpoint/actual to every row so a
+        # sweep is self-describing, and seed the columns with the latest reading.
+        if self.chamber_thread is not None:
+            self.recorder.extra_columns = ["chamber_set_c", "chamber_actual_c", "chamber_on"]
+            if self._chamber_state is not None:
+                self.recorder.extra_values = {
+                    "chamber_set_c": f"{self._chamber_state.setpoint_c:.2f}",
+                    "chamber_actual_c": f"{self._chamber_state.actual_c:.2f}",
+                    "chamber_on": int(bool(self._chamber_state.running)),
+                }
         try:
             self.recorder.start(self.settings, cal, self._instruments)
         except OSError as exc:
@@ -1391,6 +1743,9 @@ class MainWindow(QWidget):
 
     # -------------------------------------------------------------- actions
     def _on_calibrate(self) -> None:
+        self._do_calibrate(self.spin_ref.value())
+
+    def _do_calibrate(self, ref_c: float, source: str = "reference") -> None:
         readings = getattr(self, "_last_readings", None)
         if not readings:
             QMessageBox.warning(self, "Calibrate", "Take a reading first.")
@@ -1402,7 +1757,7 @@ class MainWindow(QWidget):
             if not r.ok:
                 continue
             cal = self.cal_store.get(key)
-            cal.add_point(self.spin_ref.value(), r.mean_rate_hz, note=f"n={r.n}")
+            cal.add_point(ref_c, r.mean_rate_hz, note=f"n={r.n}, {source}")
             done.append(f"{key} -> {r.mean_rate_hz/1e3:.4f} kHz ({cal.describe()})")
         if not done:
             QMessageBox.warning(self, "Calibrate", "No usable reading yet.")
@@ -1411,7 +1766,7 @@ class MainWindow(QWidget):
         if self.thread is not None:
             self.thread.update_calibration(self.cals)
         self._append_log(
-            f"Calibrated at {self.spin_ref.value():.2f} degC: " + "; ".join(done)
+            f"Calibrated at {ref_c:.2f} degC ({source}): " + "; ".join(done)
         )
         # The per-capture history was computed with the old model, so it is no
         # longer valid. The trace is raw rate and survives - it simply becomes a
@@ -1446,11 +1801,14 @@ class MainWindow(QWidget):
     def _on_clear_history(self) -> None:
         for h in list(self.traces.values()) + list(self.histories.values()):
             h.clear()
+        # The reference shares the sensors' clock, so it has to restart with it.
+        self._chamber_trace.clear()
         self._ref_rate.clear()
         self._spec_from = 0.0
         self._t0 = time.time()
         self._readings = 0
         self.plot_temp.clear_data()
+        self._draw_reference()
         self.plot_spec.clear_data()
 
     # ------------------------------------------------------------- keyboard
@@ -1475,5 +1833,6 @@ class MainWindow(QWidget):
         if self.recorder is not None and self.recorder.active:
             self._on_record_stop()
         self._teardown_thread()
+        self._teardown_chamber()
         self.cal_store.save()
         super().closeEvent(event)
