@@ -48,6 +48,8 @@ except Exception:  # pragma: no cover - depends on the environment
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 
+from .plots import MAX_PLOT_POINTS, TRACE_ANTIALIAS, envelope_decimate
+
 #: Keys cicwave's own window binds, mirrored here so the muscle memory carries
 #: over. Kept as data so the help text and the handler cannot drift apart.
 #: Cursor-readout height inside the app. Two series of statistics fit.
@@ -123,6 +125,13 @@ class LiveWavePlot(QWidget):
             return
         t = np.asarray(t, dtype=float)
         y = np.asarray(y, dtype=float)
+        # Thin to what a plot can actually show. The board counter produces a
+        # point per millisecond per sensor, and handing pyqtgraph a curve that
+        # long stalls the paint loop for seconds - the GUI stops responding
+        # while the trace keeps growing. The envelope keeps the true min/max at
+        # every x, so nothing visible is lost; cicwave's cursor readout and its
+        # statistics then describe the thinned series.
+        t, y = envelope_decimate(t, y, MAX_PLOT_POINTS)
         frame = pd.DataFrame({self._x_column: t, name: y})
 
         if name in self._waves and self._units.get(name, "") != unit:
@@ -139,6 +148,12 @@ class LiveWavePlot(QWidget):
             self._waves[name] = wave
             self._units[name] = unit
             result = self.plot.show_wave(wave)
+            curve = getattr(wave, "curve", None)
+            if curve is not None:
+                # Same trade as the fallback plot: a live trace does not need
+                # antialiased diagonals, and it is the single biggest cost in
+                # the repaint.
+                curve.opts["antialias"] = TRACE_ANTIALIAS
             # cicwave hands out the next palette entry on every add, so a sensor
             # that is removed and re-added (switching Both -> GR07 -> Both)
             # would come back a different colour. Pin it to whatever it had the

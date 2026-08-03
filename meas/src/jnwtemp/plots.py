@@ -60,28 +60,41 @@ pg.setConfigOptions(antialias=True)
 #: Points beyond this per curve stall the Qt paint loop. One capture holds
 #: ~180k periods, far more than a ~1200 px wide plot can show, and painting
 #: them all blocks the GUI thread for seconds.
-MAX_PLOT_POINTS = 4000
+#:
+#: The envelope spends two points per bin, so this is ~1000 columns against a
+#: plot about 1100 px wide - already one bin per pixel. Measured on the live
+#: trace: 4000 points cost 34 ms a repaint, 2000 cost 23, and at 8 updates a
+#: second that difference is the whole feel of the window.
+MAX_PLOT_POINTS = 2000
+
+#: The live trace is redrawn several times a second and is read for shape and
+#: level, not for the smoothness of its diagonals - and antialiasing a curve
+#: this long costs more than halving its points does (34 ms -> 14 ms at 4000).
+#: The spectra keep it: they are redrawn rarely and are read closely.
+TRACE_ANTIALIAS = False
 
 
 def _decimate_block(x, y, max_points):
-    """Min/max envelope thinning of a gap-free block."""
+    """Min/max envelope thinning of a gap-free block.
+
+    Vectorised deliberately: this runs on every repaint, for every curve, over
+    the whole history. A Python loop over the bins costs a couple of thousand
+    iterations per redraw, which is invisible at one capture per second and
+    stalls the GUI at ten.
+    """
     n = y.size
     if n <= max_points or max_points < 2:
         return x, y
     bins = max(1, max_points // 2)
-    edges = np.linspace(0, n, bins + 1, dtype=int)
-    idx = []
-    for i in range(bins):
-        a, b = edges[i], edges[i + 1]
-        if b <= a:
-            continue
-        seg = y[a:b]
-        j0 = a + int(np.argmin(seg))
-        j1 = a + int(np.argmax(seg))
-        idx.append(j0)
-        if j1 != j0:
-            idx.append(j1)
-    idx = np.unique(np.asarray(idx, dtype=int))
+    step = n // bins                       # >= 1, since bins <= n here
+    head = y[:bins * step].reshape(bins, step)
+    base = np.arange(bins) * step
+    idx = np.concatenate((
+        head.argmin(axis=1) + base,
+        head.argmax(axis=1) + base,
+        np.arange(bins * step, n),         # whatever the reshape left over
+    ))
+    idx = np.unique(idx)                   # sorted, so still in time order
     return x[idx], y[idx]
 
 
@@ -187,6 +200,7 @@ class CrosshairPlot(pg.PlotWidget):
         _style_axes(self.getPlotItem())
 
         self.curve = self.plot([], [], pen=pg.mkPen(color, width=2))
+        self._antialias = True
 
         self._vline = pg.InfiniteLine(angle=90, movable=False, pen=pg.mkPen(TEXT_MUTED, width=1))
         self._hline = pg.InfiniteLine(angle=0, movable=False, pen=pg.mkPen(TEXT_MUTED, width=1))
@@ -220,7 +234,8 @@ class CrosshairPlot(pg.PlotWidget):
         finite = np.isfinite(x) & np.isfinite(y)
         self._data = (x[finite], y[finite])
         dx, dy = envelope_decimate(x, y)
-        self.curve.setData(dx, dy, connect="finite" if keep_gaps else "all")
+        self.curve.setData(dx, dy, connect="finite" if keep_gaps else "all",
+                           antialias=self._antialias)
 
     def clear_data(self) -> None:
         self.set_data(np.empty(0), np.empty(0))
@@ -330,6 +345,7 @@ class TemperaturePlot(CrosshairPlot):
             color=SERIES_1,
             fmt="{x:.1f} s   {y:.3f} degC",
         )
+        self._antialias = TRACE_ANTIALIAS
         # A dashed mean line makes drift visible without a second series.
         self._mean = pg.InfiniteLine(
             angle=0, movable=False, pen=pg.mkPen(TEXT_MUTED, width=1, style=Qt.PenStyle.DashLine)
@@ -356,6 +372,7 @@ class TemperaturePlot(CrosshairPlot):
         if getattr(self, "_curve2", None) is None:
             self._curve2 = self.plot([], [], pen=pg.mkPen(SERIES_2, width=2))
             self._curve2.setZValue(-1)
+            self._curve2.opts["antialias"] = TRACE_ANTIALIAS
 
     def set_second_series(self, t: np.ndarray, temp: np.ndarray) -> None:
         self.ensure_second_curve()
