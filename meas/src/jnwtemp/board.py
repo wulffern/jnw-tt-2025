@@ -118,11 +118,19 @@ class TTBoard:
         ser.rts = True
         time.sleep(0.4)
 
-        # Ctrl-B leaves any raw REPL, Ctrl-C interrupts a running script.
-        for ctrl in (b"\x02", b"\x03", b"\r\n"):
-            ser.write(ctrl)
-            time.sleep(0.2)
-        banner = self._drain(0.8)
+        # Ctrl-C interrupts a running script, Ctrl-B leaves the raw REPL - in
+        # that order. A session that died mid-exec leaves the board running our
+        # code in the raw REPL, where a leading Ctrl-B is swallowed by the
+        # running script and every later connect fails with "no prompt". That
+        # is a crashed app locking everyone out of its own instrument.
+        banner = ""
+        for attempt, pause in enumerate((0.2, 0.5)):
+            for ctrl in (b"\x03", b"\x03", b"\x02", b"\r\n"):
+                ser.write(ctrl)
+                time.sleep(pause)
+            banner = self._drain(0.8 if attempt == 0 else 1.2)
+            if ">>>" in banner:
+                break
         if ">>>" not in banner:
             self.disconnect()
             raise BoardError(f"no MicroPython prompt on {port} (got {banner!r})")

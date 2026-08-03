@@ -1,0 +1,237 @@
+{
+  "port": "/dev/cu.usbmodem14201",
+  "info": "uname    (sysname='rp2', nodename='rp2', release='1.29.0-preview', version='670d775365 on 2026-05-08 (GNU 13.2.1 MinSizeRel)', machine='TinyTapeout RP2350B Core with RP2350')\r\nimpl     (name='micropython', version=(1, 29, 0, 'preview'), _machine='TinyTapeout RP2350B Core with RP2350', _mpy=7942, _build='tt_rp2350_board', _thread='unsafe')\r\nsysclk   128000000\r\nfreemem  331648\r\nttboard  ?\r\nrp2      ['DMA', 'Flash', 'PIO', 'StateMachine', 'asm_pio']",
+  "saved": "2026-08-03 09:36:44",
+  "files": {
+    "/VERSION": {
+      "size_on_board": 64,
+      "size_saved": 64,
+      "sha256": "644edd1fe9992d47fdd10a355435a7e90a80aa5f29694276b56352c34027e43f"
+    },
+    "/bitstreams/fabfox_mirror.bin": {
+      "size_on_board": 104090,
+      "size_saved": 104090,
+      "sha256": "f49f04e7ee22ab957af627f0ffb002b297c0dfdda7e76ce1ca3f98f777c36a8c"
+    },
+    "/bitstreams/tt_um_factory_test.bin": {
+      "size_on_board": 104090,
+      "size_saved": 104090,
+      "sha256": "95fd3793fe44662f967cddd2a015299f60f8366265bfa17e799709e691119081"
+    },
+    "/boot.log": {
+      "size_on_board": 193,
+      "size_saved": 193,
+      "sha256": "1aadf6887421bda41194aa9d2ad7e7548ad9bfa6ec13ce78bbcd66a2e286a71c"
+    },
+    "/config.ini": {
+      "size_on_board": 2619,
+      "size_saved": 2619,
+      "sha256": "7dcd0901bec546b7068fbd87580732b06c8bac7609f50896ca6801b8e14f3ae5"
+    },
+    "/examples/README.md": {
+      "size_on_board": 7974,
+      "size_saved": 7974,
+      "sha256": "1084636b8724c29f0df3ac8de6138b3f9ac98135a6c7fc525eb0bc43465d0399"
+    },
+    "/examples/__init__.py": {
+      "size_on_board": 0,
+      "size_saved": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/examples/basic/__init__.py": {
+      "size_on_board": 21,
+      "size_saved": 21,
+      "sha256": "566ed764451d0476ec248763504326f294a5839ed70a1374f5268e3114c57c8d"
+    },
+    "/examples/basic/tb.py": {
+      "size_on_board": 4839,
+      "size_saved": 4839,
+      "sha256": "9ce1ed5d60d7a7fac1492a40218b45c56962ddd5ff31adcbbc299a71ec146956"
+    },
+    "/examples/custom_script_main.py": {
+      "size_on_board": 1738,
+      "size_saved": 1738,
+      "sha256": "99c95e9e231a63c79675168848b325601dced36d2b9a22e927ee79b957957085"
+    },
+    "/examples/tt_um_factory_test/__init__.py": {
+      "size_on_board": 43,
+      "size_saved": 43,
+      "sha256": "e70d9f47f3a232b35ab69f57bf7334b4ce087dcf86050524b5268bd8e11f923f"
+    },
+    "/examples/tt_um_factory_test/tt_um_factory_test.py": {
+      "size_on_board": 6759,
+      "size_saved": 6759,
+      "sha256": "56d8af1fc7c0419cf64ed9e623e5c3fd0e9ba934aee47b6f93e366b31d373e73"
+    },
+    "/examples/tt_um_psychogenic_neptuneproportional/__init__.py": {
+      "size_on_board": 62,
+      "size_saved": 62,
+      "sha256": "5aeed6ee22bef3edcc1be7aebb2e667b5196366c58a12ddf5753418c746631ac"
+    },
+    "/examples/tt_um_psychogenic_neptuneproportional/tt_um_psychogenic_neptuneproportional.py": {
+      "size_on_board": 6548,
+      "size_saved": 6548,
+      "sha256": "f60c68716844750e940ea3ceedde5c5d779179f5bc2cf696692720c4a5db43c9"
+    },
+    "/examples/tt_um_psychogenic_shaman/__init__.py": {
+      "size_on_board": 28,
+      "size_saved": 28,
+      "sha256": "d604f368f347085795a0be80f82dc7701108cfe5763e5f31f88a1d87b0a3dd9f"
+    },
+    "/examples/tt_um_psychogenic_shaman/shaman.py": {
+      "size_on_board": 2053,
+      "size_saved": 2053,
+      "sha256": "27d9a89b5aa325d67eb8ba57a976788a533d9a96cd5411c643fbe017f78552eb"
+    },
+    "/examples/tt_um_psychogenic_shaman/tb.py": {
+      "size_on_board": 19962,
+      "size_saved": 19962,
+      "sha256": "9d5cce09a90a3c66d13e464cc5a5f1958eb419f762be34246483d7d725646a14"
+    },
+    "/examples/tt_um_rejunity_sn76489/__init__.py": {
+      "size_on_board": 47,
+      "size_saved": 47,
+      "sha256": "aefab889ade8a6b15e697c8e5330af798bdf496a73d6c60eba5dcfbb8eaf4387"
+    },
+    "/examples/tt_um_rejunity_sn76489/tt_um_rejunity_sn76489.py": {
+      "size_on_board": 20599,
+      "size_saved": 20599,
+      "sha256": "fb31ac95f4fdd7f9748be94bdad5622dd78f1ebeb8af5376afa1fe74a51434d7"
+    },
+    "/examples/tt_um_rgbled_decoder/__init__.py": {
+      "size_on_board": 45,
+      "size_saved": 45,
+      "sha256": "9b6564823e23bf56b3d43bde3411652c0173b47775c277df678b2c6c7cd5492b"
+    },
+    "/examples/tt_um_rgbled_decoder/tt_um_rgbled_decoder.py": {
+      "size_on_board": 7042,
+      "size_saved": 7042,
+      "sha256": "e6e043e01f174a6941a9a91b22f701594df6e5f6d9e1bf3d2374982cd7507af0"
+    },
+    "/main.py": {
+      "size_on_board": 3894,
+      "size_saved": 3894,
+      "sha256": "6b9893219c509047b0d7cabb6d41d69857381a1edc39a3ca5049941808a744e1"
+    },
+    "/shuttles/tt08.json.bin": {
+      "size_on_board": 4305,
+      "size_saved": 4305,
+      "sha256": "e78df20fed9b62d338c1a0fea651692868f64ca582adc271c1e6857ad7fa6a3b"
+    },
+    "/shuttles/tt08.json": {
+      "size_on_board": 27691,
+      "size_saved": 27691,
+      "sha256": "b473c958c06ca343c4559643e8de26b3df8494a5f5aafd4cb4a3f39777b886fe"
+    },
+    "/shuttles/tt09.json.bin": {
+      "size_on_board": 12097,
+      "size_saved": 12097,
+      "sha256": "a576d55181982a1b87e6aa81d88cdd8a059cb534fa32ab0bcf2678fd190bf341"
+    },
+    "/shuttles/tt09.json": {
+      "size_on_board": 76134,
+      "size_saved": 76134,
+      "sha256": "64ec537a7d92a0037001fdebc9a43f5f84d24d26235341e16ab3e40820886621"
+    },
+    "/shuttles/ttcad25a.json.bin": {
+      "size_on_board": 8051,
+      "size_saved": 8051,
+      "sha256": "b545899495ecab1a7c824dc45f833416146ab4ceeff6c1fa8532f84161c4c8f2"
+    },
+    "/shuttles/ttcad25a.json": {
+      "size_on_board": 52317,
+      "size_saved": 52317,
+      "sha256": "21dbd424ff1a7e0f8d1499fac04e79b39db30cc996417ab5f2c3fbffdcca2b44"
+    },
+    "/shuttles/ttgf0p1.json.bin": {
+      "size_on_board": 747,
+      "size_saved": 747,
+      "sha256": "4f99eb090f3e9a51d14a5f5eb50ed02440f517862d25194278089e377c6d4ba3"
+    },
+    "/shuttles/ttgf0p1.json": {
+      "size_on_board": 5038,
+      "size_saved": 5038,
+      "sha256": "16d2ca61e1e848812f082aa560f825041e2ace9afc07236a6d20a54ec00c8349"
+    },
+    "/shuttles/ttgf0p2.json.bin": {
+      "size_on_board": 1652,
+      "size_saved": 1652,
+      "sha256": "84b9e1ab3e1fd6c9dde929238495fc4bf70d3ac93eb7bc1a7179b623816d8a01"
+    },
+    "/shuttles/ttgf0p2.json": {
+      "size_on_board": 11086,
+      "size_saved": 11086,
+      "sha256": "1c7e70a909ef176745376f8331aa9a94d902d1c2bcdf12ff46abf57cdcbb8e72"
+    },
+    "/shuttles/ttihp0p2.json.bin": {
+      "size_on_board": 3033,
+      "size_saved": 3033,
+      "sha256": "2720b3295d4bb8d992f96c53cf544f3e835eb813e87311b08e294c8b5e601655"
+    },
+    "/shuttles/ttihp0p2.json": {
+      "size_on_board": 19864,
+      "size_saved": 19864,
+      "sha256": "f4d1a918530818ecfcc84a854681122ce87a1a9ff2ab4a992f6c8797ffb452c3"
+    },
+    "/shuttles/ttihp0p3.json.bin": {
+      "size_on_board": 742,
+      "size_saved": 742,
+      "sha256": "eb49eb9eb125b55f8d6ca26eae74e19627dda85fb1da69486221c522e80fe645"
+    },
+    "/shuttles/ttihp0p3.json": {
+      "size_on_board": 4937,
+      "size_saved": 4937,
+      "sha256": "b78f9de000e48d1a1ba7a436a8698fc71721d805c66b5081c8d7efdabc7a3261"
+    },
+    "/shuttles/ttihp25a.json.bin": {
+      "size_on_board": 10208,
+      "size_saved": 10208,
+      "sha256": "5cfc1e0d096ba66468da6337aa10cd940dd35e1ab9c942a1cbb6208096c384f3"
+    },
+    "/shuttles/ttihp25a.json": {
+      "size_on_board": 105641,
+      "size_saved": 105641,
+      "sha256": "e003b00ad6c8a0424efab19b2f7ccbb42dec1d4532b93490ff560792c63cd9b3"
+    },
+    "/shuttles/ttihp25b.json.bin": {
+      "size_on_board": 2551,
+      "size_saved": 2551,
+      "sha256": "cd98c11a86cd98e8cd5ef45a401cde07f75f939a8051b20ba8ad6ea38d6fe064"
+    },
+    "/shuttles/ttihp25b.json": {
+      "size_on_board": 16603,
+      "size_saved": 16603,
+      "sha256": "61bc5dff5c48d7deea4816be7b3e70e61145dc2d287984e2265389a118d7ec42"
+    },
+    "/shuttles/ttsky25a.json.bin": {
+      "size_on_board": 7220,
+      "size_saved": 7220,
+      "sha256": "e780343e11f1ec325d70d8e33b5b7031b9ef8955d8543871c5b8ea32c9ba6cc8"
+    },
+    "/shuttles/ttsky25a.json": {
+      "size_on_board": 49912,
+      "size_saved": 49912,
+      "sha256": "c910d47419344e565ae3aad8386d6f9f190c49a175a7a7a339657e884e320ef2"
+    },
+    "/shuttles/ttsky25b.json.bin": {
+      "size_on_board": 10806,
+      "size_saved": 10806,
+      "sha256": "51c09b3006ac8539554797ca796875b55b8fb49c0f6bd32deac6a9c7bcee3716"
+    },
+    "/shuttles/ttsky25b.json": {
+      "size_on_board": 65545,
+      "size_saved": 65545,
+      "sha256": "ddfe878f8b6e4bd8360a7d40a046835241e7c6b454fefe943c3558a813b3d4b2"
+    },
+    "/shuttles/unknown.json.bin": {
+      "size_on_board": 56,
+      "size_saved": 56,
+      "sha256": "f16fb60d48d0f48751a8ecbd5ca149ab3433c48fa3dc7475d0b5b9ff30f9740d"
+    },
+    "/shuttles/unknown.json": {
+      "size_on_board": 502,
+      "size_saved": 502,
+      "sha256": "9ea24a69b9f81fb6afa55a069f8fc4048785bcc7c46b7b1b2590745ef0084b95"
+    }
+  }
+}
