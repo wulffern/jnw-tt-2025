@@ -86,6 +86,20 @@ from .temperature import CalibrationStore, resolution_k
 from .worker import AcquireThread
 
 
+#: What the temperature trace plots. All of these are affine functions of the
+#: measured rate - the curve has the same shape in each - so they are a choice
+#: rather than overlays: two of them on one plot would say nothing the axis
+#: label does not already say.
+TRACE_MODES = [
+    ("Temperature", "temp"),
+    ("Sensor rate", "rate"),
+    ("Frequency error from first (ppm)", "ppm"),
+    ("Frequency error from first (Hz)", "hz"),
+]
+
+#: Unit of each trace mode, which is also the y axis it lands on.
+TRACE_UNITS = {"temp": "°C", "rate": "kHz", "ppm": "ppm", "hz": "Hz"}
+
 #: What the lower pane shows. The raw per-event trace lives here rather than in
 #: a permanent third pane: it is worth looking at occasionally, not constantly,
 #: and two panes leave the temperature trace room to be read.
@@ -135,10 +149,15 @@ class MainWindow(QWidget):
         #  trace:   one point per time bin (~1 ms) - what the plot shows. It is
         #           NOT uniformly sampled: captures are bursts separated by dead
         #           time, so it must not be fed to the PSD or Allan routines.
+        #           Held as the raw rate in kHz and converted when drawn, so the
+        #           trace survives a calibration instead of being invalidated
+        #           by it, and the plotted quantity is free to change.
         #  history: one averaged point per capture - uniform enough in time to
         #           be the basis for the long-term spectrum and Allan deviation.
-        self.traces: dict = {}     # sensor -> fine binned trace (plot only)
+        self.traces: dict = {}     # sensor -> fine binned rate in kHz (plot only)
         self.histories: dict = {}  # sensor -> per-capture means (spectra, Allan)
+        #: rate each sensor started at, the reference for the ppm/Hz trace modes
+        self._ref_rate: dict = {}
         self._t0 = time.time()
         self._last: Optional[Reading] = None
         self._readings = 0
@@ -354,6 +373,18 @@ class MainWindow(QWidget):
 
         disp = QGroupBox("Display")
         df = QFormLayout(disp)
+        self.combo_trace = QComboBox()
+        for label, key in TRACE_MODES:
+            self.combo_trace.addItem(label, key)
+        self.combo_trace.setToolTip(
+            "What the top plot shows. The trace itself is stored as the raw "
+            "rate, so switching costs nothing and calibrating does not throw "
+            "the history away.\n"
+            "Frequency error is referred to the first point since the history "
+            "was last cleared; for a PTAT 1 ppm is about 0.3 mK."
+        )
+        self.combo_trace.currentIndexChanged.connect(self._redraw_trace)
+        df.addRow("Top plot", self.combo_trace)
         self.combo_spec = QComboBox()
         for label, key in SPECTRUM_MODES:
             self.combo_spec.addItem(label, key)
@@ -506,7 +537,9 @@ class MainWindow(QWidget):
     def _on_bin_changed(self) -> None:
         # Points already in the trace were binned at the old width; mixing
         # resolutions in one series would misrepresent the noise.
-        self.trace.clear()
+        for h in self.traces.values():
+            h.clear()
+        self._ref_rate.clear()
         self.plot_temp.clear_data()
         self._push_settings()
 
@@ -703,14 +736,7 @@ class MainWindow(QWidget):
 
         # Plots. The raw-timing and spectrum panes follow the primary sensor;
         # the temperature trace shows every selected sensor.
-        self.plot_temp.show_traces(
-            {k: self._trace_for(k).arrays() for k in keys}
-        )
-        if hasattr(self.plot_temp, "setTitle"):
-            self.plot_temp.setTitle(
-                "Estimated temperature — " + " · ".join(keys),
-                color=TEXT_SECONDARY, size="10pt",
-            )
+        self._redraw_trace()
         self.plot_obs.update_series(
             primary.event_t, primary.event_s, SENSORS[keys[0]].unit_label
         )
@@ -820,29 +846,68 @@ class MainWindow(QWidget):
         return max(self.settings.duration_s, h.mean_dt())
 
     def _append_trace(self, key: str, reading: Reading) -> None:
-        """Add this capture's binned points, preceded by a gap marker.
+        """Add this capture's binned rate, preceded by a gap marker.
 
         The capture covers only part of the wall-clock cycle; the rest is arming
         and export. A NaN between captures makes the plot break there rather than
         drawing a line across time when nothing was measured.
         """
         trace = self._trace_for(key)
-        cal = self.cal_store.get(key)
         if reading.bin_t.size == 0:
-            trace.append(
-                reading.t_wall - self._t0,
-                reading.mean_temp_c if cal.calibrated else float("nan"),
-            )
+            trace.append(reading.t_wall - self._t0, reading.mean_rate_hz / 1e3)
+        else:
+            # t_wall is stamped at the end of the reduction, so the capture
+            # started roughly duration_s earlier; bin_t is relative to that.
+            start = reading.t_wall - self._t0 - reading.duration_s
+            if len(trace):
+                trace.append(start - reading.bin_s, float("nan"))
+            trace.extend(start + reading.bin_t, reading.bin_rate_hz / 1e3)
+        self._ref_rate.setdefault(key, reading.mean_rate_hz / 1e3)
+
+    def _trace_values(self, key: str, mode: str, khz: np.ndarray):
+        """Convert a stored rate trace to the selected quantity.
+
+        Returns ``(values, unit)``. Temperature needs a calibration; without one
+        the rate is shown instead, because an empty plot would hide the one
+        thing that says the measurement is alive.
+        """
+        if mode == "temp":
+            cal = self.cal_store.get(key)
+            if cal.calibrated:
+                return cal.temp_c(khz * 1e3), TRACE_UNITS["temp"]
+            mode = "rate"
+        if mode in ("ppm", "hz"):
+            ref = self._ref_rate.get(key, float("nan"))
+            if np.isfinite(ref) and ref != 0:
+                err_khz = khz - ref
+                if mode == "hz":
+                    return err_khz * 1e3, TRACE_UNITS["hz"]
+                return err_khz / ref * 1e6, TRACE_UNITS["ppm"]
+            mode = "rate"
+        return khz, TRACE_UNITS["rate"]
+
+    def _redraw_trace(self) -> None:
+        """Draw the top plot in whichever quantity is selected."""
+        keys = [k for k in self.settings.sensor_keys if len(self._trace_for(k))]
+        if not keys:
             return
-        # t_wall is stamped at the end of the reduction, so the capture started
-        # roughly duration_s earlier; bin_t is relative to that start.
-        start = reading.t_wall - self._t0 - reading.duration_s
-        if len(trace):
-            trace.append(start - reading.bin_s, float("nan"))
-        temps = reading.bin_temp_c if cal.calibrated else np.full(
-            reading.bin_t.size, np.nan
-        )
-        trace.extend(start + reading.bin_t, temps)
+        mode = self.combo_trace.currentData() or "temp"
+        series, units = {}, {}
+        for key in keys:
+            t, khz = self._trace_for(key).arrays()
+            values, unit = self._trace_values(key, mode, khz)
+            series[key] = (t, values)
+            units[key] = unit
+        self.plot_temp.show_traces(series, units=units)
+        if hasattr(self.plot_temp, "setTitle"):
+            fell_back = [k for k in keys if units[k] != TRACE_UNITS[mode]]
+            note = (f" — {' · '.join(fell_back)} uncalibrated, shown as rate"
+                    if fell_back else "")
+            label = dict((key, text) for text, key in TRACE_MODES).get(mode, mode)
+            self.plot_temp.setTitle(
+                f"{label} — " + " · ".join(keys) + note,
+                color=TEXT_SECONDARY, size="10pt",
+            )
 
     def _redraw_spectrum(self) -> None:
         mode = self.combo_spec.currentData()
@@ -1072,9 +1137,12 @@ class MainWindow(QWidget):
         self._append_log(
             f"Calibrated at {self.spin_ref.value():.2f} degC: " + "; ".join(done)
         )
-        # Past history was computed with the old model, so it is no longer valid.
-        for h in list(self.traces.values()) + list(self.histories.values()):
+        # The per-capture history was computed with the old model, so it is no
+        # longer valid. The trace is raw rate and survives - it simply becomes a
+        # temperature the moment the calibration lands.
+        for h in self.histories.values():
             h.clear()
+        self._redraw_trace()
         self._refresh_calibration_labels()
 
     def _on_clear_cal(self) -> None:
@@ -1084,14 +1152,18 @@ class MainWindow(QWidget):
         if self.thread is not None:
             self.thread.update_calibration(self.cals)
         cal = self.cal
-        for h in list(self.traces.values()) + list(self.histories.values()):
+        # Same as calibrating: only the degrees-per-capture history dies, the
+        # rate trace is still the rate trace.
+        for h in self.histories.values():
             h.clear()
+        self._redraw_trace()
         self._refresh_calibration_labels()
         self._append_log(f"Cleared calibration for {cal.sensor}")
 
     def _on_clear_history(self) -> None:
         for h in list(self.traces.values()) + list(self.histories.values()):
             h.clear()
+        self._ref_rate.clear()
         self._t0 = time.time()
         self._readings = 0
         self.plot_temp.clear_data()

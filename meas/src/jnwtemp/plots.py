@@ -308,6 +308,17 @@ class StatTile(QWidget):
             self._unit = unit
 
 
+#: What the trace axis is called for each unit it can carry. The trace can be
+#: shown as a temperature, as the raw rate, or as an error against the rate it
+#: started at, so the axis has to say which.
+TRACE_AXIS_LABELS = {
+    "°C": "Temperature [degC]",
+    "kHz": "Sensor rate [kHz]",
+    "ppm": "Frequency error [ppm]",
+    "Hz": "Frequency error [Hz]",
+}
+
+
 class TemperaturePlot(CrosshairPlot):
     """Estimated temperature against wall-clock time, with a mean reference."""
 
@@ -357,12 +368,19 @@ class TemperaturePlot(CrosshairPlot):
         if getattr(self, "_curve2", None) is not None:
             self._curve2.setData([], [])
 
-    def show_traces(self, series: dict) -> None:
-        """Draw one or two named series. Shared interface with LiveWavePlot."""
+    def show_traces(self, series: dict, units=None) -> None:
+        """Draw one or two named series. Shared interface with LiveWavePlot.
+
+        One y axis here, so the label follows the first series: mixing an
+        uncalibrated rate with a calibrated temperature is the caller's problem.
+        """
         items = list(series.items())
         if not items:
             return
         (name, (t, v)) = items[0]
+        unit = units.get(name, "") if isinstance(units, dict) else (units or "")
+        if unit:
+            self.setLabel("left", TRACE_AXIS_LABELS.get(unit, unit), color=TEXT_MUTED)
         self.update_series(t, v, stats=len(items) == 1)
         if len(items) > 1:
             self.set_second_series(*items[1][1])

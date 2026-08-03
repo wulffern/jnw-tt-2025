@@ -78,6 +78,7 @@ class LiveWavePlot(QWidget):
         self._waves: Dict[str, object] = {}
         self._wfiles: Dict[str, object] = {}
         self._colors: Dict[str, str] = {}
+        self._units: Dict[str, str] = {}
         self._user_framed = False
         #: Shown in cicwave's legend and readout as the source of each wave.
         self._source_name = "jnwtemp"
@@ -124,6 +125,9 @@ class LiveWavePlot(QWidget):
         y = np.asarray(y, dtype=float)
         frame = pd.DataFrame({self._x_column: t, name: y})
 
+        if name in self._waves and self._units.get(name, "") != unit:
+            self._reset_waves()
+
         if name not in self._waves:
             wf = WaveFile(self._source_name, self._x_column, df=frame)
             wave = PgWave(wf, name, self._x_column)
@@ -133,6 +137,7 @@ class LiveWavePlot(QWidget):
                 wave.ylabel = f"{name} ({unit})"
             self._wfiles[name] = wf
             self._waves[name] = wave
+            self._units[name] = unit
             result = self.plot.show_wave(wave)
             # cicwave hands out the next palette entry on every add, so a sensor
             # that is removed and re-added (switching Both -> GR07 -> Both)
@@ -165,12 +170,47 @@ class LiveWavePlot(QWidget):
         except Exception:
             pass
 
-    def show_traces(self, series: dict, unit: str = "\u00b0C") -> None:
-        """Draw one or two named series. Shared interface with TemperaturePlot."""
+    def show_traces(self, series: dict, units=None) -> None:
+        """Draw one or two named series. Shared interface with TemperaturePlot.
+
+        ``units`` is either one unit for all series or a per-series mapping -
+        an uncalibrated sensor is plotted as a rate while a calibrated one is
+        in degrees, and cicwave gives each unit its own y axis.
+        """
+        want = {
+            name: (units.get(name, "") if isinstance(units, dict) else (units or ""))
+            for name in series
+        }
+        # A wave's unit picks the y axis it lands on, and cicwave keeps that
+        # axis until every wave is gone. So changing quantity - or dropping a
+        # sensor - is a rebuild, not a reload: otherwise the retired unit stays
+        # on the left axis while the new curve is drawn against the right one.
+        stale = [k for k in self._waves if k not in series]
+        changed = any(self._units.get(n, u) != u for n, u in want.items())
+        if stale or changed:
+            self._reset_waves()
         for name, (t, v) in series.items():
-            self.set_series(name, t, v, unit=unit)
-        for stale in [k for k in self._waves if k not in series]:
-            self.drop_series(stale)
+            self.set_series(name, t, v, unit=want[name])
+
+    def _reset_waves(self) -> None:
+        """Drop every wave, and cicwave's axis bookkeeping along with it.
+
+        Colours are remembered in ``_colors``, so a sensor comes back the same
+        colour it went away with.
+        """
+        try:
+            self.plot.removeAll()
+            # removeAll clears the right axis by relabelling it, and in
+            # pyqtgraph setting a label shows the axis again - leaving an empty
+            # strip until some series needs a second unit. Put it back away.
+            self.plot.plot.hideAxis("right")
+        except Exception:  # pragma: no cover - defensive, cicwave internals
+            pass
+        self._waves.clear()
+        self._wfiles.clear()
+        self._units.clear()
+        # Whatever the user had framed was in the old quantity's scale.
+        self._user_framed = False
 
     # --- no-ops so the two plot implementations are interchangeable ---------
     def set_recording(self, on: bool) -> None:
@@ -189,12 +229,13 @@ class LiveWavePlot(QWidget):
         """
         empty = np.empty(0)
         for name in list(self._waves):
-            self.set_series(name, empty, empty)
+            self.set_series(name, empty, empty, unit=self._units.get(name, ""))
         self._user_framed = False
 
     def drop_series(self, name: str) -> None:
         wave = self._waves.pop(name, None)
         self._wfiles.pop(name, None)
+        self._units.pop(name, None)
         # self._colors deliberately survives: a sensor keeps its colour for the
         # life of the window, even across being removed and re-added.
         if wave is not None:
