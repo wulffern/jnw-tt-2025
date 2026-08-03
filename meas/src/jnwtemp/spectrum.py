@@ -86,7 +86,8 @@ def integrated_noise(f: np.ndarray, psd: np.ndarray) -> float:
     """RMS obtained by integrating a PSD over its whole band."""
     if f.size < 2:
         return float("nan")
-    return float(np.sqrt(np.trapezoid(psd, f)))
+    trapezoid = getattr(np, "trapezoid", np.trapz)
+    return float(np.sqrt(trapezoid(psd, f)))
 
 
 def phase_noise(intervals: np.ndarray, nperseg: Optional[int] = None):
