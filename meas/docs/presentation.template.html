@@ -2252,9 +2252,15 @@ function loglogChart(svgId, series, opts) {
     fmt(s6.white_ppm_rthz / floor6, 1) + "× above what the counter itself " +
     "contributes — so it is a measurement of the sensor, not of the instrument. " +
     (has7
-      ? "GR07's own floor is set by re-timing its output onto the 64 MHz clock, " +
-        "which is why its curve sits where it does rather than showing anything " +
-        "about its analog front end."
+      ? "GR07's floor is the <b>re-timing</b>, not its analog front end: averaging " +
+        "907 periods cuts the 64 MHz quantisation to " +
+        fmt(N.GR07.floors_ppm_rthz.retiming, 1) + " ppm/√Hz, and its curve lands " +
+        "on " + fmtP(N.GR07.white_ppm_rthz) + " — within " +
+        fmt(N.GR07.white_ppm_rthz / N.GR07.floors_ppm_rthz.retiming, 1) +
+        "× of it. Predicted before the run and confirmed by it. Note the two " +
+        "sensors fail differently: GR06 is white and averages down until the " +
+        "trap stops it, while GR07 is 1/f nearly everywhere and barely averages " +
+        "at all."
       : "");
 
   const allan = [{ pts: s6.allan, colour: "var(--gr06)", label: "GR06", dots: true }];
