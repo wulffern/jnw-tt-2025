@@ -119,6 +119,17 @@ CHAMBER_POLL_S = 1.0
 #: recomputing and repainting it at the reading rate was pure overhead.
 SPECTRUM_MIN_INTERVAL_S = 1.0
 
+#: Share of the capture cycle the trace redraw may consume before it starts
+#: being skipped. Readings arrive on a queued connection with no back-pressure,
+#: and each one carries its whole event array, so a slot that is persistently
+#: slower than the arrival rate does not merely lag - the queue grows without
+#: bound, memory with it, and the GUI stops. Recording must never be skipped,
+#: because those rows are the measurement; the plot is a view of it and can be.
+REDRAW_BUDGET = 0.4
+#: However far behind it falls, the trace still refreshes at least this often,
+#: so a slow machine shows a live plot rather than a frozen one.
+REDRAW_FORCE_S = 2.0
+
 SPECTRUM_MODES = [
     ("Within capture (conversion noise)", "fast"),
     ("Long term (drift + 1/f)", "slow"),
@@ -206,6 +217,12 @@ class MainWindow(QWidget):
         self._t0 = time.time()
         self._last: Optional[Reading] = None
         self._readings = 0
+        # Redraw back-pressure state; see _should_redraw.
+        self._reading_interval = 0.0
+        self._redraw_cost = 0.0
+        self._last_reading_t = None
+        self._last_redraw_t = 0.0
+        self._skipped = 0
         self.recorder: Optional[TemperatureRecorder] = None
         #: identities reported by the instruments at connect, for provenance
         self._instruments: dict = {}
@@ -1040,10 +1057,47 @@ class MainWindow(QWidget):
             self._update_record_label()
 
         # Plots. The raw-timing and spectrum panes follow the primary sensor;
-        # the temperature trace shows every selected sensor.
-        self._redraw_trace()
-        self._redraw_spectrum_throttled()
+        # the temperature trace shows every selected sensor. Both are skipped
+        # when the GUI is not keeping up - see _should_redraw.
+        if self._should_redraw():
+            t0 = time.perf_counter()
+            self._redraw_trace()
+            self._redraw_spectrum_throttled()
+            self._redraw_cost = 0.8 * self._redraw_cost + 0.2 * (
+                time.perf_counter() - t0)
+            self._last_redraw_t = time.time()
         self._refresh_calibration_labels()
+
+    def _should_redraw(self) -> bool:
+        """Is there room in the capture cycle to repaint?
+
+        Recording has already happened by this point and is never skipped. What
+        is skipped is drawing, and only while the measured redraw cost is a
+        large enough share of the measured arrival interval that keeping it up
+        would put the reading queue into runaway.
+        """
+        now = time.time()
+        prev = self._last_reading_t
+        self._last_reading_t = now
+        if prev is not None:
+            gap = now - prev
+            if 0 < gap < 60:
+                self._reading_interval = (0.8 * self._reading_interval + 0.2 * gap
+                                          if self._reading_interval else gap)
+        if now - self._last_redraw_t >= REDRAW_FORCE_S:
+            return True
+        interval, cost = self._reading_interval, self._redraw_cost
+        if not interval or not cost:
+            return True
+        if cost <= REDRAW_BUDGET * interval:
+            return True
+        # Behind: redraw only every Nth reading, N set by how far behind it is.
+        self._skipped += 1
+        need = max(2, int(cost / (REDRAW_BUDGET * interval)))
+        if self._skipped >= need:
+            self._skipped = 0
+            return True
+        return False
 
     def _update_tiles(self, keys, readings) -> None:
         """Hero numbers. In dual mode the second tile becomes GR06's temperature."""

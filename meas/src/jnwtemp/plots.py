@@ -109,8 +109,21 @@ def envelope_decimate(
 
     NaNs mark real gaps in the record - the dead time between captures - and
     must survive thinning, otherwise the curve is drawn straight across a period
-    when nothing was measured. So the series is split on NaN, each block is
-    thinned on its own budget, and the breaks are put back.
+    when nothing was measured.
+
+    How that is done depends on how many gaps there are, because preserving
+    every one of them stops being either affordable or meaningful:
+
+    * Few blocks: split on NaN, thin each on its own budget, put the breaks
+      back. Exact, and what a short run wants.
+    * Many blocks: bucket the finite samples uniformly and re-break only where
+      a genuine time jump survives. A 27 min recording at 22 bins per capture
+      arrives as ~13 000 blocks; drawing 13 000 gaps into 2 000 px is 6 gaps
+      per pixel, so they are not visible in any case. The old code took 68 ms
+      for that (against 0.4 ms contiguous) and, because each block was floored
+      at 4 points, returned 65 000 points rather than the 2 000 asked for -
+      so the paint cost exploded too. Both compound as the run gets longer,
+      which is what made the GUI degrade and eventually stall.
     """
     x = np.asarray(x, dtype=float)
     y = np.asarray(y, dtype=float)
@@ -129,6 +142,11 @@ def envelope_decimate(
     if not blocks:
         return x[:0], y[:0]
 
+    # Each preserved block costs at least a few output points plus a separator,
+    # so beyond this many the exact path cannot honour max_points at all.
+    if len(blocks) > max_points // 8:
+        return _bucket_envelope(x[finite], y[finite], max_points)
+
     total = sum(b - a for a, b in blocks)
     out_x, out_y = [], []
     for k, (a, b) in enumerate(blocks):
@@ -141,6 +159,47 @@ def envelope_decimate(
         out_x.append(bx)
         out_y.append(by)
     return np.concatenate(out_x), np.concatenate(out_y)
+
+
+#: A jump this many times the median output spacing is treated as real dead
+#: time and re-broken; anything shorter is inter-capture dither that would be
+#: sub-pixel anyway.
+GAP_FACTOR = 8.0
+
+
+def _bucket_envelope(x, y, max_points):
+    """Min/max envelope over uniform buckets, gaps re-detected from time.
+
+    Vectorised: the per-block Python loop is what made the gap-broken path
+    expensive, and with thousands of blocks the loop dominated everything else
+    the GUI did per reading.
+    """
+    n = y.size
+    if n <= max_points:
+        return x, y
+    nb = max(1, max_points // 2)
+    bounds = np.unique(np.linspace(0, n, nb + 1).astype(np.intp))
+    starts, stops = bounds[:-1], bounds[1:]
+    lo = np.minimum.reduceat(y, starts)
+    hi = np.maximum.reduceat(y, starts)
+    # Two samples per bucket, at its ends, carrying the bucket's extremes. The
+    # x error inside a bucket is by construction under one output pixel.
+    x_lo, x_hi = x[starts], x[stops - 1]
+    out_x = np.empty(starts.size * 2)
+    out_y = np.empty(starts.size * 2)
+    out_x[0::2], out_x[1::2] = x_lo, x_hi
+    out_y[0::2], out_y[1::2] = lo, hi
+
+    # Re-break where the record genuinely stops. Without this the line would be
+    # drawn across a pause, which is the thing the NaNs existed to prevent.
+    dt = np.diff(out_x)
+    med = float(np.median(dt[dt > 0])) if np.any(dt > 0) else 0.0
+    if med > 0:
+        big = np.flatnonzero(dt > GAP_FACTOR * med)
+        if big.size:
+            out_x = np.insert(out_x, big + 1, out_x[big])
+            out_y = np.insert(out_y, big + 1, np.nan)
+    return out_x, out_y
 
 
 class DecadeLogAxis(pg.AxisItem):
