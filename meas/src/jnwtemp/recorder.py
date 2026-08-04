@@ -83,6 +83,7 @@ def build_provenance(
     cal: Calibration,
     t0: float,
     instruments: Optional[dict] = None,
+    sweep: Optional[dict] = None,
 ) -> dict:
     """Everything needed to interpret or reproduce a recording later.
 
@@ -146,6 +147,11 @@ def build_provenance(
             ],
         },
         "instruments": instruments or {},
+        # The sweep plan belongs here: without it a chamber run cannot be
+        # interpreted later. Reconstructing soak and dwell from the data after
+        # the fact is possible but wasteful - it took a tolerance sweep across
+        # the whole file to recover that soak+dwell had been 91.8 s.
+        "sweep": sweep,
         "columns": COLUMNS,
     }
 
@@ -195,11 +201,23 @@ class TemperatureRecorder:
         base, _ = os.path.splitext(self.path)
         return base + ".meta.json"
 
+    def update_sweep(self, sweep: Optional[dict]) -> None:
+        """Attach a sweep plan to a recording already in progress.
+
+        Recording is normally started before the sweep, so the plan is not
+        known at start(); this rewrites the sidecar rather than losing it.
+        """
+        if not self.active:
+            return
+        self.provenance["sweep"] = sweep
+        self._write_sidecar()
+
     def start(
         self,
         settings: AcquireSettings,
         cal: Calibration,
         instruments: Optional[dict] = None,
+        sweep: Optional[dict] = None,
     ) -> None:
         if self.active:
             return
@@ -208,7 +226,8 @@ class TemperatureRecorder:
         self.t0 = time.time()
         stamp = time.strftime("%Y-%m-%d %H:%M:%S %Z", time.localtime(self.t0))
 
-        self.provenance = build_provenance(settings, cal, self.t0, instruments)
+        self.provenance = build_provenance(settings, cal, self.t0, instruments,
+                                           sweep=sweep)
         self.provenance["created"]["local"] = stamp
         self._write_sidecar()
 

@@ -577,15 +577,34 @@ class MainWindow(QWidget):
         self.spin_sweep_tol.setDecimals(2)
         self.spin_sweep_tol.setValue(0.3)
         self.spin_sweep_tol.setSuffix(" °C")
-        sf.addRow("Stabilise ±", self.spin_sweep_tol)
+        self.spin_sweep_tol.setToolTip(
+            "Advisory only. The chamber has a real steady-state offset from its "
+            "setpoint - about -0.6 K at 70 °C on this VT - so proximity to the "
+            "setpoint is reported but does not gate the sweep. Settling is "
+            "decided by drift instead."
+        )
+        sf.addRow("Offset warn ±", self.spin_sweep_tol)
+
+        self.spin_sweep_drift = QDoubleSpinBox()
+        self.spin_sweep_drift.setRange(0.01, 5.0)
+        self.spin_sweep_drift.setDecimals(2)
+        self.spin_sweep_drift.setSingleStep(0.05)
+        self.spin_sweep_drift.setValue(0.50)
+        self.spin_sweep_drift.setSuffix(" °C/min")
+        self.spin_sweep_drift.setToolTip(
+            "The point counts as settled once the chamber's reading drifts "
+            "slower than this across the soak window - i.e. it has stopped "
+            "moving, regardless of where it stopped."
+        )
+        sf.addRow("Settle drift <", self.spin_sweep_drift)
 
         self.spin_sweep_soak = QSpinBox()
         self.spin_sweep_soak.setRange(0, 7200)
         self.spin_sweep_soak.setValue(120)
         self.spin_sweep_soak.setSuffix(" s")
         self.spin_sweep_soak.setToolTip(
-            "How long the actual temperature must stay within tolerance before "
-            "the point counts as stabilised."
+            "How long the chamber must keep drifting slower than the settle "
+            "rate before the point counts as stabilised."
         )
         sf.addRow("Soak", self.spin_sweep_soak)
 
@@ -598,6 +617,17 @@ class MainWindow(QWidget):
             "plateau that gets recorded."
         )
         sf.addRow("Dwell", self.spin_sweep_dwell)
+
+        self.spin_sweep_maxsettle = QSpinBox()
+        self.spin_sweep_maxsettle.setRange(60, 86400)
+        self.spin_sweep_maxsettle.setValue(1800)
+        self.spin_sweep_maxsettle.setSuffix(" s")
+        self.spin_sweep_maxsettle.setToolTip(
+            "Give up waiting for a point to settle after this long, dwell "
+            "anyway, and flag it. Without a limit a chamber that never holds "
+            "still stalls the whole sweep."
+        )
+        sf.addRow("Give up after", self.spin_sweep_maxsettle)
         form.addRow(self._collapsible("SWEEP SETTINGS", sweep_box))
 
         self.btn_sweep = QPushButton("Start sweep")
@@ -1606,14 +1636,35 @@ class MainWindow(QWidget):
             tol_c=self.spin_sweep_tol.value(),
             soak_s=float(self.spin_sweep_soak.value()),
             dwell_s=float(self.spin_sweep_dwell.value()),
+            drift_k_per_min=float(self.spin_sweep_drift.value()),
+            max_settle_s=float(self.spin_sweep_maxsettle.value()),
         )
+        self._sweep_plan = plan
         self.chamber_thread.start_sweep(plan)
         self._sweeping = True
+        if self.recorder is not None:
+            self.recorder.update_sweep(self._sweep_provenance())
         self.btn_sweep.setText("Stop sweep")
         # A sweep is meaningless unless something is being measured, so make sure
         # the acquisition loop is running.
         if self.thread is not None and self.btn_run.text() == "Start":
             self._on_run_toggled()
+
+    def _sweep_provenance(self) -> Optional[dict]:
+        """The sweep plan, for the sidecar - or None if no sweep is running."""
+        plan = getattr(self, "_sweep_plan", None)
+        if plan is None or not self._sweeping:
+            return None
+        return {
+            "start_c": plan.start_c, "stop_c": plan.stop_c, "step_c": plan.step_c,
+            "setpoints": plan.setpoints(),
+            "soak_s": plan.soak_s, "dwell_s": plan.dwell_s,
+            "drift_k_per_min": plan.drift_k_per_min,
+            "max_settle_s": plan.max_settle_s,
+            "offset_warn_c": plan.tol_c,
+            "settle_criterion": ("drift below drift_k_per_min sustained for "
+                                 "soak_s; proximity to setpoint is advisory"),
+        }
 
     def _on_sweep_changed(self, payload: dict) -> None:
         phase = payload.get("phase", "")
@@ -1659,7 +1710,8 @@ class MainWindow(QWidget):
                     "chamber_on": int(bool(self._chamber_state.running)),
                 }
         try:
-            self.recorder.start(self.settings, cal, self._instruments)
+            self.recorder.start(self.settings, cal, self._instruments,
+                                sweep=self._sweep_provenance())
         except OSError as exc:
             self.recorder = None
             QMessageBox.warning(self, "Recording", f"Could not open {path}:\n{exc}")

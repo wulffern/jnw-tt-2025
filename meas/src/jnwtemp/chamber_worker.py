@@ -24,17 +24,34 @@ only through a command queue and Qt signals.
 A *sweep* is a state machine, not a blocking loop: the thread keeps polling and
 emitting status while it walks a list of setpoints, so the GUI stays live and
 the acquisition keeps recording through the whole run. Each point is held until
-the actual temperature has stayed within a tolerance of the setpoint for a soak
-time (it has *stabilised*), then kept there for a dwell time (the measurement
+the chamber has *stabilised*, then kept there for a dwell time (the measurement
 plateau), then the next setpoint is commanded.
+
+Stabilised means "the chamber has stopped moving", not "the chamber reached the
+number we asked for". Those are not the same thing, and the difference wasted
+most of a 2 h sweep. A Vötsch VT settles with a real steady-state offset below
+its setpoint - measured at -0.1 K at 5 degC growing to -0.6 K at 70 degC - so
+a criterion of |actual - setpoint| <= 0.3 K was satisfied at the bottom of the
+range and, at 70 degC, never satisfied at all. Worse, the soak timer demanded that the
+band be held *continuously*, so one stray sample threw away up to soak_s of
+accumulated stability; the number of those resets grew from 0 at 5 degC to 6 at
+60 degC, and with it the time per step. That is what looked like the dwell
+expanding: the dwell was constant to 0.1 s, the settling was not.
+
+The offset does not matter, because nothing downstream uses the setpoint - the
+transfer curves are fitted against the chamber's own probe. So the criterion is
+now drift-based: the reading must stop changing (:attr:`SweepPlan.drift_k_per_min`)
+over a sliding window, brief excursions are tolerated rather than fatal, and
+:attr:`SweepPlan.max_settle_s` stops a point from waiting forever.
 """
 
 from __future__ import annotations
 
 import queue
 import time
+from collections import deque
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import Deque, List, Optional
 
 from PySide6.QtCore import QThread, Signal
 
@@ -48,9 +65,23 @@ class SweepPlan:
     start_c: float
     stop_c: float
     step_c: float
+    #: Proximity to the setpoint. Advisory only - it is reported so a large
+    #: steady-state offset is visible, but it does not gate the sweep.
     tol_c: float = 0.3
     soak_s: float = 120.0
     dwell_s: float = 300.0
+    #: The chamber counts as settled when its reading drifts slower than this
+    #: across the soak window. Calibrated against the real log: a settled VT
+    #: shows 0.10-0.16 K/min median with a 95th percentile of 0.42, while a
+    #: ramping one shows ~3. Replaying the log, anything from 0.3 to 0.8 gives
+    #: the same answer, so 0.5 sits in the middle of a flat optimum. Do not
+    #: tighten it towards 0.1 - that is the *median* of settled behaviour, so
+    #: half of all settled samples fail it and the sweep stalls.
+    drift_k_per_min: float = 0.5
+    #: Give up waiting for a point to settle after this long, dwell anyway, and
+    #: flag it. Without this a chamber that cannot hold the band stalls the
+    #: sweep forever - the CLI path always had this; the GUI path did not.
+    max_settle_s: float = 1800.0
 
     def setpoints(self) -> List[float]:
         """The ordered setpoints, inclusive of both ends."""
@@ -77,7 +108,12 @@ class _SweepState:
     stable_since: Optional[float] = None
     dwell_until: Optional[float] = None
     commanded: bool = False
+    commanded_at: Optional[float] = None
     started_at: float = field(default_factory=time.time)
+    #: (time, actual_c) over the last soak window, for the drift test
+    history: Deque[tuple] = field(default_factory=lambda: deque(maxlen=4096))
+    #: True when the point was forced on by max_settle_s rather than settling
+    forced: bool = False
 
 
 class ChamberThread(QThread):
@@ -194,7 +230,8 @@ class ChamberThread(QThread):
         self.logMessage.emit(
             "Sweep started: "
             + " → ".join(f"{p:g}" for p in points)
-            + f" °C, soak {plan.soak_s:g}s within ±{plan.tol_c:g} °C, "
+            + f" °C, settle when drift < {plan.drift_k_per_min:g} K/min for "
+            f"{plan.soak_s:g}s (give up after {plan.max_settle_s:g}s), "
             f"dwell {plan.dwell_s:g}s"
         )
         self._emit_sweep({"phase": "starting", "message": "sweep starting"})
@@ -218,31 +255,86 @@ class ChamberThread(QThread):
                 )
                 return
             sw.commanded = True
+            sw.commanded_at = now
             sw.phase = "stabilising"
             sw.stable_since = None
+            sw.forced = False
+            sw.history.clear()
 
-        in_band = abs(status.actual_c - target) <= sw.plan.tol_c
+        sw.history.append((now, status.actual_c))
+        # keep only the soak window; the drift test is defined over exactly it
+        while len(sw.history) > 2 and now - sw.history[0][0] > sw.plan.soak_s:
+            sw.history.popleft()
 
         if sw.phase == "stabilising":
-            if in_band:
-                if sw.stable_since is None:
-                    sw.stable_since = now
-                if now - sw.stable_since >= sw.plan.soak_s:
-                    sw.phase = "dwelling"
-                    sw.dwell_until = now + sw.plan.dwell_s
-                    self.logMessage.emit(
-                        f"Stabilised at {target:g} °C "
-                        f"(actual {status.actual_c:.2f}); dwelling "
-                        f"{sw.plan.dwell_s:g}s"
-                    )
-            else:
-                sw.stable_since = None      # fell out of band, soak restarts
+            drift = self._drift_k_per_min(sw)
+            # The window *is* the soak. A quiet slope measured across soak_s of
+            # history already means the chamber has been still for soak_s, so
+            # demanding a further soak_s on top of it simply doubles every
+            # settle - which is exactly what the first version of this did.
+            spans_window = (
+                len(sw.history) > 2
+                and now - sw.history[0][0] >= sw.plan.soak_s * 0.95
+            )
+            if spans_window and drift is not None and drift <= sw.plan.drift_k_per_min:
+                sw.stable_since = sw.history[0][0]
+                self._enter_dwell(sw, status, target, now, drift)
+            # Never wait forever. A chamber that cannot hold still still yields
+            # a usable point - the transfer is fitted against its own probe -
+            # so proceed and mark it rather than stalling the sweep.
+            if (sw.phase == "stabilising" and sw.commanded_at is not None
+                    and now - sw.commanded_at >= sw.plan.max_settle_s):
+                sw.forced = True
+                self.logMessage.emit(
+                    f"{target:g} °C did not settle within "
+                    f"{sw.plan.max_settle_s:g}s (drift "
+                    f"{drift if drift is not None else float('nan'):.3f} K/min); "
+                    f"dwelling anyway - this point is flagged"
+                )
+                self._enter_dwell(sw, status, target, now, drift)
         elif sw.phase == "dwelling":
             if sw.dwell_until is not None and now >= sw.dwell_until:
                 self._advance_sweep()
                 return
 
         self._emit_sweep(self._sweep_progress(status))
+
+    @staticmethod
+    def _drift_k_per_min(sw: "_SweepState") -> Optional[float]:
+        """Least-squares slope of the reading over the soak window, in K/min.
+
+        A slope, not a peak-to-peak: the probe quantises to 0.1 K, so any
+        spread-based test would be dominated by that step rather than by
+        whether the chamber is actually still moving.
+        """
+        if len(sw.history) < 3:
+            return None
+        t = [p[0] for p in sw.history]
+        y = [p[1] for p in sw.history]
+        n = len(t)
+        mt = sum(t) / n
+        my = sum(y) / n
+        den = sum((v - mt) ** 2 for v in t)
+        if den <= 0:
+            return None
+        slope = sum((t[i] - mt) * (y[i] - my) for i in range(n)) / den
+        return abs(slope) * 60.0
+
+    def _enter_dwell(self, sw: "_SweepState", status: ChamberStatus,
+                     target: float, now: float, drift: Optional[float]) -> None:
+        sw.phase = "dwelling"
+        sw.dwell_until = now + sw.plan.dwell_s
+        offset = status.actual_c - target
+        # Report the offset rather than enforcing it. It is the chamber's, it
+        # is real, and it is why gating on proximity to setpoint was wrong.
+        note = f"offset {offset:+.2f} K from setpoint"
+        if abs(offset) > sw.plan.tol_c:
+            note += f" (beyond ±{sw.plan.tol_c:g} K, which is expected up high)"
+        self.logMessage.emit(
+            f"Settled at {target:g} °C: actual {status.actual_c:.2f}, "
+            f"drift {drift if drift is not None else float('nan'):.3f} K/min, "
+            f"{note}; dwelling {sw.plan.dwell_s:g}s"
+        )
 
     def _advance_sweep(self) -> None:
         sw = self._sweep
@@ -256,13 +348,17 @@ class ChamberThread(QThread):
             return
         sw.index += 1
         sw.commanded = False
+        sw.commanded_at = None
         sw.stable_since = None
         sw.dwell_until = None
+        sw.forced = False
+        sw.history.clear()
 
     def _sweep_progress(self, status: ChamberStatus) -> dict:
         sw = self._sweep
         assert sw is not None
         target = sw.points[sw.index]
+        drift = self._drift_k_per_min(sw)
         remaining = 0.0
         if sw.phase == "dwelling" and sw.dwell_until is not None:
             remaining = max(0.0, sw.dwell_until - time.time())
@@ -273,10 +369,16 @@ class ChamberThread(QThread):
             "target_c": target,
             "actual_c": status.actual_c,
             "dwell_remaining_s": remaining,
+            "drift_k_per_min": self._drift_k_per_min(sw),
+            "offset_c": status.actual_c - target,
+            "forced": sw.forced,
             "message": (
                 f"point {sw.index + 1}/{len(sw.points)} → {target:g} °C: "
                 f"{sw.phase}"
+                + (f", drift {drift:.2f} K/min" if drift is not None
+                   and sw.phase == "stabilising" else "")
                 + (f", {remaining:.0f}s left" if remaining else "")
+                + (" [did not settle]" if sw.forced else "")
             ),
         }
 
