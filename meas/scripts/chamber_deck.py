@@ -20,7 +20,7 @@ import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from chamber_analyse import DATA, KELVIN, SENSORS, fit_affine  # noqa: E402
+from chamber_analyse import CLK_HZ, DATA, KELVIN, SENSORS, fit_affine  # noqa: E402
 from chamber_burst import K_EV, MIN_SNR, two_state  # noqa: E402
 from chamber_figures import EXTRACT, calibration_models  # noqa: E402
 
@@ -30,6 +30,34 @@ BURST_DWELL = 5
 BURST_WINDOW_S = 60.0
 
 DECK = os.path.join(DATA, "deck_data.json")
+
+
+def quantisation_section(tab):
+    """How much of GR07's clock quantisation survives into a dwell mean.
+
+    The answer is essentially none, which is the opposite of what the first
+    pass at this concluded. GR07's period is quantised to whole 64 MHz cycles,
+    but it sits at some fraction p between two codes and alternates between
+    them, so the quantiser is *dithered* and its mean is recovered by
+    averaging. A dithered quantiser at fraction p has per-period sigma
+    sqrt(p(1-p)) * LSB; over the events in a bin that predicts the measured
+    per-bin noise almost exactly, which is the evidence that it really is
+    dither and not something else.
+    """
+    a, _ = fit_affine(tab.ref_c, tab.GR07_rate_hz)
+    cyc = (1e9 / tab.GR07_rate_hz) / (1e9 / CLK_HZ)
+    p = cyc % 1
+    lsb_hz = tab.GR07_rate_hz.mean() ** 2 / CLK_HZ
+    pred = np.sqrt(p * (1 - p)) * lsb_hz / np.sqrt(tab.GR07_events_per_bin)
+    sem_mk = tab.GR07_sigma_hz / np.sqrt(tab.n_samples) / abs(a) * 1000
+    return {
+        "lsb_k": round(float(lsb_hz / abs(a)), 2),
+        "clk_mhz": CLK_HZ / 1e6,
+        "dither_model_r": round(float(np.corrcoef(pred, tab.GR07_sigma_hz)[0, 1]), 3),
+        "sigma_bin_mk": [round(float(v) / abs(a) * 1000, 1) for v in tab.GR07_sigma_hz],
+        "in_mean_mk_lo": round(float(sem_mk.min()), 2),
+        "in_mean_mk_hi": round(float(sem_mk.max()), 2),
+    }
 
 
 def burst_section(slope):
@@ -116,6 +144,21 @@ def main() -> None:
                     for n, e in models.items()],
         }
 
+    # Split the INL into what both sensors share and what is each sensor's own.
+    # Two different architectures - one clocked, one asynchronous - do not share
+    # a nonlinearity; what they share is the temperature they were actually at
+    # versus what the chamber reported, so the common part is reference error
+    # (probe plus the die-to-air gap), not silicon.
+    inls = {s_: np.array(out["sensors"][s_]["inl_k"]) for s_ in SENSORS}
+    common = sum(inls.values()) / len(inls)
+    out["inl_common_k"] = [round(float(v), 4) for v in common]
+    out["inl_common_peak_k"] = round(float(np.abs(common).max()), 3)
+    for s_ in SENSORS:
+        own = inls[s_] - common
+        out["sensors"][s_]["inl_own_k"] = [round(float(v), 4) for v in own]
+        out["sensors"][s_]["inl_own_peak_k"] = round(float(np.abs(own).max()), 3)
+
+    out["quantisation"] = quantisation_section(tab)
     out["burst"] = burst_section(slope=out["sensors"]["GR06"]["slope_hz_per_k"])
 
     deck = json.load(open(DECK)) if os.path.exists(DECK) else {}

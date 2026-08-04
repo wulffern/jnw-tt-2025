@@ -37,5 +37,11 @@ jnwtempw = "jnwtemp.cli:main"
 [tool.setuptools]
 package-dir = {"" = "src"}
 
+# The board-side MicroPython snippets are data, not modules - they run on the
+# RP2350 and are not importable here - so they have to be declared explicitly
+# or an installed copy loses them.
+[tool.setuptools.package-data]
+"jnwtemp.micropython" = ["*.upy"]
+
 [tool.setuptools.packages.find]
 where = ["src"]

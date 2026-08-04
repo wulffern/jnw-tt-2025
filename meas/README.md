@@ -441,6 +441,90 @@ levels, which is why the reading is averaged over ~180k periods and why the
 clock is run as fast as it goes. GR06 is asynchronous and shows no such
 staircase, but yields ~250x fewer events per capture.
 
+## How the board is driven: MicroPython over a raw REPL
+
+There is no custom firmware on the demo board. It runs stock TinyTapeout
+MicroPython, and this package drives it by typing Python into the board's
+**raw REPL** over USB CDC and reading back what it prints. That is the whole
+mechanism - no RPC, no protocol, no agent on the board.
+
+### The REPL, concretely
+
+The board's USB CDC only answers once DTR/RTS are asserted after opening the
+port, which is the first thing that goes wrong if you write your own client.
+After that, `board.py` puts the interpreter into raw mode and drives it with the
+four control bytes MicroPython defines:
+
+| byte | meaning |
+|---|---|
+| `Ctrl-C` (`\x03`) | interrupt whatever is running |
+| `Ctrl-A` (`\x01`) | enter raw REPL - no echo, no prompt decoration |
+| `Ctrl-D` (`\x04`) | execute the block just sent |
+| `Ctrl-B` (`\x02`) | back to the normal friendly REPL |
+
+A block is sent, `Ctrl-D` runs it, and the board replies with `OK`, then
+anything the code printed, then `\x04`, then any traceback, then `\x04>`. So
+**the return value of a snippet is whatever it printed** - which is why every
+snippet ends in a `print(...)`.
+
+Reads poll `in_waiting` rather than calling `read(n)`. pyserial's `read` blocks
+for the full timeout even when the data has already arrived, which turned every
+round trip into 730 ms; polling brings it to about 4.8 ms.
+
+`exec_begin` / `exec_end` are the same thing split in half: send the block, do
+something else, collect the output later. That is what lets a GR06 pulse burst
+run on the board while the Saleae capture is already running.
+
+### The board-side code lives in `src/jnwtemp/micropython/`
+
+Board code is not host code. It runs on the RP2350, in a namespace where `tt`
+(the `ttboard` DemoBoard object) already exists, and it cannot import anything
+from this package. So it is kept in its own files rather than as string
+literals:
+
+| snippet | what it does |
+|---|---|
+| `select_project.upy` | enables JNW-TEMP on the shuttle mux, by name with an index fallback |
+| `set_clock.upy` | sets the project clock, reports what was achieved |
+| `pulse_ui_in.upy` | the ResetTemp06 burst that GR06 needs, timed by the RP2350 |
+
+The `.upy` extension marks them as MicroPython. It also keeps linters and
+import scanners away from files that are not valid host Python - the `$name`
+placeholders are substitution points, not syntax.
+
+Substitution is `string.Template` (`$name`, `${name}`), not `str.format`,
+because MicroPython code is full of braces and has no dollar signs. It is
+strict: a missing key raises on the host rather than sending a literal `$hz` to
+the board to fail three layers away.
+
+```python
+from jnwtemp import micropython
+code = micropython.render("set_clock", hz=64_000_000)
+board.exec(code)            # -> whatever the snippet printed
+```
+
+To debug one by hand, open `screen /dev/tty.usbmodem* 115200` and paste the
+rendered snippet straight in. That is how most of them were arrived at, and it
+is the main reason they are files.
+
+### Why the awkward bits are awkward
+
+Each snippet carries its own comment explaining its shape, but the three that
+cost the most to learn:
+
+* **The pulse burst runs on the board, not from the host.** A REPL round trip is
+  milliseconds; ResetTemp06 wants tens of microseconds. Sending edges one at a
+  time cannot produce the waveform at all.
+* **It uses `raw_pin`, not `tt.ui_in[0]`.** The SDK's `Logic` wrapper costs
+  ~15 ms per write against ~6 µs for the underlying `machine.Pin`.
+* **`set_clock.upy` does not trust `set_clock_hz`.** That convenience global is
+  defined by the board's `main.py` only sometimes. Depending on it meant the
+  project clock silently stayed at 0 after a power cycle, which leaves GR07 with
+  no output - a failure that looks exactly like a dead sensor. The snippet falls
+  back to the DemoBoard API, and because the RP2350 PWM cannot divide by less
+  than two, it raises the system clock to at least twice the project clock
+  first.
+
 ## Notes on the hardware
 
 * The board is a **TinyTapeout RP2350B Core**. Its USB CDC only answers once

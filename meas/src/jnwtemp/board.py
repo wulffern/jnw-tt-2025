@@ -33,6 +33,8 @@ import time
 from dataclasses import dataclass
 from typing import List, Optional
 
+from . import micropython
+
 try:
     import serial
     from serial.tools import list_ports
@@ -245,39 +247,17 @@ class TTBoard:
     # ----------------------------------------------------------- TT controls
     def select_project(self, name: str = PROJECT_NAME, index: int = PROJECT_INDEX) -> str:
         """Enable the JNW-TEMP design on the mux, by name with an index fallback."""
-        code = (
-            "try:\n"
-            f"    tt.shuttle.{name}.enable()\n"
-            "except Exception:\n"
-            f"    tt.shuttle.enable({index})\n"
-            "print(tt)\n"
-        )
+        code = micropython.render("select_project", name=name, index=int(index))
         return self.exec(code, timeout=15.0).strip()
 
     def set_clock_hz(self, hz: int = MAX_PROJECT_CLOCK_HZ) -> int:
         """Set the project clock; returns the frequency actually achieved.
 
-        ``set_clock_hz`` is a convenience global that main.py *may* define in the
-        REPL, but it is not always there - after some boots it is simply absent,
-        and depending on it meant the clock silently stayed at 0 after a power
-        cycle, which leaves GR07 dead. So drive the DemoBoard API directly and
-        keep the helper only as a first choice.
-
-        The RP2350 PWM cannot divide the system clock by less than two, so the
-        system clock has to be at least 2x the requested project clock.
+        See ``micropython/set_clock.upy`` for why this does not simply call the
+        board's ``set_clock_hz`` helper.
         """
         hz = int(min(hz, MAX_PROJECT_CLOCK_HZ))
-        code = (
-            "import machine\n"
-            f"hz = {hz}\n"
-            "try:\n"
-            "    set_clock_hz(hz)\n"
-            "except NameError:\n"
-            "    if machine.freq() < 2 * hz:\n"
-            "        machine.freq(2 * hz)\n"
-            "    tt.clock_project_PWM(hz)\n"
-            "print(tt.auto_clocking_freq)\n"
-        )
+        code = micropython.render("set_clock", hz=hz)
         out = self.exec(code, timeout=15.0).strip().splitlines()
         for line in reversed(out):
             try:
@@ -310,18 +290,9 @@ class TTBoard:
     PULSE_LOOP_OVERHEAD_US = 12.0
 
     def _pulse_code(self, bit: int, count: int, high_us: int, low_us: int) -> str:
-        # tt.ui_in[bit] = v goes through the SDK's Logic wrapper, which costs
-        # ~15 ms per write; the underlying machine.Pin costs ~6 us. At tens of
-        # microseconds per ResetTemp06 pulse only the raw pin is usable.
-        return (
-            "import time\n"
-            f"p = tt.pins.ui_in{int(bit)}.raw_pin\n"
-            f"for _ in range({int(count)}):\n"
-            "    p.value(1)\n"
-            f"    time.sleep_us({int(high_us)})\n"
-            "    p.value(0)\n"
-            f"    time.sleep_us({int(low_us)})\n"
-            "p.value(0)\n"
+        return micropython.render(
+            "pulse_ui_in", bit=int(bit), count=int(count),
+            high_us=int(high_us), low_us=int(low_us),
         )
 
     def pulse_budget_s(self, count: int, high_us: int, low_us: int) -> float:

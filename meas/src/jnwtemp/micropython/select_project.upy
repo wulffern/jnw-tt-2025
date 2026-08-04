@@ -1,0 +1,11 @@
+# Enable JNW-TEMP on the shuttle mux.
+#
+# By name first, because that is checked against the shuttle metadata on the
+# board and fails loudly if this firmware does not know the project. The index
+# is the fallback: some firmware revisions carry a shuttle table without our
+# entry, and there the raw index is the only way in.
+try:
+    tt.shuttle.$name.enable()
+except Exception:
+    tt.shuttle.enable($index)
+print(tt)

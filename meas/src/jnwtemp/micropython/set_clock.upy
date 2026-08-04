@@ -1,0 +1,18 @@
+# Set the project clock and report what was actually achieved.
+#
+# set_clock_hz is a convenience global that the board's main.py *may* define.
+# It is not always there - after some boots it is simply absent - and depending
+# on it meant the clock silently stayed at 0 after a power cycle, which leaves
+# GR07 with no output at all. So fall back to the DemoBoard API directly.
+#
+# The RP2350 PWM divides the system clock and cannot divide by less than two,
+# so the system clock must be at least twice the requested project clock.
+import machine
+hz = $hz
+try:
+    set_clock_hz(hz)
+except NameError:
+    if machine.freq() < 2 * hz:
+        machine.freq(2 * hz)
+    tt.clock_project_PWM(hz)
+print(tt.auto_clocking_freq)

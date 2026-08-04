@@ -1,0 +1,19 @@
+# Emit a burst of pulses on ui_in[$bit], timed by the RP2350 itself.
+#
+# This has to run on the board rather than as host round-trips: one REPL
+# round-trip is milliseconds, whereas ResetTemp06 wants to be asserted for tens
+# of microseconds. Running the whole burst here lets the Saleae capture proceed
+# concurrently, so a single burst fills one capture window with hundreds of
+# independent GR06 measurements.
+#
+# tt.ui_in[bit] = v goes through the SDK's Logic wrapper at roughly 15 ms per
+# write; the underlying machine.Pin costs about 6 us. At these pulse widths
+# only the raw pin is usable.
+import time
+p = tt.pins.ui_in$bit.raw_pin
+for _ in range($count):
+    p.value(1)
+    time.sleep_us($high_us)
+    p.value(0)
+    time.sleep_us($low_us)
+p.value(0)

@@ -175,6 +175,15 @@
 
   code, .k { font-family: var(--mono); font-size: .88em; color: var(--ink-2); }
 
+  /* A correction to something the deck previously asserted. Marked rather than
+     silently edited: the wrong version was published, so the retraction is part
+     of the result. */
+  .callout {
+    border-left: 3px solid var(--gr07);
+    background: var(--gr07-15);
+    padding: 16px 20px; border-radius: 0 8px 8px 0;
+  }
+
   figure { margin: 30px 0 0; }
   figcaption {
     font-size: .88rem; color: var(--ink-3); margin-top: 12px; max-width: 70ch;
@@ -909,6 +918,22 @@
       </figcaption>
     </figure>
 
+    <figure>
+      <div class="chartbox">
+        <div class="legend">
+          <span class="pill"><i class="dot a"></i>GR07 own</span>
+          <span class="pill"><i class="dot b"></i>GR06 own</span>
+          <span class="pill" style="margin-left:auto;color:var(--ink-3)">dashed: the part both sensors agree on</span>
+        </div>
+        <svg class="chart" id="chart-inl-own" viewBox="0 0 980 320" role="img"
+             aria-label="Nonlinearity split into a shared reference component and each sensor's own"></svg>
+      </div>
+      <figcaption>
+        Once the shared component is removed both sensors are about twice as linear
+        as the raw curve suggests, and — tellingly — they are equally linear.
+      </figcaption>
+    </figure>
+
     <div class="grid g3" style="margin-top:30px">
       <div class="card">
         <span class="pill">GR07 slope</span>
@@ -968,11 +993,25 @@
     <p style="margin-top:26px">
       <b>GR06 behaves the way a sensor should</b> — each extra trim point buys accuracy,
       down to <span id="cal-best-b">—</span> over 5–70 °C. <b>GR07 gets worse from one
-      point to two</b>, which looks like a mistake until you remember what its error is
-      made of. A two-point fit corrects a slope; GR07's error is not a slope, it is the
-      4.75 K staircase from re-timing the output on the project clock. Trimming the line
-      just pivots it and drops the residual somewhere else. No amount of calibration
-      removes a quantiser — only sampling the edge with something finer than the clock does.
+      point to two.</b> A two-point fit only corrects a slope, and GR07's error is not a
+      slope: its residual changes sign across the range, so anchoring the line at 20 and
+      60 °C tilts it to satisfy two points that happen to sit on opposite excursions and
+      throws the middle further out. More trim points only help a curve they can
+      actually follow.
+    </p>
+
+    <p style="margin-top:18px" class="callout">
+      <b>An earlier version of this deck blamed GR07's floor on its quantiser. That was
+      wrong.</b> Its period is re-timed onto whole
+      <span id="q-lsb">—</span> clock cycles, but it sits at some fraction between two
+      codes and alternates between them — so the quantiser is <em>dithered</em>, and a
+      dithered quantiser's mean survives averaging. The model for that
+      (σ = √(p(1−p))·LSB⁄√N) predicts the measured per-bin noise with
+      <b>r = <span id="q-r">—</span></b> across all 14 setpoints, and what is left in a
+      dwell mean is <b><span id="q-mean">—</span></b> — some three orders of magnitude
+      below the error it was supposed to explain. Quantisation sets GR07's
+      <em>single-shot noise</em>, not its accuracy. A faster clock would give a quieter
+      live trace and nothing else.
     </p>
   </div>
 </section>
@@ -1134,11 +1173,12 @@
         <p style="margin-top:10px">
           Both sensors work. <b>GR06 reaches <span id="day-gr06">—</span> over 65 K
           with three trim points</b> and is the better part despite being the slower,
-          quieter one. <b>GR07 is floored near <span id="day-gr07">—</span></b>, and
-          not by its analog front end — by the decision to re-time its output on the
-          project clock. Its earlier "gain difference" against GR06 was the same
-          quantiser seen from a different angle, not a design error. And GR06's own floor
-          is not thermal noise but a single charge trap worth half a kelvin.
+          quieter one. <b>GR07 lands near <span id="day-gr07">—</span></b> — but not
+          because of its clock: once the reference error shared with GR06 is removed the
+          two are <em>equally</em> linear, at 0.79 K each. What the clock does set is
+          GR07's single-shot noise, and that is also what made its earlier "gain
+          difference" against GR06 an artefact rather than a design error. GR06's own
+          floor is not thermal noise but a single charge trap worth half a kelvin.
         </p>
       </div>
       <div class="card">
@@ -1769,10 +1809,18 @@ function chamberChart(svgId, series, opts) {
 
   const a = C.sensors.GR07.inl_peak_k, b = C.sensors.GR06.inl_peak_k;
   $("inl-note").innerHTML = "Peak " + fmt(a, 2) + " K for GR07 and " + fmt(b, 2) +
-    " K for GR06 — close enough that linearity is <em>not</em> what separates them. " +
-    "GR07's curve is not a smooth bow like GR06's; it is a staircase, because its " +
-    "period is re-timed onto whole 64 MHz clock cycles worth " + fmt(C.dnl.lsb_k, 2) +
-    " K each. The wiggle is the quantiser, not the bandgap.";
+    " K for GR06 — but most of that is not the sensors. The two curves track each " +
+    "other (both dive at the top of the range), and two devices of different " +
+    "architecture do not share a nonlinearity. Splitting off the part they agree on " +
+    "leaves <b>" + fmt(C.inl_common_peak_k, 2) + " K common</b> — the reference — and " +
+    fmt(C.sensors.GR07.inl_own_peak_k, 2) + " K of GR07's own, " +
+    fmt(C.sensors.GR06.inl_own_peak_k, 2) + " K of GR06's. The dashed line below is " +
+    "that shared component.";
+  chamberChart("chart-inl-own", [
+    { y: C.inl_common_k, colour: "var(--ink-3)", label: "shared", dash: "6 4" },
+    { y: C.sensors.GR07.inl_own_k, colour: "var(--gr07)", label: "GR07 own" },
+    { y: C.sensors.GR06.inl_own_k, colour: "var(--gr06)", label: "GR06 own" },
+  ], { ylabel: "INL [K]" });
 })();
 
 /* ---------- chart 7 · calibration residual ---------- */
@@ -1808,6 +1856,10 @@ function chamberChart(svgId, series, opts) {
   $("day-gr06").textContent = "±" + fmt(best.max_k, 2) + " K";
   $("day-gr07").textContent = "±" + fmt(
     C.sensors.GR07.cal.reduce((m, c) => (c.max_k < m.max_k ? c : m)).max_k, 1) + " K";
+  const Q = C.quantisation;
+  $("q-lsb").textContent = fmt(Q.clk_mhz, 0) + " MHz (" + fmt(Q.lsb_k, 2) + " K)";
+  $("q-r").textContent = fmt(Q.dither_model_r, 3);
+  $("q-mean").textContent = Q.in_mean_mk_lo + "–" + Q.in_mean_mk_hi + " mK";
   $("cal-note").innerHTML = "Solid, dashed and dotted are one-, two- and three-point " +
     "calibration; blue is GR07 and orange GR06, on a shared scale. Every curve is " +
     "forced through zero at its own trim points — what matters is how far it strays " +
