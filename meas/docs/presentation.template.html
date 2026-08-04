@@ -271,10 +271,11 @@
     <div class="eyebrow">Tiny Tapeout · ttsky25a · project 258 · tt_um_jnw_wulffern</div>
     <h1>Two temperature sensors,<br>measured properly.</h1>
     <p class="lede">
-      A day spent building a live readout for <b>JNW-TEMP</b> — the two sensors
-      designed by NTNU TFE4188 students — and then finding out what the silicon
-      actually does. Both sensors read within <span class="stat" id="cover-offset">—</span>
-      of each other at room temperature.
+      Five days on <b>JNW-TEMP</b> — the two sensors designed by NTNU TFE4188
+      students — from a live readout, through a climate chamber, to the noise
+      floor of the silicon itself. Both sensors read within
+      <span class="stat" id="cover-offset">—</span> of each other at room
+      temperature.
     </p>
     <div class="rule"></div>
     <div class="meta">
@@ -1108,16 +1109,137 @@
   </div>
 </section>
 
-<!-- ═══════════════ 14 · the day ═══════════════ -->
+<!-- ═══════════════ 14 · noise floor ═══════════════ -->
 <section class="slide">
   <div class="wrap">
-    <span class="num"><b>14</b> / The day</span>
+    <span class="num"><b>14</b> / The noise floor</span>
+    <h2>What is left when nothing is happening</h2>
+    <p class="lede">
+      Half an hour per sensor at a fixed temperature, measured by the demo board
+      alone. The logic analyser is the wrong instrument for this: its
+      capture–arm–export cycle leaves dead time between blocks, and dead time is
+      poison for a spectrum. The RP2350 counts continuously —
+      <span id="nz-duty">—</span> duty, the rest being the USB transfer — so the
+      record spans <span id="nz-span">—</span> in one piece.
+    </p>
+
+    <figure>
+      <div class="chartbox">
+        <div class="legend">
+          <span class="pill"><i class="dot b"></i>GR06</span>
+          <span class="pill"><i class="dot a"></i>GR07</span>
+          <span class="pill" style="margin-left:auto;color:var(--ink-3)">dashed: what the instrument itself contributes</span>
+        </div>
+        <svg class="chart" id="chart-noise" viewBox="0 0 980 380" role="img"
+             aria-label="Noise spectral density of both sensors against the instrument floor"></svg>
+      </div>
+      <figcaption id="nz-note"></figcaption>
+    </figure>
+
+    <div class="grid g3" style="margin-top:30px">
+      <div class="card">
+        <span class="pill">GR06 white floor</span>
+        <div class="big stat" id="nz-white6" style="margin-top:8px">—</div>
+        <p>Flat above ~50 Hz and <span id="nz-margin6">—</span> clear of the
+           instrument, so this is the sensor and not the counter.</p>
+      </div>
+      <div class="card">
+        <span class="pill">kT/C on the real capacitor</span>
+        <div class="big stat" id="nz-ktc" style="margin-top:8px">—</div>
+        <p>One <code>cap_mim_m3_1</code> at 5×5 µm is
+           <span id="nz-cap">—</span> from the PDK, and the comparator trips at
+           <span id="nz-vref">—</span>. That accounts for only
+           <b><span id="nz-share">—</span></b> of the white power.</p>
+      </div>
+      <div class="card">
+        <span class="pill">Shared with GR07</span>
+        <div class="big stat" id="nz-shared" style="margin-top:8px">—</div>
+        <p>Upper limit from the cross-correlation — see below. Both sensors
+           reference VDD, so supply noise would have to appear in both.</p>
+      </div>
+    </div>
+
+    <figure>
+      <div class="chartbox">
+        <div class="legend">
+          <span class="pill"><i class="dot b"></i>GR06</span>
+          <span class="pill"><i class="dot a"></i>GR07</span>
+          <span class="pill" style="margin-left:auto;color:var(--ink-3)">τ<sup>−1/2</sup> is what white noise does</span>
+        </div>
+        <svg class="chart" id="chart-allan2" viewBox="0 0 980 340" role="img"
+             aria-label="Allan deviation of both sensors over the long runs"></svg>
+      </div>
+      <figcaption id="nz-allan-note"></figcaption>
+    </figure>
+
+    <div class="grid g2" style="margin-top:30px">
+      <div class="card">
+        <span class="pill">Ruling out the supply</span>
+        <p style="margin-top:10px">
+          GR06's comparator has no reference net — only VDD and VSS — so its trip
+          point rides the supply and <code>dt/t = dVDD/VDD</code> exactly. GR07 is
+          the same architecture, so its <em>frequency</em> moves the opposite way.
+          Supply noise therefore has to appear in both, anti-phase, at unity gain.
+          Measuring both at once for <span id="nz-corrmin">—</span> and
+          cross-correlating gives a coherence of
+          <b><span id="nz-coh">—</span></b> against an estimator bias of
+          <span id="nz-bias">—</span> — nothing, and the same nothing in a
+          time-shifted null and in a control where the two were never sampled
+          together.
+        </p>
+      </div>
+      <div class="card">
+        <span class="pill">So what is it?</span>
+        <p style="margin-top:10px">
+          A null is only useful as a number. The shared term is under
+          <b><span id="nz-supply">—</span></b> on a 1.8 V rail, against the
+          <span id="nz-needed">—</span> it would need if GR06's noise were
+          supply-borne — excluded by <b><span id="nz-margin">—</span></b>. Not the
+          supply, and not kT/C. What is left is <b>GR06's own comparator</b>,
+          which is also where the trap on the previous slide lives. The practical
+          consequence: growing the ramp capacitor is not the lever, because kT/C
+          is not what limits it.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 15 · the day ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>15</b> / The campaign</span>
     <h2>Scripts, data, instruments</h2>
     <p class="lede">
-      One day, from "can we see the period of output 0" to a characterised pair of
-      sensors with an external reference. What follows is the inventory, so the next
-      person knows what exists and what it cost to make.
+      Five days, 31 July to 4 August, from "can we see the period of output 0" to
+      a pair of sensors characterised against an external reference and down to
+      their own noise floor. What follows is the inventory, so the next person
+      knows what exists and what it cost to make.
     </p>
+
+    <div class="scroll">
+      <table style="margin-bottom:30px">
+        <thead><tr><th>When</th><th>What it added</th></tr></thead>
+        <tbody>
+          <tr><td class="n">31 Jul</td>
+              <td>Live readout, both sensors from one capture, millisecond
+                  trace, recording with provenance. Freeze spray and a
+                  fingertip as the first stimulus.</td></tr>
+          <tr><td class="n">1 Aug</td>
+              <td>Survive a power cycle — the project clock came back at 0,
+                  which reads as a dead sensor rather than a clock fault.</td></tr>
+          <tr><td class="n">3 Aug</td>
+              <td>Measure with the demo board alone, no logic analyser. Drive
+                  the climate chamber and sweep 5–70 °C: the first external
+                  reference, and the first honest transfer curve.</td></tr>
+          <tr><td class="n">4 Aug</td>
+              <td>Settle sweeps on drift rather than setpoint. Retract the
+                  quantisation claim. Find the real clock ceiling. Fix the GUI
+                  stall. Long noise runs, and the cross-correlation that rules
+                  out the supply.</td></tr>
+        </tbody>
+      </table>
+    </div>
 
     <div class="grid g3">
       <div class="card">
@@ -1195,10 +1317,10 @@
   </div>
 </section>
 
-<!-- ═══════════════ 15 · corrections ═══════════════ -->
+<!-- ═══════════════ 16 · corrections ═══════════════ -->
 <section class="slide">
   <div class="wrap">
-    <span class="num"><b>15</b> / What I got wrong</span>
+    <span class="num"><b>16</b> / What I got wrong</span>
     <h2>Four corrections worth recording</h2>
     <p class="lede">
       Three were mine. The measurement one mattered most, because it was silently
@@ -1252,10 +1374,10 @@
   </div>
 </section>
 
-<!-- ═══════════════ 16 · shipped ═══════════════ -->
+<!-- ═══════════════ 17 · shipped ═══════════════ -->
 <section class="slide">
   <div class="wrap">
-    <span class="num"><b>16</b> / Shipped</span>
+    <span class="num"><b>17</b> / Shipped</span>
     <h2>What exists now</h2>
 
     <div class="grid g2">
@@ -1296,10 +1418,10 @@
   </div>
 </section>
 
-<!-- ═══════════════ 17 · running it ═══════════════ -->
+<!-- ═══════════════ 18 · running it ═══════════════ -->
 <section class="slide">
   <div class="wrap">
-    <span class="num"><b>17</b> / Running it yourself</span>
+    <span class="num"><b>18</b> / Running it yourself</span>
     <h2>From a bare board to a live trace</h2>
     <p class="lede">
       Two USB cables, three probe clips and one calibration press. The whole
@@ -1996,6 +2118,166 @@ function chamberChart(svgId, series, opts) {
   const yl = el("text", { x: 14, y: 18, class: "sm" });
   yl.textContent = "lifetime";
   svg.appendChild(yl);
+})();
+
+/* ---------- log-log frame shared by the two noise charts ---------- */
+function loglogChart(svgId, series, opts) {
+  const svg = $(svgId);
+  if (!svg || !series.length) return;
+  const o = opts || {};
+  const W = 980, H = +svg.getAttribute("viewBox").split(" ")[3];
+  const M = { t: 18, r: 92, b: 48, l: 74 };
+  const pts = series.flatMap((s) => s.pts).filter((p) => p[0] > 0 && p[1] > 0);
+  if (!pts.length) return;
+  const lx = pts.map((p) => Math.log10(p[0])), ly = pts.map((p) => Math.log10(p[1]));
+  const x0 = Math.min(...lx), x1 = Math.max(...lx);
+  let y0 = Math.min(...ly), y1 = Math.max(...ly);
+  const pad = (y1 - y0) * 0.12 || 0.3; y0 -= pad; y1 += pad;
+  const X = (v) => M.l + (Math.log10(v) - x0) / (x1 - x0) * (W - M.l - M.r);
+  const Y = (v) => M.t + (1 - (Math.log10(v) - y0) / (y1 - y0)) * (H - M.t - M.b);
+
+  for (let d = Math.floor(y0); d <= Math.ceil(y1); d++) {
+    for (const m of [1, 2, 5]) {
+      const v = Math.pow(10, d) * m, y = Y(v);
+      if (y < M.t || y > H - M.b) continue;
+      svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: y, y2: y,
+        stroke: "var(--rule)", "stroke-width": .6, opacity: m === 1 ? .75 : .35 }));
+      const tx = el("text", { x: M.l - 9, y: y + 4, "text-anchor": "end", class: "sm" });
+      tx.textContent = v >= 1 ? String(v) : v.toFixed(v < 0.1 ? 2 : 1);
+      svg.appendChild(tx);
+    }
+  }
+  for (let d = Math.floor(x0); d <= Math.ceil(x1); d++) {
+    const v = Math.pow(10, d), x = X(v);
+    if (x < M.l || x > W - M.r) continue;
+    svg.appendChild(el("line", { x1: x, x2: x, y1: M.t, y2: H - M.b,
+      stroke: "var(--rule)", "stroke-width": .6, opacity: .5 }));
+    const tx = el("text", { x, y: H - M.b + 20, "text-anchor": "middle", class: "sm" });
+    tx.textContent = v >= 1 ? String(v) : String(v);
+    svg.appendChild(tx);
+  }
+  svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: H - M.b, y2: H - M.b,
+    stroke: "var(--rule)" }));
+
+  series.forEach((s) => {
+    const good = s.pts.filter((p) => p[0] > 0 && p[1] > 0);
+    if (!good.length) return;
+    if (s.flat !== undefined) {                 // a horizontal instrument floor
+      const y = Y(s.flat);
+      svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: y, y2: y,
+        stroke: s.colour, "stroke-width": 1.3, "stroke-dasharray": "7 4",
+        opacity: .9 }));
+      const tx = el("text", { x: W - M.r + 6, y: y + 4, class: "sm", fill: s.colour });
+      tx.textContent = s.label;
+      svg.appendChild(tx);
+      return;
+    }
+    const d = good.map((p, i) => (i ? "L" : "M") + X(p[0]).toFixed(1) + " " +
+      Y(p[1]).toFixed(1)).join(" ");
+    svg.appendChild(el("path", { d, fill: "none", stroke: s.colour,
+      "stroke-width": s.dash ? 1.4 : 2, "stroke-dasharray": s.dash || "",
+      "stroke-linejoin": "round", "stroke-linecap": "round",
+      opacity: s.dash ? .8 : 1 }));
+    if (s.dots) {
+      good.forEach((p) => svg.appendChild(el("circle", {
+        cx: X(p[0]), cy: Y(p[1]), r: 2.6, fill: s.colour })));
+    }
+    if (s.label) {
+      const last = good[good.length - 1];
+      const tx = el("text", { x: W - M.r + 6, y: Y(last[1]) + 4, class: "sm",
+        fill: s.colour });
+      tx.textContent = s.label;
+      svg.appendChild(tx);
+    }
+  });
+
+  const xl = el("text", { x: (M.l + W - M.r) / 2, y: H - 8, "text-anchor": "middle",
+    class: "sm" });
+  xl.textContent = o.xlabel || "";
+  svg.appendChild(xl);
+  const yl = el("text", { x: 14, y: 18, class: "sm" });
+  yl.textContent = o.ylabel || "";
+  svg.appendChild(yl);
+}
+
+/* ---------- chart 10 · noise spectra, and chart 11 · Allan ---------- */
+(() => {
+  const N = DATA.noise;
+  if (!N) return;
+  const has7 = !!N.GR07, s6 = N.GR06;
+  if (!s6) return;
+
+  const fmtP = (v) => (v >= 10 ? fmt(v, 0) : fmt(v, 1));
+  $("nz-duty").textContent = fmt(s6.duty * 100, 0) + " %";
+  const lo = s6.psd_low && s6.psd_low.length ? s6.psd_low[0][0] : s6.psd[0][0];
+  $("nz-span").textContent = (lo < 0.01 ? lo.toFixed(4) : lo.toFixed(2)) +
+    " Hz to " + fmt(s6.psd[s6.psd.length - 1][0] / 1000, 1) + " kHz";
+  $("nz-white6").textContent = fmtP(s6.white_ppm_rthz) + " ppm/√Hz";
+  const floor6 = s6.floors_ppm_rthz.timebase;
+  $("nz-margin6").textContent = fmt(s6.white_ppm_rthz / floor6, 1) + "×";
+
+  const K = N.ktc;
+  if (K) {
+    $("nz-ktc").textContent = fmt(K.pred_ppm, 0) + " ppm";
+    $("nz-cap").textContent = fmt(K.cap_f * 1e15, 1) + " fF";
+    $("nz-vref").textContent = fmt(K.vref_v, 1) + " V";
+    $("nz-share").textContent = fmt(K.share_pct, 1) + " %";
+  }
+
+  const series = [
+    { pts: (s6.psd_low || []).concat(s6.psd), colour: "var(--gr06)", label: "GR06" },
+    { flat: floor6, colour: "var(--ink-3)", label: "instrument" },
+  ];
+  if (has7) {
+    series.splice(1, 0, { pts: (N.GR07.psd_low || []).concat(N.GR07.psd),
+                          colour: "var(--gr07)", label: "GR07" });
+    if (N.GR07.floors_ppm_rthz.retiming) {
+      series.push({ flat: N.GR07.floors_ppm_rthz.retiming, colour: "var(--gr07)",
+                    label: "GR07 retiming" });
+    }
+  }
+  loglogChart("chart-noise", series,
+              { xlabel: "offset frequency  [Hz]", ylabel: "ppm/√Hz" });
+
+  $("nz-note").innerHTML =
+    "Fractional noise density. GR06 falls as 1/f and then flattens into a white " +
+    "floor at <b>" + fmtP(s6.white_ppm_rthz) + " ppm/√Hz</b>, " +
+    fmt(s6.white_ppm_rthz / floor6, 1) + "× above what the counter itself " +
+    "contributes — so it is a measurement of the sensor, not of the instrument. " +
+    (has7
+      ? "GR07's own floor is set by re-timing its output onto the 64 MHz clock, " +
+        "which is why its curve sits where it does rather than showing anything " +
+        "about its analog front end."
+      : "");
+
+  const allan = [{ pts: s6.allan, colour: "var(--gr06)", label: "GR06", dots: true }];
+  if (has7) allan.push({ pts: N.GR07.allan, colour: "var(--gr07)", label: "GR07",
+                         dots: true });
+  const first = s6.allan[0];
+  if (first) {
+    allan.push({ pts: s6.allan.map((p) => [p[0], first[1] * Math.sqrt(first[0] / p[0])]),
+                 colour: "var(--ink-3)", dash: "6 4", label: "τ^-1/2" });
+  }
+  loglogChart("chart-allan2", allan,
+              { xlabel: "averaging time τ  [s]", ylabel: "σ(τ)  [ppm]" });
+
+  const minA = s6.allan.reduce((m, p) => (p[1] < m[1] ? p : m), s6.allan[0]);
+  $("nz-allan-note").innerHTML =
+    "How far averaging actually gets you. GR06 follows τ<sup>−1/2</sup> while the " +
+    "white part dominates, bottoms out near <b>" + fmt(minA[1], 0) + " ppm</b> at " +
+    fmt(minA[0], 1) + " s, and the bump around a second is the charge trap from " +
+    "the previous slide — averaging through it makes the answer worse, not better.";
+
+  const C = N.corr;
+  if (C) {
+    $("nz-shared").textContent = "< " + fmt(C.shared_ppm_rthz, 1) + " ppm/√Hz";
+    $("nz-corrmin").textContent = fmt(C.minutes, 0) + " min";
+    $("nz-coh").textContent = fmt(C.coherence, 4);
+    $("nz-bias").textContent = fmt(C.bias, 4);
+    $("nz-supply").textContent = fmt(C.supply_uv_rthz, 1) + " µV/√Hz";
+    $("nz-needed").textContent = fmt(C.supply_needed_uv_rthz, 0) + " µV/√Hz";
+    $("nz-margin").textContent = fmt(C.supply_needed_uv_rthz / C.supply_uv_rthz, 0) + "×";
+  }
 })();
 
 /* ---------- chart 2 · the staircase ---------- */
