@@ -529,8 +529,17 @@ cost the most to learn:
 
 * The board is a **TinyTapeout RP2350B Core**. Its USB CDC only answers once
   DTR/RTS are asserted after opening the port.
-* Max project clock is **64 MHz**: the SDK caps the system clock at 128 MHz and
-  the PWM divider cannot go below 2.
+* Max project clock is **64 MHz**, and this was tested rather than assumed
+  (`scripts/gr07_clock_sweep.py`, 2026-08-04). Above 66 MHz the SDK's PWM
+  refuses and **no clock reaches the chip**; at 65-66 MHz it does run but GR07
+  loses ~2000 ppm of its rate, which is the retiming path dropping edges.
+  Confirmed against GR06, which is asynchronous: the same A/B moved GR07 by
+  -2096 ppm and GR06 by +550.
+* **`tt.auto_clocking_freq` cannot be trusted.** It returns the frequency that
+  was *requested*, not the one produced. Ask for 100 MHz and it will report
+  100 MHz while the PWM has silently failed and the project clock is dead - so
+  the sensor goes quiet and nothing in the API says why. The SDK does log
+  `Could not set project clock PWM`, so scrape the log, not the property.
 * Writing `tt.ui_in[0]` through the SDK's `Logic` wrapper costs ~15 ms per edge.
   `tt.pins.ui_in0.raw_pin.value()` costs ~6 µs, so the reset burst uses the raw
   pin and runs on the board rather than as host round-trips.
