@@ -2127,9 +2127,16 @@ function loglogChart(svgId, series, opts) {
   const o = opts || {};
   const W = 980, H = +svg.getAttribute("viewBox").split(" ")[3];
   const M = { t: 18, r: 92, b: 48, l: 74 };
-  const pts = series.flatMap((s) => s.pts).filter((p) => p[0] > 0 && p[1] > 0);
+  // Only the curve series carry points; an instrument floor is a single level
+  // with no x extent, so it sets the y range but never the x range. Reading
+  // s.pts off a floor series yields undefined and throws on p[0].
+  const curves = series.filter((s) => s.pts && s.pts.length);
+  const pts = curves.flatMap((s) => s.pts).filter((p) => p[0] > 0 && p[1] > 0);
   if (!pts.length) return;
   const lx = pts.map((p) => Math.log10(p[0])), ly = pts.map((p) => Math.log10(p[1]));
+  series.forEach((s) => {            // keep the dashed floors on-screen
+    if (s.flat > 0) ly.push(Math.log10(s.flat));
+  });
   const x0 = Math.min(...lx), x1 = Math.max(...lx);
   let y0 = Math.min(...ly), y1 = Math.max(...ly);
   const pad = (y1 - y0) * 0.12 || 0.3; y0 -= pad; y1 += pad;
@@ -2160,8 +2167,6 @@ function loglogChart(svgId, series, opts) {
     stroke: "var(--rule)" }));
 
   series.forEach((s) => {
-    const good = s.pts.filter((p) => p[0] > 0 && p[1] > 0);
-    if (!good.length) return;
     if (s.flat !== undefined) {                 // a horizontal instrument floor
       const y = Y(s.flat);
       svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: y, y2: y,
@@ -2172,6 +2177,8 @@ function loglogChart(svgId, series, opts) {
       svg.appendChild(tx);
       return;
     }
+    const good = (s.pts || []).filter((p) => p[0] > 0 && p[1] > 0);
+    if (!good.length) return;
     const d = good.map((p, i) => (i ? "L" : "M") + X(p[0]).toFixed(1) + " " +
       Y(p[1]).toFixed(1)).join(" ");
     svg.appendChild(el("path", { d, fill: "none", stroke: s.colour,
@@ -2284,7 +2291,17 @@ function loglogChart(svgId, series, opts) {
 (() => {
   const svg = $("chart-stair");
   const st = DATA.staircase;
-  if (!st || !st.bins) return;
+  if (!st || !st.bins) {
+    // The source capture (a 1 s single-channel Saleae run) was pruned from the
+    // repo, so this cannot be regenerated from what is committed. Say that
+    // rather than leaving an empty box that looks like a rendering failure.
+    const tx = el("text", { x: 490, y: 150, "text-anchor": "middle",
+                            class: "sm", fill: "var(--ink-3)" });
+    tx.textContent = "per-period capture not in the repo — rerun "
+                   + "scripts/analyse_dual.py against a 1 s Saleae capture";
+    svg.appendChild(tx);
+    return;
+  }
   const W = 980, H = 300, M = { t: 20, r: 24, b: 46, l: 62 };
   const bins = st.bins;
   const maxC = Math.max(...bins.map((d) => d[1]));
