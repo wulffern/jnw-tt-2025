@@ -9,6 +9,10 @@ Integrated Circuits* course, taped out as Tiny Tapeout project **258**
 - **[Measurement slides](https://analogicus.com/jnw-tt-2025/presentation.html)** —
   how the two sensors work, the measurement setup, and what 15 minutes of both
   running side by side actually showed
+- **[Ring oscillator measurements](https://analogicus.com/jnw-tt-2025/ring-oscillator.html)** —
+  an independent measurement of ttsky25a project 132, the Giant Ring Oscillator
+  by **Uri Shaked**: phase noise, Allan deviation, and its two start-up modes.
+  Their design, our measurement.
 - [Project datasheet](docs/info.md) — the students' own description of each circuit
 - [`meas/`](meas/) — `jnwtemp`, the live readout used to take those measurements
 - [3D GDS viewer](https://analogicus.com/jnw-tt-2025/)

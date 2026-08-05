@@ -328,12 +328,21 @@ across a perfectly flat boundary.
 
 ### The slides
 
-`docs/presentation.html` is a standalone deck covering the sensors, the setup and
-these results. It is published with the project's GitHub Pages site:
+There is a deck per design measured. Both are standalone and both are published
+with the project's GitHub Pages site:
 
-<https://analogicus.com/jnw-tt-2025/presentation.html>
+| Deck | What it covers |
+|---|---|
+| [`presentation.html`](https://analogicus.com/jnw-tt-2025/presentation.html) | JNW-TEMP — our own two sensors, setup through noise floor |
+| [`ring-oscillator.html`](https://analogicus.com/jnw-tt-2025/ring-oscillator.html) | ttsky25a project 132, the Giant Ring Oscillator — **Uri Shaked's design**, our measurement |
 
 (The `github.io` address redirects there — the site uses a custom domain.)
+
+Decks for other people's designs credit the author on the cover, in the footer,
+and in a closing note that separates whose the design is from whose the
+measurement and mistakes are. Nothing is published about a design whose
+bring-up did not succeed: a failure that might be ours is not a result about
+somebody else's silicon.
 
 The site root stays what Tiny Tapeout's action makes it - a redirect to the 3D
 GDS viewer. The `viewer` job in `.github/workflows/gds.yaml` gained two steps
@@ -349,6 +358,17 @@ placeholder; `build_presentation.py` fills it from `data/deck_data.json` to
 produce the committed `docs/presentation.html`. No number in the deck is typed by
 hand, so it cannot drift from the measurements. Re-run all three scripts after a
 new capture.
+
+Per-design decks work the same way — `ring_measure.py` writes
+`data/ring_data.json`, `build_ring_deck.py` combines it with
+`docs/ring-oscillator.body.html`. That build lifts the stylesheet and the SVG
+helpers out of the main template rather than copying them, so the decks share
+one look and cannot drift into stale duplicates of it.
+
+`scripts/deck_check.py` executes any built deck's JavaScript under
+JavaScriptCore with a stubbed DOM and fails if a chart draws nothing. Run it on
+every deck before publishing — "it built" and "the ids resolve" both pass on a
+deck whose figures are blank.
 
 ## The plot window
 

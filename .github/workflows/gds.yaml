@@ -54,12 +54,24 @@ jobs:
       # Deliberately not index.html - that stays TT's redirect to the viewer.
       - name: Stage the measurement slides
         run: |
-          if [ -f meas/docs/presentation.html ]; then
-            mkdir -p gh-pages
-            cp meas/docs/presentation.html gh-pages/presentation.html
+          # Every built deck, not just the main one: there is now a deck per
+          # design measured, and naming them individually here means a new one
+          # is silently absent from the site until somebody remembers this file.
+          # *.body.html and *.template.html are build inputs, not pages.
+          mkdir -p gh-pages
+          staged=""
+          for f in meas/docs/*.html; do
+            case "$f" in *.template.html|*.body.html) continue ;; esac
+            [ -f "$f" ] || continue
+            cp "$f" "gh-pages/$(basename "$f")"
+            staged="$staged $(basename "$f")"
+          done
+          if [ -n "$staged" ]; then
             echo "staged=true" >> "$GITHUB_ENV"
+            echo "decks=$staged" >> "$GITHUB_ENV"
+            echo "staged:$staged"
           else
-            echo "meas/docs/presentation.html not found, skipping" >&2
+            echo "no built decks in meas/docs, skipping" >&2
           fi
 
       - uses: TinyTapeout/tt-gds-action/viewer@ttsky25a
@@ -69,6 +81,8 @@ jobs:
       - name: Link the slides from the workflow summary
         if: env.staged == 'true'
         run: |
-          URL="https://${{ github.repository_owner }}.github.io/${GITHUB_REPOSITORY#*/}/presentation.html"
+          BASE="https://${{ github.repository_owner }}.github.io/${GITHUB_REPOSITORY#*/}"
           echo "# Measurement slides" >> "$GITHUB_STEP_SUMMARY"
-          echo "[JNW-TEMP: two temperature sensors, measured]($URL)" >> "$GITHUB_STEP_SUMMARY"
+          for d in $decks; do
+            echo "- [$d]($BASE/$d)" >> "$GITHUB_STEP_SUMMARY"
+          done
