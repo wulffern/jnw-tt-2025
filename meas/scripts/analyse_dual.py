@@ -83,11 +83,34 @@ try:
     vals, counts = np.unique(np.round(df["observable_ns"].to_numpy(), 1), return_counts=True)
     order = np.argsort(-counts)[:8]
     hist = sorted([[float(vals[i]), int(counts[i])] for i in order])
+    # The same capture answers a second question: is the quantisation noise
+    # shaped, or white? The deck claimed first-order shaping; keeping every
+    # edge is the only way to test it, and it is not.
+    from scipy import signal as _sig
+    per = df["observable_s"].to_numpy() if "observable_s" in df else \
+        df["observable_ns"].to_numpy() * 1e-9
+    _fs = 1.0 / per.mean()
+    _x = per / per.mean() - 1.0
+    _f, _p = _sig.welch(_x, fs=_fs, nperseg=16384, detrend="constant")
+    _band = _f > 1
+    _cyc = per.mean() * 64e6
+    _q = _cyc % 1
     res["staircase"] = {
         "total": int(len(df)),
         "distinct": int(vals.size),
         "bins": hist,
         "mean_ns": float(df["observable_ns"].mean()),
+        "hf": {
+            "fs_hz": float(_fs),
+            "nyquist_hz": float(_fs / 2),
+            "board_nyquist_hz": 500.0,
+            "flat_variation": float(_p[_band].max() / _p[_band].min()),
+            "integral_ppm": float(np.sqrt(np.trapezoid(_p, _f)) * 1e6),
+            "sigma_ppm": float(_x.std(ddof=1) * 1e6),
+            "dither_pred_ppm": float(np.sqrt(_q * (1 - _q))
+                                     * ((1 / 64e6) / per.mean()) * 1e6),
+            "q": float(_q),
+        },
     }
 except Exception as exc:
     res["staircase"] = {"error": f"{type(exc).__name__}: {exc}"}

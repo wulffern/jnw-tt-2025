@@ -591,14 +591,33 @@
       </figcaption>
     </figure>
 
+    <p style="margin-top:18px" class="callout">
+      <b>This slide used to call the retiming "accidentally a first-order
+      sigma-delta", whose quantisation noise would rise toward Nyquist. It
+      does not.</b> Keeping every edge of a 1 s capture gives
+      <span id="hf-n">—</span> individual periods — a
+      <span id="hf-fs">—</span> record reaching <span id="hf-nyq">—</span>,
+      about <span id="hf-gain">—</span> the bandwidth the demo board can
+      reach — and the period noise is <b>flat</b> across all of it, varying
+      <span id="hf-var">—</span> in total. First-order shaping would climb four
+      decades over that span. Three things agree it is white: the flat spectrum
+      integrates to <span id="hf-int">—</span> against
+      <span id="hf-sigma">—</span> measured directly, so it holds all the
+      variance; a two-level dither at the measured fraction predicts
+      <span id="hf-pred">—</span>; and the accumulated phase falls as exactly
+      1/f, which is integrated white noise. The earlier chamber fit already
+      implied this — it matched a model assuming <em>independent</em>
+      quantisation per period at r = 0.997 — and I did not notice the
+      contradiction. Nothing downstream changes: every noise budget here
+      already assumed the white case. Only the explanation was wrong.
+    </p>
+
     <p style="margin-top:26px">
       The comparator trip is re-timed by the project clock, so each period is either
       <em>N</em> or <em>N</em>+1 clock cycles. One whole step is
       <span id="stair-lsb">—</span>. All the resolution
       therefore comes from the <b>ratio</b> between the two levels — the circuit dithers,
-      and averaging ~900 000 periods reads that ratio to a few millikelvin. It is,
-      accidentally, a first-order sigma-delta: the in-capture noise spectrum rises toward
-      Nyquist exactly as that structure predicts.
+      and averaging ~900 000 periods reads that ratio to a few millikelvin.
     </p>
     <p>
       This is also why outlier rejection had to be rebuilt — see slide 11.
@@ -1662,6 +1681,17 @@ if (DATA.staircase && DATA.staircase.bins) {
   // width over a figure derived here: slide 11 quotes that number, and two
   // slides disagreeing about the same quantity is worse than either being
   // slightly off.
+  const H = DATA.staircase.hf;
+  if (H) {
+    $("hf-n").textContent = DATA.staircase.total.toLocaleString("en-US");
+    $("hf-fs").textContent = fmt(H.fs_hz / 1e3, 0) + " kHz";
+    $("hf-nyq").textContent = fmt(H.nyquist_hz / 1e3, 0) + " kHz";
+    $("hf-gain").textContent = fmt(H.nyquist_hz / H.board_nyquist_hz, 0) + "×";
+    $("hf-var").textContent = fmt(H.flat_variation, 0) + "×";
+    $("hf-int").textContent = fmt(H.integral_ppm, 0) + " ppm";
+    $("hf-sigma").textContent = fmt(H.sigma_ppm, 0) + " ppm";
+    $("hf-pred").textContent = fmt(H.dither_pred_ppm, 0) + " ppm";
+  }
   const lsb = DATA.chamber && DATA.chamber.dnl && DATA.chamber.dnl.lsb_k;
   $("stair-lsb").textContent = lsb
     ? fmt(lsb, 2) + " K, measured across the 5–70 °C sweep"
