@@ -1225,10 +1225,80 @@
   </div>
 </section>
 
-<!-- ═══════════════ 15 · the day ═══════════════ -->
+<!-- ═══════════════ 15 · per-event ═══════════════ -->
 <section class="slide">
   <div class="wrap">
-    <span class="num"><b>15</b> / The campaign</span>
+    <span class="num"><b>15</b> / Every edge
+    </span>
+    <h2>What the logic analyser adds, and where it runs out</h2>
+    <p class="lede">
+      The demo board reduces as it measures — one value per 907 periods — so its
+      spectrum stops at 500 Hz. Keeping every edge of a one-second capture gives
+      <span id="sa-n">—</span> individual periods, a <span id="sa-fs">—</span>
+      record reaching <span id="sa-nyq">—</span>: about <span id="sa-gain">—</span>
+      the bandwidth, and the only view of what the retiming does between one
+      period and the next.
+    </p>
+
+    <figure>
+      <div class="chartbox">
+        <div class="legend">
+          <span class="pill"><i class="dot a"></i>GR07 measured</span>
+          <span class="pill" style="margin-left:auto;color:var(--ink-3)">dashed: what a first-order Δ∑ would look like</span>
+        </div>
+        <svg class="chart" id="chart-hf" viewBox="0 0 980 340" role="img"
+             aria-label="GR07 period noise spectrum against a first-order shaping prediction"></svg>
+      </div>
+      <figcaption id="sa-note"></figcaption>
+    </figure>
+
+    <div class="grid g2" style="margin-top:30px">
+      <div class="card">
+        <span class="pill">A second opinion on GR06</span>
+        <p style="margin-top:10px">
+          The Saleae's <span id="sa-tick">—</span> sample against the board's
+          15.6 ns tick measures the same noise with a
+          <b><span id="sa-floorratio">—</span></b> lower instrument floor. On the
+          white floor — the one quantity that does not depend on how long you
+          watch — they agree to <b><span id="sa-agree">—</span></b>:
+        </p>
+        <div class="scroll">
+          <table style="margin-top:14px">
+            <thead><tr><th>Instrument</th><th>floor</th><th>GR06 white floor</th></tr></thead>
+            <tbody id="sa-rows"></tbody>
+          </table>
+        </div>
+        <p style="margin-top:14px">
+          Comparing <em>total</em> noise instead would be wrong: the board's is a
+          32-minute integral containing the 1/f and the trap, and a one-second
+          capture cannot hold the same low-frequency content. Those two once
+          agreed to 0.2 %, which was luck.
+        </p>
+      </div>
+      <div class="card">
+        <span class="pill">Still open</span>
+        <p style="margin-top:10px">
+          There is structure near 250–450 kHz that is not explained. Part of it
+          moves with the <em>analyser's</em> sample rate
+          (<span id="sa-t1">—</span> against <span id="sa-t2">—</span>), so that
+          part is the instrument. Part appears at both rates, so that part is in
+          the signal. Both sensors reference VDD, which makes the supply the
+          natural suspect — but the feature's amplitude swings about
+          <b><span id="sa-swing">—</span></b> for a 0.1 % change in the sensor's
+          own frequency, and no external tone behaves like that. It looks like
+          quantiser idle tones. Settling it needs a wide temperature sweep, where
+          an alias moves linearly and an idle tone moves as a wrapping sawtooth.
+          It is narrowband, and no number in this deck depends on it.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 16 · the day ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>16</b> / The campaign</span>
     <h2>Scripts, data, instruments</h2>
     <p class="lede">
       Five days, 31 July to 4 August, from "can we see the period of output 0" to
@@ -1337,10 +1407,10 @@
   </div>
 </section>
 
-<!-- ═══════════════ 16 · corrections ═══════════════ -->
+<!-- ═══════════════ 17 · corrections ═══════════════ -->
 <section class="slide">
   <div class="wrap">
-    <span class="num"><b>16</b> / What I got wrong</span>
+    <span class="num"><b>17</b> / What I got wrong</span>
     <h2>Four corrections worth recording</h2>
     <p class="lede">
       Three were mine. The measurement one mattered most, because it was silently
@@ -1394,10 +1464,10 @@
   </div>
 </section>
 
-<!-- ═══════════════ 17 · shipped ═══════════════ -->
+<!-- ═══════════════ 18 · shipped ═══════════════ -->
 <section class="slide">
   <div class="wrap">
-    <span class="num"><b>17</b> / Shipped</span>
+    <span class="num"><b>18</b> / Shipped</span>
     <h2>What exists now</h2>
 
     <div class="grid g2">
@@ -1438,10 +1508,10 @@
   </div>
 </section>
 
-<!-- ═══════════════ 18 · running it ═══════════════ -->
+<!-- ═══════════════ 19 · running it ═══════════════ -->
 <section class="slide">
   <div class="wrap">
-    <span class="num"><b>18</b> / Running it yourself</span>
+    <span class="num"><b>19</b> / Running it yourself</span>
     <h2>From a bare board to a live trace</h2>
     <p class="lede">
       Two USB cables, three probe clips and one calibration press. The whole
@@ -2329,6 +2399,60 @@ function loglogChart(svgId, series, opts) {
     $("nz-supply").textContent = fmt(C.supply_uv_rthz, 1) + " µV/√Hz";
     $("nz-needed").textContent = fmt(C.supply_needed_uv_rthz, 0) + " µV/√Hz";
     $("nz-margin").textContent = fmt(C.supply_needed_uv_rthz / C.supply_uv_rthz, 0) + "×";
+  }
+})();
+
+/* ---------- chart 12 · per-event spectrum, white vs shaped ---------- */
+(() => {
+  const S = DATA.saleae;
+  if (!S || !S.gr07) return;
+  const G = S.gr07;
+  $("sa-n").textContent = G.periods.toLocaleString("en-US");
+  $("sa-fs").textContent = fmt(G.fs_hz / 1e3, 0) + " kHz";
+  $("sa-nyq").textContent = fmt(G.nyquist_hz / 1e3, 0) + " kHz";
+  $("sa-gain").textContent = fmt(G.nyquist_hz / G.board_nyquist_hz, 0) + "×";
+
+  loglogChart("chart-hf", [
+    { pts: G.psd, colour: "var(--gr07)", label: "measured" },
+    { pts: G.shaped, colour: "var(--ink-3)", dash: "6 4", label: "Δ∑" },
+  ], { xlabel: "offset frequency  [Hz]", ylabel: "ppm/√Hz" });
+
+  $("sa-note").innerHTML =
+    "The deck used to call this <em>accidentally a first-order sigma-delta</em>, " +
+    "whose quantisation noise would climb toward Nyquist. It does not: the " +
+    "measurement is flat within <b>" + fmt(G.flat_variation, 0) + "×</b> across " +
+    "four decades, while the dashed prediction rises through all of them. Three " +
+    "things agree it is white — the flat spectrum integrates to " +
+    fmt(G.integral_ppm, 0) + " ppm against " + fmt(G.sigma_ppm, 0) +
+    " measured directly, so it holds all the variance; a two-level dither " +
+    "predicts " + fmt(G.dither_pred_ppm, 0) + " ppm; and the accumulated phase " +
+    "falls as exactly 1/f. Nothing downstream changes, because every noise " +
+    "budget here already assumed the white case.";
+
+  const W = S.gr06_white;
+  if (W) {
+    $("sa-tick").textContent = "4 ns";
+    $("sa-floorratio").textContent =
+      fmt(W.board_floor_ppm_rthz / W.saleae_floor_ppm_rthz, 0) + "×";
+    $("sa-agree").textContent = fmt(W.agree_pct, 0) + " %";
+    const rows = $("sa-rows");
+    [["demo board, 15.6 ns tick", W.board_floor_ppm_rthz, W.board_ppm_rthz],
+     ["Saleae, 4 ns sample", W.saleae_floor_ppm_rthz, W.saleae_ppm_rthz]]
+      .forEach(([name, floor, val]) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = "<td>" + name + "</td>" +
+          '<td class="n">' + fmt(floor, 1) + " ppm/√Hz</td>" +
+          '<td class="n b">' + fmt(val, 1) + " ppm/√Hz</td>";
+        rows.appendChild(tr);
+      });
+  }
+
+  const T = S.tone;
+  if (T) {
+    $("sa-t1").textContent = fmt(T.cold.at_125_khz, 0) + " kHz at 125 MS/s";
+    $("sa-t2").textContent = fmt(T.cold.at_250_khz, 0) + " kHz at 250 MS/s";
+    $("sa-swing").textContent =
+      fmt(T.level_swing.high / T.level_swing.low, 0) + "×";
   }
 })();
 
