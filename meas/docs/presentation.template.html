@@ -593,7 +593,8 @@
 
     <p style="margin-top:26px">
       The comparator trip is re-timed by the project clock, so each period is either
-      <em>N</em> or <em>N</em>+1 clock cycles. One whole step is ≈ 4.2 K. All the resolution
+      <em>N</em> or <em>N</em>+1 clock cycles. One whole step is
+      <span id="stair-lsb">—</span>. All the resolution
       therefore comes from the <b>ratio</b> between the two levels — the circuit dithers,
       and averaging ~900 000 periods reads that ratio to a few millikelvin. It is,
       accidentally, a first-order sigma-delta: the in-capture noise spectrum rises toward
@@ -1657,6 +1658,14 @@ $("k-ratio").textContent = fmt(B.sem_c / A.sem_c, 1) + "×";
 if (DATA.staircase && DATA.staircase.bins) {
   $("stair-total").textContent = DATA.staircase.total.toLocaleString("en-US");
   $("stair-distinct").textContent = DATA.staircase.distinct;
+  // One code step, in kelvin. Prefer the chamber's directly measured code
+  // width over a figure derived here: slide 11 quotes that number, and two
+  // slides disagreeing about the same quantity is worse than either being
+  // slightly off.
+  const lsb = DATA.chamber && DATA.chamber.dnl && DATA.chamber.dnl.lsb_k;
+  $("stair-lsb").textContent = lsb
+    ? fmt(lsb, 2) + " K, measured across the 5–70 °C sweep"
+    : "one 64 MHz clock cycle";
 }
 
 /* Interpretation, computed from the run rather than assumed. The expected story
