@@ -1,0 +1,373 @@
+<title>Giant Ring Oscillator — an independent measurement</title>
+__STYLE__
+
+<!-- ═══════════════ 01 · cover ═══════════════ -->
+<section class="slide cover">
+  <div class="wrap">
+    <div class="eyebrow">Tiny Tapeout · ttsky25a · project <span id="d-index">—</span> · <span id="d-project">—</span></div>
+    <h1>A 3853-inverter ring,<br>measured from the outside.</h1>
+    <p class="lede">
+      <b>Somebody else's design.</b> The Giant Ring Oscillator is by
+      <b><span id="d-author">—</span></b>; everything here is our measurement of
+      it, made with the rig built for a pair of temperature sensors on the same
+      shuttle. Free-running at <span class="stat" id="c-f0">—</span>, with a
+      phase-noise curve that holds to <span class="stat" id="c-cross">—</span>
+      across two independent timebases.
+    </p>
+    <div class="rule"></div>
+    <div class="meta">
+      <span><b>Design</b> <span id="d-author2">—</span></span>
+      <span><b>Source</b> <a id="d-url" href="#">tinytapeout.com</a></span>
+      <span><b>Instruments</b> Saleae Logic Pro 16 · TT demo board RP2350B</span>
+      <span><b>Measured &amp; written by</b> Claude Opus 5</span>
+      <span><b>Ideas</b> Carsten Wulff</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 02 · what and why ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>02</b> / The device</span>
+    <h2>What it is, and why it suited this rig</h2>
+    <p class="lede">
+      <span id="d-stages">—</span> inverters in a chain, with
+      <code>ui_in[1]</code> closing the loop internally. Analog at its core and
+      digital at every pin — no analog I/O to probe — which is why it could be
+      measured with an instrument built for something else entirely, and without
+      moving a wire.
+    </p>
+
+    <div class="grid g3">
+      <div class="card">
+        <span class="pill">Frequency</span>
+        <div class="big stat" id="k-f0" style="margin-top:8px">—</div>
+        <p>Free-running, no reference and no loop to lock. The
+           <span id="k-ref">—</span> project clock is only there because the
+           board insists on providing one.</p>
+      </div>
+      <div class="card">
+        <span class="pill">Duty cycle</span>
+        <div class="big stat" id="k-duty" style="margin-top:8px">—</div>
+        <p>What a healthy ring should give. A ring driven off its own inversion
+           has no reason to sit anywhere else.</p>
+      </div>
+      <div class="card">
+        <span class="pill">Periods measured</span>
+        <div class="big stat" id="k-n" style="margin-top:8px">—</div>
+        <p>One second of every single edge, at 250 MS/s — the record the phase
+           noise is computed from.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 03 · two modes ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>03</b> / Two modes</span>
+    <h2>Which mode it starts in is decided by how you start it</h2>
+    <p class="lede">
+      The ring settles into one of two states, and for a while that looked like
+      a coin toss — measurements that would not reproduce. It is not random.
+      The start-up sequence selects it, deterministically.
+    </p>
+
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Start-up sequence</th><th>Mode</th><th>Repeatability</th></tr></thead>
+        <tbody id="mode-rows"></tbody>
+      </table>
+    </div>
+
+    <div class="grid g2" style="margin-top:30px">
+      <div class="card">
+        <span class="pill">Why it matters</span>
+        <p style="margin-top:10px">
+          Every figure in this deck is from the slow mode, reached by the
+          sequence above and <em>verified</em> before each capture rather than
+          assumed. An earlier attempt at these numbers was thrown away because
+          it had silently been taken in the fast mode.
+        </p>
+      </div>
+      <div class="card">
+        <span class="pill">What the fast mode is</span>
+        <p style="margin-top:10px">
+          Unknown, and deliberately left so. It aliases to a different frequency
+          at every sample rate we have —
+          <span id="alias-list">—</span> — which places it above 125 MHz and
+          beyond this instrument. A ring can carry several waves at once, so a
+          harmonic relation is plausible, but undersampling a square wave does
+          not alias cleanly enough to test it. Reporting a number here would be
+          inventing one.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 04 · phase noise ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>04</b> / Phase noise</span>
+    <h2>The measurement, and the reason to believe it</h2>
+    <p class="lede">
+      Single-sideband phase noise from the time-interval error — the running sum
+      of period deviations — sampled once per cycle. The instrument's own
+      quantisation is coarse here (4 ns on a 339 ns period), so the curve is
+      only worth anything if it survives changing the timebase. It does.
+    </p>
+
+    <figure>
+      <div class="chartbox">
+        <div class="legend">
+          <span class="pill"><i class="dot a"></i>250 MS/s</span>
+          <span class="pill"><i class="dot b"></i>125 MS/s</span>
+          <span class="pill" style="margin-left:auto;color:var(--ink-3)">two timebases, one curve</span>
+        </div>
+        <svg class="chart" id="chart-pn" viewBox="0 0 980 380" role="img"
+             aria-label="Phase noise of the ring oscillator measured at two sample rates"></svg>
+      </div>
+      <figcaption id="pn-note"></figcaption>
+    </figure>
+
+    <div class="scroll">
+      <table style="margin-top:26px">
+        <thead><tr><th>Offset</th><th class="a">250 MS/s</th><th class="b">125 MS/s</th><th>difference</th></tr></thead>
+        <tbody id="pn-rows"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 05 · allan ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>05</b> / Averaging</span>
+    <h2>How far averaging gets you</h2>
+    <p class="lede">
+      The Allan deviation of the same record. Single periods are dominated by
+      the analyser's 4 ns sample quantum, but averaging beats that down, so the
+      long-τ end describes the ring rather than the instrument.
+    </p>
+
+    <figure>
+      <div class="chartbox">
+        <div class="legend">
+          <span class="pill"><i class="dot a"></i>σ(τ)</span>
+          <span class="pill" style="margin-left:auto;color:var(--ink-3)">τ<sup>−1/2</sup> is what white noise does</span>
+        </div>
+        <svg class="chart" id="chart-adev" viewBox="0 0 980 340" role="img"
+             aria-label="Allan deviation of the ring oscillator"></svg>
+      </div>
+      <figcaption id="adev-note"></figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ═══════════════ 06 · limits ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>06</b> / What is not here</span>
+    <h2>The limits of this measurement</h2>
+    <p class="lede">
+      Three things a reader might reasonably expect, and why they are absent
+      rather than estimated.
+    </p>
+
+    <div class="grid g3">
+      <div class="card">
+        <span class="pill">Per-inverter delay</span>
+        <p style="margin-top:10px">
+          Dividing the period by 2N would give ~44 ps, and that number is only
+          right if the slow mode is the fundamental of the full
+          <span id="l-stages">—</span>-stage loop. With a second mode present
+          and unidentified, that is an assumption rather than a measurement, so
+          it is left out.
+        </p>
+      </div>
+      <div class="card">
+        <span class="pill">Cycle-to-cycle jitter</span>
+        <p style="margin-top:10px">
+          Not resolved. A 4 ns timebase on a 339 ns period means the analyser's
+          own quantisation accounts for about 95 % of the period spread. An
+          upper bound is all this instrument supports, and an upper bound is not
+          a jitter figure.
+        </p>
+      </div>
+      <div class="card">
+        <span class="pill">Temperature coefficient</span>
+        <p style="margin-top:10px">
+          A ring's delay is strongly temperature-dependent and this would have
+          been the most useful number of all. It needs a climate chamber, which
+          was not available. Self-heating alone shifts it about 230 ppm over the
+          first seconds, which sets the scale.
+        </p>
+      </div>
+    </div>
+
+    <p style="margin-top:30px">
+      <b>On attribution.</b> The design is
+      <span id="l-author">—</span>'s and the credit for it is theirs. The
+      measurement, the mistakes in getting to it, and anything wrong in this
+      deck are ours. Nothing here is a verdict on the design — where our
+      instrument ran out, that is recorded as our limit, not its shortcoming.
+    </p>
+  </div>
+</section>
+
+<footer>
+  <span id="foot-1">—</span>
+</footer>
+
+<script>
+const DATA = __DATA__;
+__HELPERS__
+__LOGLOG__
+
+/* Log frequency, linear decibels. The shared loglogChart cannot be used here:
+   it rejects non-positive y, and phase noise is negative by construction. */
+function semilogxDb(svgId, series, opts) {
+  const svg = $(svgId);
+  if (!svg || !series.length) return;
+  const o = opts || {};
+  const W = 980, H = +svg.getAttribute("viewBox").split(" ")[3];
+  const M = { t: 18, r: 96, b: 48, l: 74 };
+  const pts = series.flatMap((s) => s.pts).filter((p) => p[0] > 0);
+  if (!pts.length) return;
+  const lx = pts.map((p) => Math.log10(p[0])), ys = pts.map((p) => p[1]);
+  const x0 = Math.min(...lx), x1 = Math.max(...lx);
+  let y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const pad = (y1 - y0) * 0.1 || 5; y0 -= pad; y1 += pad;
+  const X = (v) => M.l + (Math.log10(v) - x0) / (x1 - x0) * (W - M.l - M.r);
+  const Y = (v) => M.t + (1 - (v - y0) / (y1 - y0)) * (H - M.t - M.b);
+  const step = Math.max(10, Math.round((y1 - y0) / 6 / 10) * 10);
+  for (let v = Math.ceil(y0 / step) * step; v <= y1; v += step) {
+    const y = Y(v);
+    svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: y, y2: y,
+      stroke: "var(--rule)", "stroke-width": .6, opacity: .7 }));
+    const tx = el("text", { x: M.l - 9, y: y + 4, "text-anchor": "end", class: "sm" });
+    tx.textContent = v;
+    svg.appendChild(tx);
+  }
+  for (let d = Math.floor(x0); d <= Math.ceil(x1); d++) {
+    const v = Math.pow(10, d), x = X(v);
+    if (x < M.l || x > W - M.r) continue;
+    svg.appendChild(el("line", { x1: x, x2: x, y1: M.t, y2: H - M.b,
+      stroke: "var(--rule)", "stroke-width": .6, opacity: .5 }));
+    const tx = el("text", { x, y: H - M.b + 20, "text-anchor": "middle", class: "sm" });
+    tx.textContent = v >= 1000 ? (v / 1000) + "k" : String(v);
+    svg.appendChild(tx);
+  }
+  svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: H - M.b, y2: H - M.b,
+    stroke: "var(--rule)" }));
+  series.forEach((s) => {
+    const g = s.pts.filter((p) => p[0] > 0);
+    if (!g.length) return;
+    svg.appendChild(el("path", {
+      d: g.map((p, i) => (i ? "L" : "M") + X(p[0]).toFixed(1) + " " +
+         Y(p[1]).toFixed(1)).join(" "),
+      fill: "none", stroke: s.colour, "stroke-width": s.dash ? 1.5 : 2,
+      "stroke-dasharray": s.dash || "", "stroke-linejoin": "round" }));
+    const last = g[g.length - 1];
+    const tx = el("text", { x: W - M.r + 6, y: Y(last[1]) + 4, class: "sm",
+      fill: s.colour });
+    tx.textContent = s.label || "";
+    svg.appendChild(tx);
+  });
+  const xl = el("text", { x: (M.l + W - M.r) / 2, y: H - 8,
+    "text-anchor": "middle", class: "sm" });
+  xl.textContent = o.xlabel || "";
+  svg.appendChild(xl);
+  const yl = el("text", { x: 14, y: 18, class: "sm" });
+  yl.textContent = o.ylabel || "";
+  svg.appendChild(yl);
+}
+
+(() => {
+  const D = DATA.design;
+  const rates = Object.keys(DATA.runs).map(Number).sort((a, b) => b - a);
+  const hi = DATA.runs[String(rates[0])], lo = DATA.runs[String(rates[1])];
+
+  $("d-index").textContent = D.index;
+  $("d-project").textContent = D.project;
+  $("d-author").textContent = D.author;
+  $("d-author2").textContent = D.author;
+  $("d-stages").textContent = D.stages.toLocaleString("en-US");
+  $("l-stages").textContent = D.stages.toLocaleString("en-US");
+  $("l-author").textContent = D.author;
+  const a = $("d-url"); a.href = D.url; a.textContent = "project " + D.index;
+
+  $("c-f0").textContent = fmt(hi.f0_hz / 1e6, 4) + " MHz";
+  $("c-cross").textContent = fmt(DATA.cross_check.max_abs_diff_db, 1) + " dB";
+  $("k-f0").textContent = fmt(hi.f0_hz / 1e6, 4) + " MHz";
+  $("k-duty").textContent = fmt(hi.duty * 100, 1) + " %";
+  $("k-n").textContent = hi.periods.toLocaleString("en-US");
+  $("k-ref").textContent = fmt(DATA.ref_clock_hz / 1e6, 0) + " MHz";
+
+  const seqs = [["reset, then ui_in = 0x02", "fast", DATA.modes.fast],
+                ["ui_in = 0x00, reset, ui_in = 0x02", "slow", DATA.modes.slow]];
+  const mr = $("mode-rows");
+  seqs.forEach(([seq, name, m]) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td><code>" + seq + "</code></td>" +
+      "<td>" + name + " — " + fmt(m.mean_hz / 1e6, name === "slow" ? 4 : 1) +
+      " MHz</td>" +
+      '<td class="n">' + m.as_expected + " / " + m.trials + "</td>";
+    mr.appendChild(tr);
+  });
+  $("alias-list").textContent = Object.entries(DATA.fast_mode_aliases)
+    .map(([r, v]) => fmt(v / 1e6, 1) + " MHz at " + fmt(Number(r) / 1e6, 0) + " MS/s")
+    .join(", ");
+
+  semilogxDb("chart-pn", [
+    { pts: hi.phase_noise, colour: "var(--gr07)", label: fmt(rates[0] / 1e6, 0) + " MS/s" },
+    { pts: lo.phase_noise, colour: "var(--gr06)", dash: "5 4", label: fmt(rates[1] / 1e6, 0) + " MS/s" },
+  ], { xlabel: "offset frequency  [Hz]", ylabel: "L(f)  [dBc/Hz]" });
+
+  const at = (run, f) => {
+    let best = null;
+    run.phase_noise.forEach((p) => {
+      if (best === null || Math.abs(Math.log(p[0] / f)) < Math.abs(Math.log(best[0] / f))) best = p;
+    });
+    return best;
+  };
+  const rows = $("pn-rows");
+  [100, 300, 1000, 3000, 10000, 30000].forEach((f) => {
+    const p1 = at(hi, f), p2 = at(lo, f);
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td>" + (f >= 1000 ? f / 1000 + " kHz" : f + " Hz") + "</td>" +
+      '<td class="n a">' + fmt(p1[1], 1) + " dBc/Hz</td>" +
+      '<td class="n b">' + fmt(p2[1], 1) + " dBc/Hz</td>" +
+      '<td class="n">' + fmt(p2[1] - p1[1], 1) + " dB</td>";
+    rows.appendChild(tr);
+  });
+
+  const d1 = at(hi, 1000)[1], d10 = at(hi, 10000)[1];
+  $("pn-note").innerHTML =
+    "Two timebases differing twofold agree to <b>" +
+    fmt(DATA.cross_check.max_abs_diff_db, 1) + " dB</b> from 100 Hz to 30 kHz " +
+    "over " + DATA.cross_check.points + " points. A quantisation artefact would " +
+    "have moved with the sample rate; this does not, which is the whole reason " +
+    "to believe the curve. The slope from 1 kHz to 10 kHz is " +
+    fmt((d10 - d1), 0) + " dB/decade — close to the −20 that thermal noise " +
+    "gives a free-running oscillator, steepening toward −30 closer in where " +
+    "flicker takes over. That shape was not fitted; it fell out.";
+
+  loglogChart("chart-adev", [
+    { pts: hi.allan, colour: "var(--gr07)", dots: true, label: "σ(τ)" },
+    { pts: hi.allan.map((p) => [p[0], hi.allan[0][1] * Math.sqrt(hi.allan[0][0] / p[0])]),
+      colour: "var(--ink-3)", dash: "6 4", label: "τ^-1/2" },
+  ], { xlabel: "averaging time τ  [s]", ylabel: "σ(τ)  [ppm]" });
+
+  const min = hi.allan.reduce((m, p) => (p[1] < m[1] ? p : m), hi.allan[0]);
+  $("adev-note").innerHTML =
+    "Following τ<sup>−1/2</sup> while white noise dominates, then flattening to " +
+    "<b>" + fmt(min[1], 1) + " ppm</b> at τ = " + fmt(min[0] * 1000, 0) + " ms. " +
+    "Beyond that it turns up, as every free-running oscillator eventually does.";
+
+  $("foot-1").textContent = D.project + " (" + D.index + ") by " + D.author +
+    " — measured on " + D.chip + ", " + hi.periods.toLocaleString("en-US") +
+    " periods at " + fmt(hi.f0_hz / 1e6, 4) + " MHz";
+})();
+</script>
