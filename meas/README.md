@@ -335,6 +335,7 @@ with the project's GitHub Pages site:
 |---|---|
 | [`presentation.html`](https://analogicus.com/jnw-tt-2025/presentation.html) | JNW-TEMP — our own two sensors, setup through noise floor |
 | [`ring-oscillator.html`](https://analogicus.com/jnw-tt-2025/ring-oscillator.html) | ttsky25a project 132, the Giant Ring Oscillator — **Uri Shaked's design**, our measurement |
+| [`pll778.html`](https://analogicus.com/jnw-tt-2025/pll778.html) | ttsky25a project 778, the 24 MHz MSSF PLL — **Nahwan Faza Assaify's design**, our measurement of its VCO trim and phase noise |
 
 (The `github.io` address redirects there — the site uses a custom domain.)
 

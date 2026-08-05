@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the standalone deck for ttsky25a project 132 (Uri Shaked's ring osc).
+"""Build a standalone per-design deck.
 
 The look is not copied: the stylesheet and the small SVG helpers are lifted out
 of docs/presentation.template.html at build time, so the per-design decks stay
@@ -18,9 +18,13 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 MAIN = os.path.join(ROOT, "docs", "presentation.template.html")
-BODY = os.path.join(ROOT, "docs", "ring-oscillator.body.html")
-DATA = os.path.join(ROOT, "data", "ring_data.json")
-OUT = os.path.join(ROOT, "docs", "ring-oscillator.html")
+
+#: deck name -> (body template, measured data, output page)
+DECKS = {
+    "ring": ("ring-oscillator.body.html", "ring_data.json",
+             "ring-oscillator.html"),
+    "pll778": ("pll778.body.html", "pll778_data.json", "pll778.html"),
+}
 
 
 def borrow(html, start, end, what):
@@ -32,8 +36,17 @@ def borrow(html, start, end, what):
 
 
 def main() -> None:
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("deck", nargs="?", default="ring", choices=sorted(DECKS))
+    args = ap.parse_args()
+    body_name, data_name, out_name = DECKS[args.deck]
+    global BODY, DATA, OUT
+    BODY = os.path.join(ROOT, "docs", body_name)
+    DATA = os.path.join(ROOT, "data", data_name)
+    OUT = os.path.join(ROOT, "docs", out_name)
     if not os.path.exists(DATA):
-        raise SystemExit("run scripts/ring_measure.py first")
+        raise SystemExit(f"{data_name} not found - run the measurement first")
     main_html = open(MAIN, encoding="utf-8").read()
     style = borrow(main_html, "<style>", "</style>", "the stylesheet")
     # the generic helpers: element creation, formatting, and the log-log frame

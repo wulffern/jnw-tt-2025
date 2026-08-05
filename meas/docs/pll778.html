@@ -1,0 +1,748 @@
+<title>MSSF PLL — VCO trim and phase noise, measured</title>
+<style>
+  /* ---------- tokens ---------------------------------------------------
+     The page is monochrome warm-grey. Colour appears ONLY where it encodes
+     a sensor: GR07 blue, GR06 orange, everywhere — diagram, charts, tables,
+     pills. Colour follows the entity, never the rank.                     */
+  :root {
+    color-scheme: light;
+    --ground:  #faf7f1;
+    --surface: #f3eee4;
+    --raised:  #ffffff;
+    --rule:    #ded5c4;
+    --rule-2:  #ebe4d6;
+    --ink:     #1b1811;
+    --ink-2:   #58513f;
+    --ink-3:   #857c68;
+    --gr07:    #2a78d6;
+    --gr06:    #d1521f;
+    --rate:    #1baf7a;
+    --gr07-15: rgba(42,120,214,.13);
+    --gr06-15: rgba(209,82,31,.13);
+    --shadow:  0 1px 2px rgba(27,24,17,.06), 0 8px 24px rgba(27,24,17,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --ground:  #17150f;
+      --surface: #1f1c15;
+      --raised:  #262219;
+      --rule:    #3a3428;
+      --rule-2:  #2c281e;
+      --ink:     #f6f2e9;
+      --ink-2:   #b9b0a0;
+      --ink-3:   #8b8272;
+      --gr07:    #3987e5;
+      --gr06:    #e0662f;
+      --rate:    #199e70;
+      --gr07-15: rgba(57,135,229,.16);
+      --gr06-15: rgba(224,102,47,.16);
+      --shadow:  0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.28);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ground:  #17150f;
+    --surface: #1f1c15;
+    --raised:  #262219;
+    --rule:    #3a3428;
+    --rule-2:  #2c281e;
+    --ink:     #f6f2e9;
+    --ink-2:   #b9b0a0;
+    --ink-3:   #8b8272;
+    --gr07:    #3987e5;
+    --gr06:    #e0662f;
+    --rate:    #199e70;
+    --gr07-15: rgba(57,135,229,.16);
+    --gr06-15: rgba(224,102,47,.16);
+    --shadow:  0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.28);
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --ground:  #faf7f1;
+    --surface: #f3eee4;
+    --raised:  #ffffff;
+    --rule:    #ded5c4;
+    --rule-2:  #ebe4d6;
+    --ink:     #1b1811;
+    --ink-2:   #58513f;
+    --ink-3:   #857c68;
+    --gr07:    #2a78d6;
+    --gr06:    #d1521f;
+    --rate:    #1baf7a;
+    --gr07-15: rgba(42,120,214,.13);
+    --gr06-15: rgba(209,82,31,.13);
+    --shadow:  0 1px 2px rgba(27,24,17,.06), 0 8px 24px rgba(27,24,17,.05);
+  }
+
+  /* ---------- type ------------------------------------------------------
+     Serif for prose and headings (a lab report, not a landing page); mono
+     ONLY where the content is a measurement or an identifier.            */
+  :root {
+    --serif: Charter, "Bitstream Charter", "Iowan Old Style", "Palatino Linotype",
+             Palatino, "Book Antiqua", Georgia, serif;
+    --mono:  ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
+             "Liberation Mono", monospace;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 28px; }
+
+  /* ---------- slides ---------------------------------------------------- */
+  .slide { padding: 84px 0; border-top: 1px solid var(--rule-2); position: relative; }
+  .slide:first-of-type { border-top: 0; }
+  .num {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .14em;
+    color: var(--ink-3); display: block; margin-bottom: 14px;
+  }
+  .num b { color: var(--ink-2); font-weight: 600; }
+  h1, h2, h3 { text-wrap: balance; margin: 0; font-weight: 600; }
+  h1 { font-size: clamp(2.6rem, 6vw, 4.1rem); line-height: 1.04; letter-spacing: -.02em; }
+  h2 { font-size: clamp(1.7rem, 3.4vw, 2.5rem); line-height: 1.12; letter-spacing: -.015em; }
+  h3 { font-size: 1.12rem; letter-spacing: -.005em; }
+  .lede { font-size: 1.22rem; color: var(--ink-2); max-width: 62ch; margin-top: 18px; }
+  p { max-width: 68ch; }
+  .slide > .wrap > p + p { margin-top: 14px; }
+  a { color: var(--gr07); }
+
+  /* ---------- cover ----------------------------------------------------- */
+  .cover { padding: 96px 0 78px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 12.5px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+  .cover h1 { margin-top: 20px; }
+  .cover .rule { height: 1px; background: var(--rule); margin: 34px 0 26px; }
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 10px 30px;
+    font-family: var(--mono); font-size: 12.5px; color: var(--ink-3);
+  }
+  .meta span b { color: var(--ink-2); font-weight: 600; }
+
+  /* ---------- shared bits ----------------------------------------------- */
+  .grid { display: grid; gap: 18px; margin-top: 30px; }
+  .g2 { grid-template-columns: repeat(2, 1fr); }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+  .cut { display: grid; gap: 14px; grid-template-columns: repeat(3, 1fr); margin-top: 22px; }
+  @media (max-width: 980px) { .cut { grid-template-columns: 1fr; } }
+  .cut h3 { font-size: .98rem; margin-bottom: 2px; }
+  .cut .rate { font-family: var(--mono); font-size: 1.5rem; font-weight: 600;
+               letter-spacing: -.02em; }
+  .cut .sub { font-size: .84rem; color: var(--ink-3); }
+  @media (max-width: 820px) { .g2, .g3 { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--rule);
+    border-radius: 10px; padding: 22px 24px;
+  }
+  .card h3 { margin-bottom: 8px; }
+  .card p { font-size: .96rem; color: var(--ink-2); margin: 0; }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--ink-2);
+  }
+  .dot { width: 9px; height: 9px; border-radius: 2px; flex: none; }
+  .dot.a { background: var(--gr07); }
+  .dot.b { background: var(--gr06); }
+  .dot.c { background: var(--rate); }
+
+  .stat { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .big { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 600; letter-spacing: -.02em; line-height: 1.1; }
+  .a { color: var(--gr07); } .b { color: var(--gr06); } .c { color: var(--rate); }
+
+  table { border-collapse: collapse; width: 100%; font-size: .93rem; }
+  .scroll { overflow-x: auto; margin-top: 26px; }
+  th, td { text-align: right; padding: 11px 14px; border-bottom: 1px solid var(--rule-2); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-3); font-weight: 500;
+    border-bottom: 1px solid var(--rule);
+  }
+  td.n { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  code, .k { font-family: var(--mono); font-size: .88em; color: var(--ink-2); }
+
+  /* A correction to something the deck previously asserted. Marked rather than
+     silently edited: the wrong version was published, so the retraction is part
+     of the result. */
+  .callout {
+    border-left: 3px solid var(--gr07);
+    background: var(--gr07-15);
+    padding: 16px 20px; border-radius: 0 8px 8px 0;
+  }
+
+  figure { margin: 30px 0 0; }
+  figcaption {
+    font-size: .88rem; color: var(--ink-3); margin-top: 12px; max-width: 70ch;
+  }
+  .chart { width: 100%; height: auto; display: block; }
+  .chartbox {
+    background: var(--surface); border: 1px solid var(--rule);
+    border-radius: 10px; padding: 18px 16px 10px;
+  }
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; padding: 0 6px 12px; }
+
+  /* ---------- the ask (input log) --------------------------------------- */
+  .asks { margin-top: 30px; border-top: 1px solid var(--rule-2); }
+  .ask {
+    display: grid; grid-template-columns: 46px 1fr; gap: 20px;
+    padding: 16px 0; border-bottom: 1px solid var(--rule-2); align-items: start;
+  }
+  .ask .i {
+    font-family: var(--mono); font-size: 12px; color: var(--ink-3);
+    padding-top: 4px; font-variant-numeric: tabular-nums;
+  }
+  .ask q { font-style: italic; color: var(--ink); quotes: "\201C" "\201D"; }
+  .ask .out { display: block; font-size: .92rem; color: var(--ink-3); margin-top: 5px; }
+  .ask .out::before { content: "→ "; color: var(--ink-3); }
+
+  /* ---------- corrections ------------------------------------------------ */
+  .fix { border-left: 2px solid var(--rule); padding: 2px 0 2px 20px; }
+  .fix + .fix { margin-top: 22px; }
+  .fix h3 { font-size: 1.04rem; }
+  .fix p { font-size: .96rem; color: var(--ink-2); margin: 6px 0 0; }
+  .steps { counter-reset: step; margin-top: 22px; }
+  .step {
+    display: grid; grid-template-columns: 30px 1fr; gap: 16px;
+    padding: 12px 0; border-bottom: 1px solid var(--rule-2); align-items: start;
+  }
+  .step:last-child { border-bottom: 0; }
+  .step::before {
+    counter-increment: step; content: counter(step);
+    font-family: var(--mono); font-size: 12px; color: var(--ink-3);
+    padding-top: 3px; font-variant-numeric: tabular-nums;
+  }
+  .step b { display: block; }
+  .step > div > span { display: block; font-size: .94rem; color: var(--ink-2); }
+  .keys { display: flex; flex-wrap: wrap; gap: 8px 10px; margin-top: 14px; }
+  .key {
+    font-family: var(--mono); font-size: 11.5px; color: var(--ink-2);
+    border: 1px solid var(--rule); border-radius: 5px; padding: 3px 8px;
+    background: var(--surface);
+  }
+  .key b { color: var(--ink); font-weight: 600; }
+  pre {
+    font-family: var(--mono); font-size: .84rem; line-height: 1.6;
+    background: var(--surface); border: 1px solid var(--rule);
+    border-radius: 8px; padding: 14px 16px; overflow-x: auto; margin: 16px 0 0;
+    color: var(--ink-2);
+  }
+  pre b { color: var(--ink); font-weight: 600; }
+  .fix .tag {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+
+  .foot {
+    padding: 40px 0 64px; color: var(--ink-3); font-size: .88rem;
+    border-top: 1px solid var(--rule-2);
+  }
+  .foot .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+
+  /* diagram + chart text inherits page ink */
+  svg text { font-family: var(--mono); fill: var(--ink-2); }
+  svg .lbl { font-size: 12.5px; }
+  svg .sm  { font-size: 10.5px; fill: var(--ink-3); }
+  svg .ttl { font-size: 13px; fill: var(--ink); font-family: var(--serif); font-weight: 600; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .chart .rise { transform-origin: center bottom; }
+  }
+</style>
+
+<!-- ═══════════════ 01 · cover ═══════════════ -->
+<section class="slide cover">
+  <div class="wrap">
+    <div class="eyebrow">Tiny Tapeout · ttsky25a · project <span id="d-index">—</span> · <span id="d-project">—</span></div>
+    <h1>A VCO trim that walks<br>cleanly across all 16 codes.</h1>
+    <p class="lede">
+      <b>Somebody else's design.</b> The 24 MHz MSSF PLL is by
+      <b><span id="d-author">—</span></b>; everything here is our measurement of
+      it. Its discrete VCO trim — the knob that compensates process variation —
+      spans <span class="stat" id="c-range">—</span> in
+      <span class="stat" id="c-codes">—</span> steps without a single code
+      inversion.
+    </p>
+    <div class="rule"></div>
+    <div class="meta">
+      <span><b>Design</b> <span id="d-author2">—</span></span>
+      <span><b>Source</b> <a id="d-url" href="#">tinytapeout.com</a></span>
+      <span><b>Instruments</b> Saleae Logic Pro 16 · TT demo board RP2350B</span>
+      <span><b>Measured &amp; written by</b> Claude Opus 5</span>
+      <span><b>Ideas</b> Carsten Wulff</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 02 · the trim ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>02</b> / The trim</span>
+    <h2>Sixteen codes, monotonic, evenly spaced</h2>
+    <p class="lede">
+      <code>ui_in[7:4]</code> selects one of 16 discrete VCO settings, there to
+      pull the oscillator back on target across process corners. A trim is only
+      useful if it is monotonic — a code inversion means a control loop can walk
+      the wrong way — so that is the first thing worth measuring, and it is
+      clean here.
+    </p>
+
+    <figure>
+      <div class="chartbox">
+        <div class="legend">
+          <span class="pill"><i class="dot a"></i>output frequency</span>
+          <span class="pill" style="margin-left:auto;color:var(--ink-3)">16 codes, 20 MHz reference</span>
+        </div>
+        <svg class="chart" id="chart-trim" viewBox="0 0 980 340" role="img"
+             aria-label="Output frequency against VCO trim code"></svg>
+      </div>
+      <figcaption id="trim-note"></figcaption>
+    </figure>
+
+    <div class="grid g3" style="margin-top:30px">
+      <div class="card">
+        <span class="pill">Tuning range</span>
+        <div class="big stat" id="k-range" style="margin-top:8px">—</div>
+        <p><span id="k-lo">—</span> to <span id="k-hi">—</span>. That is the
+           span available to absorb process variation.</p>
+      </div>
+      <div class="card">
+        <span class="pill">Step size</span>
+        <div class="big stat" id="k-lsb" style="margin-top:8px">—</div>
+        <p>Per code, averaged over the sixteen. The resolution the trim can
+           actually place the oscillator with.</p>
+      </div>
+      <div class="card">
+        <span class="pill">Monotonic</span>
+        <div class="big stat" id="k-mono" style="margin-top:8px">—</div>
+        <p>No code inversions anywhere in the range — every step moves the
+           frequency the same direction.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 03 · step uniformity ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>03</b> / Step uniformity</span>
+    <h2>How even the steps are</h2>
+    <p class="lede">
+      Borrowing the vocabulary of data converters, because it is the right one:
+      DNL is how much each individual step differs from the average step, and
+      INL is how far the whole curve bends away from a straight line. Both in
+      units of one step.
+    </p>
+
+    <figure>
+      <div class="chartbox">
+        <div class="legend">
+          <span class="pill"><i class="dot a"></i>DNL</span>
+          <span class="pill"><i class="dot b"></i>INL</span>
+          <span class="pill" style="margin-left:auto;color:var(--ink-3)">in units of one trim step</span>
+        </div>
+        <svg class="chart" id="chart-dnl" viewBox="0 0 980 320" role="img"
+             aria-label="Differential and integral nonlinearity of the VCO trim"></svg>
+      </div>
+      <figcaption id="dnl-note"></figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ═══════════════ 04 · phase noise ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>04</b> / Phase noise</span>
+    <h2>The output's own noise, and the band we trust</h2>
+    <p class="lede">
+      Single-sideband phase noise of <code>DFOUT_LF</code> at
+      <span class="stat" id="c-f0">—</span>, from the running sum of period
+      deviations. Measured twice at different sample rates, because the
+      analyser's own quantisation is the thing most likely to be mistaken for
+      the oscillator's noise.
+    </p>
+
+    <figure>
+      <div class="chartbox">
+        <div class="legend">
+          <span class="pill"><i class="dot a"></i>250 MS/s</span>
+          <span class="pill"><i class="dot b"></i>125 MS/s</span>
+          <span class="pill" style="margin-left:auto;color:var(--ink-3)">shaded: where the two agree</span>
+        </div>
+        <svg class="chart" id="chart-pn" viewBox="0 0 980 360" role="img"
+             aria-label="Phase noise measured at two sample rates"></svg>
+      </div>
+      <figcaption id="pn-note"></figcaption>
+    </figure>
+
+    <div class="scroll">
+      <table style="margin-top:26px">
+        <thead><tr><th>Offset</th><th class="a">250 MS/s</th><th class="b">125 MS/s</th><th>difference</th></tr></thead>
+        <tbody id="pn-rows"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 05 · limits ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>05</b> / What is not here</span>
+    <h2>The limits of this measurement</h2>
+    <p class="lede">
+      This deck covers the trim and the output noise. It says nothing about the
+      PLL as a loop, and that absence is deliberate.
+    </p>
+
+    <div class="grid g2">
+      <div class="card">
+        <span class="pill">Lock, loop bandwidth, the divider</span>
+        <p style="margin-top:10px">
+          Not reported. We did not find a configuration that brought the loop
+          into lock, and <code>ui_in[3:0]</code> — the integer divider select —
+          did not visibly move the output in our setup. A configuration we could
+          not find is a fact about us, not about the silicon, so there is no
+          measurement here to publish either way. The author will know the
+          sequence; we did not.
+        </p>
+      </div>
+      <div class="card">
+        <span class="pill">Above 20 kHz</span>
+        <p style="margin-top:10px">
+          The two timebases part company above about 20 kHz, where the slower
+          one flattens against its own 8 ns quantisation while the faster keeps
+          falling. That is an instrument floor rather than the oscillator, so
+          the shaded band stops there and the faster capture is the one to read
+          beyond it.
+        </p>
+      </div>
+    </div>
+
+    <p style="margin-top:30px">
+      <b>On attribution.</b> The design is
+      <span id="l-author">—</span>'s. The measurement, and any error in it, is
+      ours. The reference here must be 20 MHz — our first attempt ran it at 10
+      and produced numbers that meant nothing, which is worth saying because it
+      would have been easy to publish them.
+    </p>
+  </div>
+</section>
+
+<footer><span id="foot-1">—</span></footer>
+
+<script>
+const DATA = {"design":{"project":"tt_um_assaify_mssf_pll","index":778,"author":"Nahwan Faza Assaify","chip":"Tiny Tapeout ttsky25a","url":"https://tinytapeout.com/chips/ttsky25a/tt_um_assaify_mssf_pll","note":"measured by us; the design is not ours"},"ref_clock_hz":20000000,"trim":{"codes":[{"code":0,"f_hz":1908988.0670463662,"duty":0.5023281176884907,"jitter_ppm":9498.192498265227},{"code":1,"f_hz":1870499.7835548925,"duty":0.5022966066996378,"jitter_ppm":5957.448417236076},{"code":2,"f_hz":1836231.2222409602,"duty":0.502251068751018,"jitter_ppm":4341.55298265063},{"code":3,"f_hz":1806386.3320701465,"duty":0.5022132794061814,"jitter_ppm":3536.59579642482},{"code":4,"f_hz":1775360.637234792,"duty":0.5021721919377711,"jitter_ppm":2749.140343374933},{"code":5,"f_hz":1746420.1065079928,"duty":0.5021286010742279,"jitter_ppm":2787.50857084562},{"code":6,"f_hz":1717467.1771394166,"duty":0.5020954608917189,"jitter_ppm":3407.4030936967756},{"code":7,"f_hz":1690862.8931099514,"duty":0.5020595788955581,"jitter_ppm":2516.8735100395934},{"code":8,"f_hz":1663631.322148706,"duty":0.5020142396291118,"jitter_ppm":2966.9049179811855},{"code":9,"f_hz":1638467.056373312,"duty":0.5019834438959756,"jitter_ppm":3232.9604446658486},{"code":10,"f_hz":1613915.2293412474,"duty":0.50194871425636,"jitter_ppm":1925.0021251540716},{"code":11,"f_hz":1590558.5470643223,"duty":0.5019286076227697,"jitter_ppm":2430.9559055999853},{"code":12,"f_hz":1567880.561809629,"duty":0.5019104480743476,"jitter_ppm":3120.6280858180226},{"code":13,"f_hz":1544716.1895512124,"duty":0.5018890142440832,"jitter_ppm":2253.530455538502},{"code":14,"f_hz":1523190.5762754404,"duty":0.5018777449925796,"jitter_ppm":2045.3185768641697},{"code":15,"f_hz":1500656.0527321754,"duty":0.5018375714619991,"jitter_ppm":2948.0307533997393}],"range_hz":[1500656.0527321754,1908988.0670463662],"range_pct":24.201726766099878,"lsb_hz":27222.134287612713,"lsb_pct":1.6134484510733251,"monotonic":true,"dnl_lsb":[-0.20926063150136331,0.41385987905391874],"inl_lsb":[-0.3738986132461495,0.7677913403715351],"dnl":[0.4139,0.2588,0.0963,0.1397,0.0631,0.0636,-0.0227,0.0003,-0.0756,-0.0981,-0.142,-0.1669,-0.1491,-0.2093,-0.1722],"inl":[0.7678,0.3379,0.0629,-0.0495,-0.2053,-0.2845,-0.3641,-0.3575,-0.3739,-0.3144,-0.2323,-0.1064,0.0444,0.1774,0.3706,0.5267]},"runs":{"250000000":{"sample_rate_hz":250000000,"periods":1921089,"f0_hz":1908432.1406361868,"duty":0.5023354212443172,"phase_noise":[[116.4815,-34.73],[174.7222,-42.35],[232.9629,-46.24],[291.2036,-49.5],[349.4444,-51.27],[407.6851,-53.14],[465.9258,-54.36],[524.1665,-55.64],[582.4073,-56.58],[640.648,-57.4],[698.8887,-58.2],[757.1295,-58.46],[843.9883,-59.58],[931.8516,-60.68],[1018.7966,-61.95],[1135.3208,-62.7],[1251.837,-64.46],[1368.3473,-64.66],[1513.5119,-65.09],[1688.3114,-66.41],[1863.0964,-66.9],[2037.8706,-68.57],[2241.3221,-69.18],[2474.3741,-70.69],[2707.4107,-71.4],[2969.1346,-72.16],[3289.097,-73.36],[3638.6859,-73.97],[4016.9211,-75.08],[4424.7619,-76.26],[4861.2689,-77.17],[5356.0357,-78.07],[5909.0656,-78.98],[6520.3601,-79.89],[7161.2409,-80.8],[7888.1242,-81.41],[8703.8219,-82.6],[9576.8359,-83.56],[10566.3711,-84.55],[11643.7752,-85.31],[12808.1042,-86.04],[14117.6192,-86.83],[15544.6,-87.6],[17115.8367,-88.27],[18862.8018,-89.21],[20783.6151,-89.94],[22908.8226,-90.72],[25237.481,-91.48],[27799.1931,-92.08],[30622.6212,-92.5],[33737.3666,-93.03],[37172.0909,-93.54],[40956.3965,-93.99],[45118.9445,-94.52],[49717.9981,-95.2],[54783.1604,-96.06],[60343.0916,-96.96],[66484.7173,-97.65],[73267.2422,-93.8],[80719.3266,-98.94],[88927.896,-99.68],[97980.8159,-99.7],[107936.3495,-99.36],[118910.0839,-98.24],[131019.4862,-95.99],[144351.4815,-94.8],[159051.2578,-97.03],[175236.2835,-98.88],[193050.8061,-99.78],[212699.2179,-100.22],[234327.648,-101.06],[258167.2696,-101.54],[284453.0179,-102.02],[313387.4038,-102.75],[345261.7451,-103.46],[380396.0205,-103.92],[419111.15,-104.01],[461755.7736,-104.07],[508737.7361,-104.05],[560493.5433,-103.89],[617489.3031,-103.16],[680305.7696,-101.81],[749527.459,-99.78],[825792.4477,-97.55],[909830.4408,-96.32]],"allan":[[1e-06,13095.589],[1e-06,1369.348],[2e-06,4217.096],[3e-06,754.087],[5e-06,579.482],[9e-06,327.466],[1.6e-05,416.447],[2.8e-05,94.971],[5e-05,114.558],[8.8e-05,65.051],[0.000155,38.232],[0.000273,32.682],[0.000483,22.086],[0.000853,17.022],[0.001505,14.151],[0.002659,12.515],[0.004695,11.306],[0.008293,10.727],[0.014646,10.274],[0.025866,9.078],[0.045682,9.431],[0.08068,8.362],[0.142492,8.872],[0.251658,8.716]]},"125000000":{"sample_rate_hz":125000000,"periods":1921077,"f0_hz":1908419.2035233576,"duty":0.5023268779118876,"phase_noise":[[174.721,-41.92],[232.9613,-45.75],[291.2017,-49.16],[349.442,-51.29],[407.6823,-53.08],[465.9227,-54.71],[524.163,-55.8],[582.4033,-56.41],[640.6437,-56.95],[698.884,-57.79],[757.1243,-58.98],[843.9826,-60.35],[931.8453,-61.86],[1018.7897,-62.12],[1135.3131,-62.58],[1251.8285,-63.96],[1368.338,-63.94],[1513.5016,-65.52],[1688.2999,-66.75],[1863.0838,-68.88],[2037.8568,-68.94],[2241.3069,-69.2],[2474.3573,-70.46],[2707.3924,-71.13],[2969.1144,-71.86],[3289.0747,-73.2],[3638.6612,-74.29],[4016.8939,-75.49],[4424.7319,-75.92],[4861.236,-77.23],[5355.9993,-77.51],[5909.0256,-78.87],[6520.3159,-79.6],[7161.1924,-80.6],[7888.0707,-81.56],[8703.7629,-82.17],[9576.771,-83.26],[10566.2994,-83.93],[11643.6963,-84.57],[12808.0173,-85.2],[14117.5235,-85.87],[15544.4947,-86.71],[17115.7206,-86.89],[18862.6739,-87.26],[20783.4742,-87.29],[22908.6673,-86.85],[25237.3099,-86.27],[27799.0047,-85.36],[30622.4136,-83.36],[33737.1379,-82.27],[37171.8389,-82.06],[40956.1188,-83.87],[45118.6386,-86.44],[49717.6611,-88.54],[54782.789,-90.58],[60342.6825,-92.0],[66484.2666,-93.05],[73266.7455,-91.48],[80718.7794,-94.11],[88927.2932,-94.2],[97980.1517,-93.15],[107935.6178,-89.65],[118909.2778,-92.44],[131018.5981,-93.3],[144350.5029,-93.12],[159050.1796,-94.75],[175235.0956,-95.87],[193049.4974,-96.75],[212697.776,-97.56],[234326.0595,-98.22],[258165.5195,-98.63],[284451.0896,-99.27],[313385.2794,-99.78],[345259.4045,-100.29],[380393.4418,-100.7],[419108.3089,-100.97],[461752.6434,-101.06],[508734.2874,-101.09],[560489.7437,-100.77],[617485.1172,-100.19],[680301.1579,-99.03],[749522.378,-96.89],[825786.8497,-94.31],[909824.2732,-90.59]],"allan":[[1e-06,14750.554],[1e-06,1933.84],[2e-06,4693.26],[3e-06,1132.926],[5e-06,901.829],[9e-06,490.672],[1.6e-05,479.937],[2.8e-05,137.36],[5e-05,131.183],[8.8e-05,77.212],[0.000155,43.067],[0.000273,34.883],[0.000483,22.603],[0.000853,17.664],[0.001505,14.848],[0.002659,13.245],[0.004696,11.508],[0.008293,10.181],[0.014646,8.664],[0.025866,7.503],[0.045682,6.435],[0.08068,6.013],[0.142492,4.892],[0.251658,3.795]]}},"cross_check":{"band_hz":[300,20000],"max_abs_diff_db":1.9799999999999898,"median_abs_diff_db":0.3500000000000014,"points":41,"note":"above 20 kHz the coarser timebase reaches its own floor; trust the faster capture there"}};
+/* ---------- helpers ---------- */
+const $ = (id) => document.getElementById(id);
+const mK = (c) => (c * 1000);
+const fmt = (v, d = 2) => v.toFixed(d);
+const SVGNS = "http://www.w3.org/2000/svg";
+const el = (n, a = {}) => {
+  const e = document.createElementNS(SVGNS, n);
+  for (const k in a) e.setAttribute(k, a[k]);
+  return e;
+};
+
+
+/* ---------- log-log frame shared by the two noise charts ---------- */
+function loglogChart(svgId, series, opts) {
+  const svg = $(svgId);
+  if (!svg || !series.length) return;
+  const o = opts || {};
+  const W = 980, H = +svg.getAttribute("viewBox").split(" ")[3];
+  const M = { t: 18, r: 92, b: 48, l: 74 };
+  // Only the curve series carry points; an instrument floor is a single level
+  // with no x extent, so it sets the y range but never the x range. Reading
+  // s.pts off a floor series yields undefined and throws on p[0].
+  const curves = series.filter((s) => s.pts && s.pts.length);
+  const pts = curves.flatMap((s) => s.pts).filter((p) => p[0] > 0 && p[1] > 0);
+  if (!pts.length) return;
+  const lx = pts.map((p) => Math.log10(p[0])), ly = pts.map((p) => Math.log10(p[1]));
+  series.forEach((s) => {            // keep the dashed floors on-screen
+    if (s.flat > 0) ly.push(Math.log10(s.flat));
+  });
+  const x0 = Math.min(...lx), x1 = Math.max(...lx);
+  let y0 = Math.min(...ly), y1 = Math.max(...ly);
+  const pad = (y1 - y0) * 0.12 || 0.3; y0 -= pad; y1 += pad;
+  const X = (v) => M.l + (Math.log10(v) - x0) / (x1 - x0) * (W - M.l - M.r);
+  const Y = (v) => M.t + (1 - (Math.log10(v) - y0) / (y1 - y0)) * (H - M.t - M.b);
+
+  for (let d = Math.floor(y0); d <= Math.ceil(y1); d++) {
+    for (const m of [1, 2, 5]) {
+      const v = Math.pow(10, d) * m, y = Y(v);
+      if (y < M.t || y > H - M.b) continue;
+      svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: y, y2: y,
+        stroke: "var(--rule)", "stroke-width": .6, opacity: m === 1 ? .75 : .35 }));
+      const tx = el("text", { x: M.l - 9, y: y + 4, "text-anchor": "end", class: "sm" });
+      tx.textContent = v >= 1 ? String(v) : v.toFixed(v < 0.1 ? 2 : 1);
+      svg.appendChild(tx);
+    }
+  }
+  for (let d = Math.floor(x0); d <= Math.ceil(x1); d++) {
+    const v = Math.pow(10, d), x = X(v);
+    if (x < M.l || x > W - M.r) continue;
+    svg.appendChild(el("line", { x1: x, x2: x, y1: M.t, y2: H - M.b,
+      stroke: "var(--rule)", "stroke-width": .6, opacity: .5 }));
+    const tx = el("text", { x, y: H - M.b + 20, "text-anchor": "middle", class: "sm" });
+    tx.textContent = v >= 1 ? String(v) : String(v);
+    svg.appendChild(tx);
+  }
+  svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: H - M.b, y2: H - M.b,
+    stroke: "var(--rule)" }));
+
+  series.forEach((s) => {
+    if (s.flat !== undefined) {                 // a horizontal instrument floor
+      const y = Y(s.flat);
+      svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: y, y2: y,
+        stroke: s.colour, "stroke-width": 1.3, "stroke-dasharray": "7 4",
+        opacity: .9 }));
+      const tx = el("text", { x: W - M.r + 6, y: y + 4, class: "sm", fill: s.colour });
+      tx.textContent = s.label;
+      svg.appendChild(tx);
+      return;
+    }
+    const good = (s.pts || []).filter((p) => p[0] > 0 && p[1] > 0);
+    if (!good.length) return;
+    const d = good.map((p, i) => (i ? "L" : "M") + X(p[0]).toFixed(1) + " " +
+      Y(p[1]).toFixed(1)).join(" ");
+    svg.appendChild(el("path", { d, fill: "none", stroke: s.colour,
+      "stroke-width": s.dash ? 1.4 : 2, "stroke-dasharray": s.dash || "",
+      "stroke-linejoin": "round", "stroke-linecap": "round",
+      opacity: s.dash ? .8 : 1 }));
+    if (s.dots) {
+      good.forEach((p) => svg.appendChild(el("circle", {
+        cx: X(p[0]), cy: Y(p[1]), r: 2.6, fill: s.colour })));
+    }
+    if (s.label) {
+      const last = good[good.length - 1];
+      const tx = el("text", { x: W - M.r + 6, y: Y(last[1]) + 4, class: "sm",
+        fill: s.colour });
+      tx.textContent = s.label;
+      svg.appendChild(tx);
+    }
+  });
+
+  const xl = el("text", { x: (M.l + W - M.r) / 2, y: H - 8, "text-anchor": "middle",
+    class: "sm" });
+  xl.textContent = o.xlabel || "";
+  svg.appendChild(xl);
+  const yl = el("text", { x: 14, y: 18, class: "sm" });
+  yl.textContent = o.ylabel || "";
+  svg.appendChild(yl);
+}
+
+
+
+function semilogxDb(svgId, series, opts) {
+  const svg = $(svgId);
+  if (!svg || !series.length) return;
+  const o = opts || {};
+  const W = 980, H = +svg.getAttribute("viewBox").split(" ")[3];
+  const M = { t: 18, r: 96, b: 48, l: 74 };
+  const pts = series.flatMap((s) => s.pts).filter((p) => p[0] > 0);
+  if (!pts.length) return;
+  const lx = pts.map((p) => Math.log10(p[0])), ys = pts.map((p) => p[1]);
+  const x0 = Math.min(...lx), x1 = Math.max(...lx);
+  let y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const pad = (y1 - y0) * 0.1 || 5; y0 -= pad; y1 += pad;
+  const X = (v) => M.l + (Math.log10(v) - x0) / (x1 - x0) * (W - M.l - M.r);
+  const Y = (v) => M.t + (1 - (v - y0) / (y1 - y0)) * (H - M.t - M.b);
+  if (o.shade) {
+    const a = X(Math.max(o.shade[0], Math.pow(10, x0)));
+    const b2 = X(Math.min(o.shade[1], Math.pow(10, x1)));
+    svg.appendChild(el("rect", { x: a, y: M.t, width: Math.max(b2 - a, 0),
+      height: H - M.t - M.b, fill: "var(--ink-3)", opacity: .07 }));
+  }
+  const step = Math.max(10, Math.round((y1 - y0) / 6 / 10) * 10);
+  for (let v = Math.ceil(y0 / step) * step; v <= y1; v += step) {
+    const y = Y(v);
+    svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: y, y2: y,
+      stroke: "var(--rule)", "stroke-width": .6, opacity: .7 }));
+    const tx = el("text", { x: M.l - 9, y: y + 4, "text-anchor": "end", class: "sm" });
+    tx.textContent = v; svg.appendChild(tx);
+  }
+  for (let d = Math.floor(x0); d <= Math.ceil(x1); d++) {
+    const v = Math.pow(10, d), x = X(v);
+    if (x < M.l || x > W - M.r) continue;
+    svg.appendChild(el("line", { x1: x, x2: x, y1: M.t, y2: H - M.b,
+      stroke: "var(--rule)", "stroke-width": .6, opacity: .5 }));
+    const tx = el("text", { x, y: H - M.b + 20, "text-anchor": "middle", class: "sm" });
+    tx.textContent = v >= 1000 ? (v / 1000) + "k" : String(v);
+    svg.appendChild(tx);
+  }
+  svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: H - M.b, y2: H - M.b,
+    stroke: "var(--rule)" }));
+  series.forEach((s) => {
+    const g = s.pts.filter((p) => p[0] > 0);
+    if (!g.length) return;
+    svg.appendChild(el("path", {
+      d: g.map((p, i) => (i ? "L" : "M") + X(p[0]).toFixed(1) + " " +
+         Y(p[1]).toFixed(1)).join(" "),
+      fill: "none", stroke: s.colour, "stroke-width": s.dash ? 1.5 : 2,
+      "stroke-dasharray": s.dash || "", "stroke-linejoin": "round" }));
+    const last = g[g.length - 1];
+    const tx = el("text", { x: W - M.r + 6, y: Y(last[1]) + 4, class: "sm",
+      fill: s.colour });
+    tx.textContent = s.label || ""; svg.appendChild(tx);
+  });
+  const xl = el("text", { x: (M.l + W - M.r) / 2, y: H - 8,
+    "text-anchor": "middle", class: "sm" });
+  xl.textContent = o.xlabel || ""; svg.appendChild(xl);
+  const yl = el("text", { x: 14, y: 18, class: "sm" });
+  yl.textContent = o.ylabel || ""; svg.appendChild(yl);
+}
+
+/* Linear x, linear y: the trim curve and its DNL/INL. */
+function linChart(svgId, series, opts) {
+  const svg = $(svgId);
+  if (!svg || !series.length) return;
+  const o = opts || {};
+  const W = 980, H = +svg.getAttribute("viewBox").split(" ")[3];
+  const M = { t: 18, r: 92, b: 48, l: 78 };
+  const pts = series.flatMap((s) => s.pts);
+  const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs);
+  let y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const pad = (y1 - y0) * 0.12 || 1; y0 -= pad; y1 += pad;
+  const X = (v) => M.l + (v - x0) / (x1 - x0 || 1) * (W - M.l - M.r);
+  const Y = (v) => M.t + (1 - (v - y0) / (y1 - y0 || 1)) * (H - M.t - M.b);
+  const raw = (y1 - y0) / 6;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const st = [1, 2, 5, 10].map((m) => m * mag).find((v) => v >= raw) || mag;
+  for (let v = Math.ceil(y0 / st) * st; v <= y1; v += st) {
+    const y = Y(v), zero = Math.abs(v) < st / 100;
+    svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: y, y2: y,
+      stroke: zero ? "var(--ink-3)" : "var(--rule)",
+      "stroke-width": zero ? 1 : .6, opacity: zero ? .8 : .7 }));
+    const tx = el("text", { x: M.l - 9, y: y + 4, "text-anchor": "end", class: "sm" });
+    tx.textContent = (Math.abs(v) < 1e-9 ? 0 : v).toFixed(st < 1 ? 2 : 0);
+    svg.appendChild(tx);
+  }
+  for (let v = Math.ceil(x0); v <= x1; v += (x1 - x0 > 20 ? 4 : 2)) {
+    const x = X(v);
+    svg.appendChild(el("line", { x1: x, x2: x, y1: H - M.b, y2: H - M.b + 5,
+      stroke: "var(--rule)" }));
+    const tx = el("text", { x, y: H - M.b + 20, "text-anchor": "middle", class: "sm" });
+    tx.textContent = v; svg.appendChild(tx);
+  }
+  svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: H - M.b, y2: H - M.b,
+    stroke: "var(--rule)" }));
+  series.forEach((s) => {
+    if (s.bars) {
+      const bw = (W - M.l - M.r) / (x1 - x0 + 2) * .7;
+      s.pts.forEach((p) => svg.appendChild(el("rect", {
+        x: X(p[0]) - bw / 2, y: Math.min(Y(p[1]), Y(0)),
+        width: bw, height: Math.abs(Y(p[1]) - Y(0)), fill: s.colour })));
+    } else {
+      svg.appendChild(el("path", {
+        d: s.pts.map((p, i) => (i ? "L" : "M") + X(p[0]).toFixed(1) + " " +
+           Y(p[1]).toFixed(1)).join(" "),
+        fill: "none", stroke: s.colour, "stroke-width": 2,
+        "stroke-linejoin": "round" }));
+      s.pts.forEach((p) => svg.appendChild(el("circle", {
+        cx: X(p[0]), cy: Y(p[1]), r: 3.4, fill: s.colour })));
+    }
+    if (s.label) {
+      const last = s.pts[s.pts.length - 1];
+      const tx = el("text", { x: W - M.r + 6, y: Y(last[1]) + 4, class: "sm",
+        fill: s.colour });
+      tx.textContent = s.label; svg.appendChild(tx);
+    }
+  });
+  const xl = el("text", { x: (M.l + W - M.r) / 2, y: H - 8,
+    "text-anchor": "middle", class: "sm" });
+  xl.textContent = o.xlabel || ""; svg.appendChild(xl);
+  const yl = el("text", { x: 14, y: 18, class: "sm" });
+  yl.textContent = o.ylabel || ""; svg.appendChild(yl);
+}
+
+(() => {
+  const D = DATA.design, T = DATA.trim;
+  const rates = Object.keys(DATA.runs).map(Number).sort((a, b) => b - a);
+  const hi = DATA.runs[String(rates[0])], lo = DATA.runs[String(rates[1])];
+
+  $("d-index").textContent = D.index;
+  $("d-project").textContent = D.project;
+  $("d-author").textContent = D.author;
+  $("d-author2").textContent = D.author;
+  $("l-author").textContent = D.author;
+  const a = $("d-url"); a.href = D.url; a.textContent = "project " + D.index;
+
+  $("c-range").textContent = fmt(T.range_pct, 1) + " %";
+  $("c-codes").textContent = T.codes.length + " monotonic";
+  $("k-range").textContent = fmt(T.range_pct, 1) + " %";
+  $("k-lo").textContent = fmt(T.range_hz[0] / 1e6, 4) + " MHz";
+  $("k-hi").textContent = fmt(T.range_hz[1] / 1e6, 4) + " MHz";
+  $("k-lsb").textContent = fmt(T.lsb_hz / 1e3, 1) + " kHz";
+  $("k-mono").textContent = T.monotonic ? "yes" : "NO";
+  $("c-f0").textContent = fmt(hi.f0_hz / 1e6, 4) + " MHz";
+
+  linChart("chart-trim", [{ pts: T.codes.map((c) => [c.code, c.f_hz / 1e6]),
+                            colour: "var(--gr07)" }],
+           { xlabel: "VCO trim code (ui_in[7:4])", ylabel: "MHz" });
+  $("trim-note").innerHTML =
+    "Every step moves the same way — <b>" + (T.monotonic ? "monotonic over all " +
+    T.codes.length + " codes" : "NOT monotonic") + "</b> — spanning " +
+    fmt(T.range_hz[0] / 1e6, 4) + " to " + fmt(T.range_hz[1] / 1e6, 4) +
+    " MHz, or " + fmt(T.range_pct, 1) + " %. Each code is worth about " +
+    fmt(T.lsb_pct, 2) + " % of the output frequency. Measured at the specified " +
+    fmt(DATA.ref_clock_hz / 1e6, 0) + " MHz reference.";
+
+  linChart("chart-dnl", [
+    { pts: T.dnl.map((v, i) => [i + 1, v]), colour: "var(--gr07)", bars: true },
+    { pts: T.inl.map((v, i) => [i, v]), colour: "var(--gr06)", label: "INL" },
+  ], { xlabel: "code", ylabel: "LSB" });
+  $("dnl-note").innerHTML =
+    "Bars are DNL, the line is INL. DNL stays within <b>" +
+    fmt(T.dnl_lsb[0], 2) + " / " + fmt(T.dnl_lsb[1], 2) +
+    " LSB</b> and INL within " + fmt(T.inl_lsb[0], 2) + " / " +
+    fmt(T.inl_lsb[1], 2) + " LSB. Nothing approaches the −1 LSB that would mean " +
+    "a step went backwards, which is the failure a trim has to avoid.";
+
+  semilogxDb("chart-pn", [
+    { pts: hi.phase_noise, colour: "var(--gr07)", label: fmt(rates[0] / 1e6, 0) + " MS/s" },
+    { pts: lo.phase_noise, colour: "var(--gr06)", dash: "5 4", label: fmt(rates[1] / 1e6, 0) + " MS/s" },
+  ], { xlabel: "offset frequency  [Hz]", ylabel: "L(f)  [dBc/Hz]",
+       shade: DATA.cross_check.band_hz });
+
+  const at = (run, f) => run.phase_noise.reduce((b, p) =>
+    (b === null || Math.abs(Math.log(p[0] / f)) < Math.abs(Math.log(b[0] / f)) ? p : b), null);
+  const rows = $("pn-rows");
+  [300, 1000, 3000, 10000, 20000].forEach((f) => {
+    const p1 = at(hi, f), p2 = at(lo, f);
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td>" + (f >= 1000 ? f / 1000 + " kHz" : f + " Hz") + "</td>" +
+      '<td class="n a">' + fmt(p1[1], 1) + " dBc/Hz</td>" +
+      '<td class="n b">' + fmt(p2[1], 1) + " dBc/Hz</td>" +
+      '<td class="n">' + fmt(p2[1] - p1[1], 1) + " dB</td>";
+    rows.appendChild(tr);
+  });
+  const d1 = at(hi, 1000)[1], d10 = at(hi, 10000)[1];
+  $("pn-note").innerHTML =
+    "Across the shaded band, " + fmt(DATA.cross_check.band_hz[0], 0) + " Hz to " +
+    fmt(DATA.cross_check.band_hz[1] / 1000, 0) + " kHz, two timebases differing " +
+    "twofold agree to a median of <b>" +
+    fmt(DATA.cross_check.median_abs_diff_db, 2) + " dB</b> over " +
+    DATA.cross_check.points + " points, worst case " +
+    fmt(DATA.cross_check.max_abs_diff_db, 1) + " dB. The slope from 1 to 10 kHz " +
+    "is " + fmt(d10 - d1, 0) + " dB/decade, close to the −20 that thermal noise " +
+    "gives a free-running oscillator.";
+
+  $("foot-1").textContent = D.project + " (" + D.index + ") by " + D.author +
+    " — measured on " + D.chip + ", trim " + fmt(T.range_pct, 1) +
+    " % over " + T.codes.length + " monotonic codes";
+})();
+</script>

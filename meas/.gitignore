@@ -30,6 +30,7 @@ dist/
 # Reduced results for the per-design decks: a few kB, and the deck cannot be
 # rebuilt without them since the raw captures stay local.
 !data/ring_data.json
+!data/pll778_data.json
 
 # Regenerated from data/ by the analysis scripts.
 data/deck_data.json

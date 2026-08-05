@@ -1,0 +1,388 @@
+<title>MSSF PLL — VCO trim and phase noise, measured</title>
+__STYLE__
+
+<!-- ═══════════════ 01 · cover ═══════════════ -->
+<section class="slide cover">
+  <div class="wrap">
+    <div class="eyebrow">Tiny Tapeout · ttsky25a · project <span id="d-index">—</span> · <span id="d-project">—</span></div>
+    <h1>A VCO trim that walks<br>cleanly across all 16 codes.</h1>
+    <p class="lede">
+      <b>Somebody else's design.</b> The 24 MHz MSSF PLL is by
+      <b><span id="d-author">—</span></b>; everything here is our measurement of
+      it. Its discrete VCO trim — the knob that compensates process variation —
+      spans <span class="stat" id="c-range">—</span> in
+      <span class="stat" id="c-codes">—</span> steps without a single code
+      inversion.
+    </p>
+    <div class="rule"></div>
+    <div class="meta">
+      <span><b>Design</b> <span id="d-author2">—</span></span>
+      <span><b>Source</b> <a id="d-url" href="#">tinytapeout.com</a></span>
+      <span><b>Instruments</b> Saleae Logic Pro 16 · TT demo board RP2350B</span>
+      <span><b>Measured &amp; written by</b> Claude Opus 5</span>
+      <span><b>Ideas</b> Carsten Wulff</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 02 · the trim ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>02</b> / The trim</span>
+    <h2>Sixteen codes, monotonic, evenly spaced</h2>
+    <p class="lede">
+      <code>ui_in[7:4]</code> selects one of 16 discrete VCO settings, there to
+      pull the oscillator back on target across process corners. A trim is only
+      useful if it is monotonic — a code inversion means a control loop can walk
+      the wrong way — so that is the first thing worth measuring, and it is
+      clean here.
+    </p>
+
+    <figure>
+      <div class="chartbox">
+        <div class="legend">
+          <span class="pill"><i class="dot a"></i>output frequency</span>
+          <span class="pill" style="margin-left:auto;color:var(--ink-3)">16 codes, 20 MHz reference</span>
+        </div>
+        <svg class="chart" id="chart-trim" viewBox="0 0 980 340" role="img"
+             aria-label="Output frequency against VCO trim code"></svg>
+      </div>
+      <figcaption id="trim-note"></figcaption>
+    </figure>
+
+    <div class="grid g3" style="margin-top:30px">
+      <div class="card">
+        <span class="pill">Tuning range</span>
+        <div class="big stat" id="k-range" style="margin-top:8px">—</div>
+        <p><span id="k-lo">—</span> to <span id="k-hi">—</span>. That is the
+           span available to absorb process variation.</p>
+      </div>
+      <div class="card">
+        <span class="pill">Step size</span>
+        <div class="big stat" id="k-lsb" style="margin-top:8px">—</div>
+        <p>Per code, averaged over the sixteen. The resolution the trim can
+           actually place the oscillator with.</p>
+      </div>
+      <div class="card">
+        <span class="pill">Monotonic</span>
+        <div class="big stat" id="k-mono" style="margin-top:8px">—</div>
+        <p>No code inversions anywhere in the range — every step moves the
+           frequency the same direction.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 03 · step uniformity ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>03</b> / Step uniformity</span>
+    <h2>How even the steps are</h2>
+    <p class="lede">
+      Borrowing the vocabulary of data converters, because it is the right one:
+      DNL is how much each individual step differs from the average step, and
+      INL is how far the whole curve bends away from a straight line. Both in
+      units of one step.
+    </p>
+
+    <figure>
+      <div class="chartbox">
+        <div class="legend">
+          <span class="pill"><i class="dot a"></i>DNL</span>
+          <span class="pill"><i class="dot b"></i>INL</span>
+          <span class="pill" style="margin-left:auto;color:var(--ink-3)">in units of one trim step</span>
+        </div>
+        <svg class="chart" id="chart-dnl" viewBox="0 0 980 320" role="img"
+             aria-label="Differential and integral nonlinearity of the VCO trim"></svg>
+      </div>
+      <figcaption id="dnl-note"></figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ═══════════════ 04 · phase noise ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>04</b> / Phase noise</span>
+    <h2>The output's own noise, and the band we trust</h2>
+    <p class="lede">
+      Single-sideband phase noise of <code>DFOUT_LF</code> at
+      <span class="stat" id="c-f0">—</span>, from the running sum of period
+      deviations. Measured twice at different sample rates, because the
+      analyser's own quantisation is the thing most likely to be mistaken for
+      the oscillator's noise.
+    </p>
+
+    <figure>
+      <div class="chartbox">
+        <div class="legend">
+          <span class="pill"><i class="dot a"></i>250 MS/s</span>
+          <span class="pill"><i class="dot b"></i>125 MS/s</span>
+          <span class="pill" style="margin-left:auto;color:var(--ink-3)">shaded: where the two agree</span>
+        </div>
+        <svg class="chart" id="chart-pn" viewBox="0 0 980 360" role="img"
+             aria-label="Phase noise measured at two sample rates"></svg>
+      </div>
+      <figcaption id="pn-note"></figcaption>
+    </figure>
+
+    <div class="scroll">
+      <table style="margin-top:26px">
+        <thead><tr><th>Offset</th><th class="a">250 MS/s</th><th class="b">125 MS/s</th><th>difference</th></tr></thead>
+        <tbody id="pn-rows"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 05 · limits ═══════════════ -->
+<section class="slide">
+  <div class="wrap">
+    <span class="num"><b>05</b> / What is not here</span>
+    <h2>The limits of this measurement</h2>
+    <p class="lede">
+      This deck covers the trim and the output noise. It says nothing about the
+      PLL as a loop, and that absence is deliberate.
+    </p>
+
+    <div class="grid g2">
+      <div class="card">
+        <span class="pill">Lock, loop bandwidth, the divider</span>
+        <p style="margin-top:10px">
+          Not reported. We did not find a configuration that brought the loop
+          into lock, and <code>ui_in[3:0]</code> — the integer divider select —
+          did not visibly move the output in our setup. A configuration we could
+          not find is a fact about us, not about the silicon, so there is no
+          measurement here to publish either way. The author will know the
+          sequence; we did not.
+        </p>
+      </div>
+      <div class="card">
+        <span class="pill">Above 20 kHz</span>
+        <p style="margin-top:10px">
+          The two timebases part company above about 20 kHz, where the slower
+          one flattens against its own 8 ns quantisation while the faster keeps
+          falling. That is an instrument floor rather than the oscillator, so
+          the shaded band stops there and the faster capture is the one to read
+          beyond it.
+        </p>
+      </div>
+    </div>
+
+    <p style="margin-top:30px">
+      <b>On attribution.</b> The design is
+      <span id="l-author">—</span>'s. The measurement, and any error in it, is
+      ours. The reference here must be 20 MHz — our first attempt ran it at 10
+      and produced numbers that meant nothing, which is worth saying because it
+      would have been easy to publish them.
+    </p>
+  </div>
+</section>
+
+<footer><span id="foot-1">—</span></footer>
+
+<script>
+const DATA = __DATA__;
+__HELPERS__
+__LOGLOG__
+
+function semilogxDb(svgId, series, opts) {
+  const svg = $(svgId);
+  if (!svg || !series.length) return;
+  const o = opts || {};
+  const W = 980, H = +svg.getAttribute("viewBox").split(" ")[3];
+  const M = { t: 18, r: 96, b: 48, l: 74 };
+  const pts = series.flatMap((s) => s.pts).filter((p) => p[0] > 0);
+  if (!pts.length) return;
+  const lx = pts.map((p) => Math.log10(p[0])), ys = pts.map((p) => p[1]);
+  const x0 = Math.min(...lx), x1 = Math.max(...lx);
+  let y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const pad = (y1 - y0) * 0.1 || 5; y0 -= pad; y1 += pad;
+  const X = (v) => M.l + (Math.log10(v) - x0) / (x1 - x0) * (W - M.l - M.r);
+  const Y = (v) => M.t + (1 - (v - y0) / (y1 - y0)) * (H - M.t - M.b);
+  if (o.shade) {
+    const a = X(Math.max(o.shade[0], Math.pow(10, x0)));
+    const b2 = X(Math.min(o.shade[1], Math.pow(10, x1)));
+    svg.appendChild(el("rect", { x: a, y: M.t, width: Math.max(b2 - a, 0),
+      height: H - M.t - M.b, fill: "var(--ink-3)", opacity: .07 }));
+  }
+  const step = Math.max(10, Math.round((y1 - y0) / 6 / 10) * 10);
+  for (let v = Math.ceil(y0 / step) * step; v <= y1; v += step) {
+    const y = Y(v);
+    svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: y, y2: y,
+      stroke: "var(--rule)", "stroke-width": .6, opacity: .7 }));
+    const tx = el("text", { x: M.l - 9, y: y + 4, "text-anchor": "end", class: "sm" });
+    tx.textContent = v; svg.appendChild(tx);
+  }
+  for (let d = Math.floor(x0); d <= Math.ceil(x1); d++) {
+    const v = Math.pow(10, d), x = X(v);
+    if (x < M.l || x > W - M.r) continue;
+    svg.appendChild(el("line", { x1: x, x2: x, y1: M.t, y2: H - M.b,
+      stroke: "var(--rule)", "stroke-width": .6, opacity: .5 }));
+    const tx = el("text", { x, y: H - M.b + 20, "text-anchor": "middle", class: "sm" });
+    tx.textContent = v >= 1000 ? (v / 1000) + "k" : String(v);
+    svg.appendChild(tx);
+  }
+  svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: H - M.b, y2: H - M.b,
+    stroke: "var(--rule)" }));
+  series.forEach((s) => {
+    const g = s.pts.filter((p) => p[0] > 0);
+    if (!g.length) return;
+    svg.appendChild(el("path", {
+      d: g.map((p, i) => (i ? "L" : "M") + X(p[0]).toFixed(1) + " " +
+         Y(p[1]).toFixed(1)).join(" "),
+      fill: "none", stroke: s.colour, "stroke-width": s.dash ? 1.5 : 2,
+      "stroke-dasharray": s.dash || "", "stroke-linejoin": "round" }));
+    const last = g[g.length - 1];
+    const tx = el("text", { x: W - M.r + 6, y: Y(last[1]) + 4, class: "sm",
+      fill: s.colour });
+    tx.textContent = s.label || ""; svg.appendChild(tx);
+  });
+  const xl = el("text", { x: (M.l + W - M.r) / 2, y: H - 8,
+    "text-anchor": "middle", class: "sm" });
+  xl.textContent = o.xlabel || ""; svg.appendChild(xl);
+  const yl = el("text", { x: 14, y: 18, class: "sm" });
+  yl.textContent = o.ylabel || ""; svg.appendChild(yl);
+}
+
+/* Linear x, linear y: the trim curve and its DNL/INL. */
+function linChart(svgId, series, opts) {
+  const svg = $(svgId);
+  if (!svg || !series.length) return;
+  const o = opts || {};
+  const W = 980, H = +svg.getAttribute("viewBox").split(" ")[3];
+  const M = { t: 18, r: 92, b: 48, l: 78 };
+  const pts = series.flatMap((s) => s.pts);
+  const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs);
+  let y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const pad = (y1 - y0) * 0.12 || 1; y0 -= pad; y1 += pad;
+  const X = (v) => M.l + (v - x0) / (x1 - x0 || 1) * (W - M.l - M.r);
+  const Y = (v) => M.t + (1 - (v - y0) / (y1 - y0 || 1)) * (H - M.t - M.b);
+  const raw = (y1 - y0) / 6;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const st = [1, 2, 5, 10].map((m) => m * mag).find((v) => v >= raw) || mag;
+  for (let v = Math.ceil(y0 / st) * st; v <= y1; v += st) {
+    const y = Y(v), zero = Math.abs(v) < st / 100;
+    svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: y, y2: y,
+      stroke: zero ? "var(--ink-3)" : "var(--rule)",
+      "stroke-width": zero ? 1 : .6, opacity: zero ? .8 : .7 }));
+    const tx = el("text", { x: M.l - 9, y: y + 4, "text-anchor": "end", class: "sm" });
+    tx.textContent = (Math.abs(v) < 1e-9 ? 0 : v).toFixed(st < 1 ? 2 : 0);
+    svg.appendChild(tx);
+  }
+  for (let v = Math.ceil(x0); v <= x1; v += (x1 - x0 > 20 ? 4 : 2)) {
+    const x = X(v);
+    svg.appendChild(el("line", { x1: x, x2: x, y1: H - M.b, y2: H - M.b + 5,
+      stroke: "var(--rule)" }));
+    const tx = el("text", { x, y: H - M.b + 20, "text-anchor": "middle", class: "sm" });
+    tx.textContent = v; svg.appendChild(tx);
+  }
+  svg.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: H - M.b, y2: H - M.b,
+    stroke: "var(--rule)" }));
+  series.forEach((s) => {
+    if (s.bars) {
+      const bw = (W - M.l - M.r) / (x1 - x0 + 2) * .7;
+      s.pts.forEach((p) => svg.appendChild(el("rect", {
+        x: X(p[0]) - bw / 2, y: Math.min(Y(p[1]), Y(0)),
+        width: bw, height: Math.abs(Y(p[1]) - Y(0)), fill: s.colour })));
+    } else {
+      svg.appendChild(el("path", {
+        d: s.pts.map((p, i) => (i ? "L" : "M") + X(p[0]).toFixed(1) + " " +
+           Y(p[1]).toFixed(1)).join(" "),
+        fill: "none", stroke: s.colour, "stroke-width": 2,
+        "stroke-linejoin": "round" }));
+      s.pts.forEach((p) => svg.appendChild(el("circle", {
+        cx: X(p[0]), cy: Y(p[1]), r: 3.4, fill: s.colour })));
+    }
+    if (s.label) {
+      const last = s.pts[s.pts.length - 1];
+      const tx = el("text", { x: W - M.r + 6, y: Y(last[1]) + 4, class: "sm",
+        fill: s.colour });
+      tx.textContent = s.label; svg.appendChild(tx);
+    }
+  });
+  const xl = el("text", { x: (M.l + W - M.r) / 2, y: H - 8,
+    "text-anchor": "middle", class: "sm" });
+  xl.textContent = o.xlabel || ""; svg.appendChild(xl);
+  const yl = el("text", { x: 14, y: 18, class: "sm" });
+  yl.textContent = o.ylabel || ""; svg.appendChild(yl);
+}
+
+(() => {
+  const D = DATA.design, T = DATA.trim;
+  const rates = Object.keys(DATA.runs).map(Number).sort((a, b) => b - a);
+  const hi = DATA.runs[String(rates[0])], lo = DATA.runs[String(rates[1])];
+
+  $("d-index").textContent = D.index;
+  $("d-project").textContent = D.project;
+  $("d-author").textContent = D.author;
+  $("d-author2").textContent = D.author;
+  $("l-author").textContent = D.author;
+  const a = $("d-url"); a.href = D.url; a.textContent = "project " + D.index;
+
+  $("c-range").textContent = fmt(T.range_pct, 1) + " %";
+  $("c-codes").textContent = T.codes.length + " monotonic";
+  $("k-range").textContent = fmt(T.range_pct, 1) + " %";
+  $("k-lo").textContent = fmt(T.range_hz[0] / 1e6, 4) + " MHz";
+  $("k-hi").textContent = fmt(T.range_hz[1] / 1e6, 4) + " MHz";
+  $("k-lsb").textContent = fmt(T.lsb_hz / 1e3, 1) + " kHz";
+  $("k-mono").textContent = T.monotonic ? "yes" : "NO";
+  $("c-f0").textContent = fmt(hi.f0_hz / 1e6, 4) + " MHz";
+
+  linChart("chart-trim", [{ pts: T.codes.map((c) => [c.code, c.f_hz / 1e6]),
+                            colour: "var(--gr07)" }],
+           { xlabel: "VCO trim code (ui_in[7:4])", ylabel: "MHz" });
+  $("trim-note").innerHTML =
+    "Every step moves the same way — <b>" + (T.monotonic ? "monotonic over all " +
+    T.codes.length + " codes" : "NOT monotonic") + "</b> — spanning " +
+    fmt(T.range_hz[0] / 1e6, 4) + " to " + fmt(T.range_hz[1] / 1e6, 4) +
+    " MHz, or " + fmt(T.range_pct, 1) + " %. Each code is worth about " +
+    fmt(T.lsb_pct, 2) + " % of the output frequency. Measured at the specified " +
+    fmt(DATA.ref_clock_hz / 1e6, 0) + " MHz reference.";
+
+  linChart("chart-dnl", [
+    { pts: T.dnl.map((v, i) => [i + 1, v]), colour: "var(--gr07)", bars: true },
+    { pts: T.inl.map((v, i) => [i, v]), colour: "var(--gr06)", label: "INL" },
+  ], { xlabel: "code", ylabel: "LSB" });
+  $("dnl-note").innerHTML =
+    "Bars are DNL, the line is INL. DNL stays within <b>" +
+    fmt(T.dnl_lsb[0], 2) + " / " + fmt(T.dnl_lsb[1], 2) +
+    " LSB</b> and INL within " + fmt(T.inl_lsb[0], 2) + " / " +
+    fmt(T.inl_lsb[1], 2) + " LSB. Nothing approaches the −1 LSB that would mean " +
+    "a step went backwards, which is the failure a trim has to avoid.";
+
+  semilogxDb("chart-pn", [
+    { pts: hi.phase_noise, colour: "var(--gr07)", label: fmt(rates[0] / 1e6, 0) + " MS/s" },
+    { pts: lo.phase_noise, colour: "var(--gr06)", dash: "5 4", label: fmt(rates[1] / 1e6, 0) + " MS/s" },
+  ], { xlabel: "offset frequency  [Hz]", ylabel: "L(f)  [dBc/Hz]",
+       shade: DATA.cross_check.band_hz });
+
+  const at = (run, f) => run.phase_noise.reduce((b, p) =>
+    (b === null || Math.abs(Math.log(p[0] / f)) < Math.abs(Math.log(b[0] / f)) ? p : b), null);
+  const rows = $("pn-rows");
+  [300, 1000, 3000, 10000, 20000].forEach((f) => {
+    const p1 = at(hi, f), p2 = at(lo, f);
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td>" + (f >= 1000 ? f / 1000 + " kHz" : f + " Hz") + "</td>" +
+      '<td class="n a">' + fmt(p1[1], 1) + " dBc/Hz</td>" +
+      '<td class="n b">' + fmt(p2[1], 1) + " dBc/Hz</td>" +
+      '<td class="n">' + fmt(p2[1] - p1[1], 1) + " dB</td>";
+    rows.appendChild(tr);
+  });
+  const d1 = at(hi, 1000)[1], d10 = at(hi, 10000)[1];
+  $("pn-note").innerHTML =
+    "Across the shaded band, " + fmt(DATA.cross_check.band_hz[0], 0) + " Hz to " +
+    fmt(DATA.cross_check.band_hz[1] / 1000, 0) + " kHz, two timebases differing " +
+    "twofold agree to a median of <b>" +
+    fmt(DATA.cross_check.median_abs_diff_db, 2) + " dB</b> over " +
+    DATA.cross_check.points + " points, worst case " +
+    fmt(DATA.cross_check.max_abs_diff_db, 1) + " dB. The slope from 1 to 10 kHz " +
+    "is " + fmt(d10 - d1, 0) + " dB/decade, close to the −20 that thermal noise " +
+    "gives a free-running oscillator.";
+
+  $("foot-1").textContent = D.project + " (" + D.index + ") by " + D.author +
+    " — measured on " + D.chip + ", trim " + fmt(T.range_pct, 1) +
+    " % over " + T.codes.length + " monotonic codes";
+})();
+</script>

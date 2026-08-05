@@ -13,6 +13,9 @@ Integrated Circuits* course, taped out as Tiny Tapeout project **258**
   an independent measurement of ttsky25a project 132, the Giant Ring Oscillator
   by **Uri Shaked**: phase noise, Allan deviation, and its two start-up modes.
   Their design, our measurement.
+- **[MSSF PLL measurements](https://analogicus.com/jnw-tt-2025/pll778.html)** —
+  ttsky25a project 778 by **Nahwan Faza Assaify**: its VCO trim is monotonic
+  across all 16 codes, plus phase noise. Their design, our measurement.
 - [Project datasheet](docs/info.md) — the students' own description of each circuit
 - [`meas/`](meas/) — `jnwtemp`, the live readout used to take those measurements
 - [3D GDS viewer](https://analogicus.com/jnw-tt-2025/)
