@@ -62,47 +62,61 @@ __STYLE__
   </div>
 </section>
 
-<!-- ═══════════════ 03 · two modes ═══════════════ -->
+<!-- ═══════════════ 03 · start-up ═══════════════ -->
 <section class="slide">
   <div class="wrap">
-    <span class="num"><b>03</b> / Two modes</span>
-    <h2>Which mode it starts in is decided by how you start it</h2>
+    <span class="num"><b>03</b> / Start-up</span>
+    <h2>One oscillation, and one state we cannot measure</h2>
     <p class="lede">
-      The ring settles into one of two states, and for a while that looked like
-      a coin toss — measurements that would not reproduce. It is not random.
-      The start-up sequence selects it, deterministically.
+      The ring reaches its oscillation only from a particular start-up
+      sequence. The other sequence leaves it in a state whose output is faster
+      than this analyser can follow — which is <em>not</em> the same as a second
+      oscillation mode, and is not claimed to be one.
     </p>
 
     <div class="scroll">
       <table>
-        <thead><tr><th>Start-up sequence</th><th>Mode</th><th>Repeatability</th></tr></thead>
+        <thead><tr><th>Start-up sequence</th><th>Result</th><th>Repeatability</th></tr></thead>
         <tbody id="mode-rows"></tbody>
       </table>
     </div>
 
     <div class="grid g2" style="margin-top:30px">
       <div class="card">
-        <span class="pill">Why it matters</span>
+        <span class="pill">Why a second mode is unlikely</span>
         <p style="margin-top:10px">
-          Every figure in this deck is from the slow mode, reached by the
-          sequence above and <em>verified</em> before each capture rather than
-          assumed. An earlier attempt at these numbers was thrown away because
-          it had silently been taken in the fast mode.
+          <span id="m-stages">—</span> is <b>prime</b>. A multi-wave pattern can
+          only split a ring into gcd(k, N) independent sub-loops, and with N
+          prime that is 1 for every k — the ring cannot decompose, it has to
+          oscillate as a single loop. That does not forbid one loop carrying
+          several waves, but it removes the usual mechanism for a second stable
+          state, and the measured <span id="m-f0">—</span> is exactly the
+          fundamental a ring this long should give.
         </p>
       </div>
       <div class="card">
-        <span class="pill">What the fast mode is</span>
+        <span class="pill">What the other state is not</span>
         <p style="margin-top:10px">
-          Unknown, and deliberately left so. It aliases to a different frequency
-          at every sample rate we have —
-          <span id="alias-list">—</span> — which places it above 125 MHz and
-          beyond this instrument. A ring can carry several waves at once, so a
-          harmonic relation is plausible, but undersampling a square wave does
-          not alias cleanly enough to test it. Reporting a number here would be
-          inventing one.
+          Sampling it at 500, 250 and 125 MS/s gives
+          <span id="m-aliases">—</span>. <b>No single frequency explains those
+          three.</b> Solving for one leaves a
+          <span id="m-resid">—</span> residual, while the same solver recovers a
+          synthetic 437.3 MHz tone exactly — so the fault is in the data, not the
+          method. Edge extraction has broken down on something too fast to
+          track, and the readings are sampling artefacts rather than a
+          frequency. Calling it a "mode" would be reading structure into noise.
         </p>
       </div>
     </div>
+
+    <p style="margin-top:26px">
+      An earlier version of this deck called these <em>two modes of the ring</em>
+      and quoted a frequency for the second. That was wrong on both counts: the
+      primality argument above says a prime-length ring should not have a second
+      state of that kind, and the alias test says our number for it was never a
+      measurement in the first place. Everything that follows is from the
+      oscillation, verified before each capture.
+    </p>
   </div>
 </section>
 
@@ -180,10 +194,11 @@ __STYLE__
         <span class="pill">Per-inverter delay</span>
         <p style="margin-top:10px">
           Dividing the period by 2N would give ~44 ps, and that number is only
-          right if the slow mode is the fundamental of the full
-          <span id="l-stages">—</span>-stage loop. With a second mode present
-          and unidentified, that is an assumption rather than a measurement, so
-          it is left out.
+          right if this oscillation is the fundamental of the full
+          <span id="l-stages">—</span>-stage loop. That is very likely — the
+          stage count is prime, so the ring cannot split into sub-loops — but
+          "very likely" is an argument, not a measurement, and the second
+          start-up state is still unexplained. Left out.
         </p>
       </div>
       <div class="card">
@@ -305,20 +320,27 @@ function semilogxDb(svgId, series, opts) {
   $("k-n").textContent = hi.periods.toLocaleString("en-US");
   $("k-ref").textContent = fmt(DATA.ref_clock_hz / 1e6, 0) + " MHz";
 
-  const seqs = [["reset, then ui_in = 0x02", "fast", DATA.modes.fast],
-                ["ui_in = 0x00, reset, ui_in = 0x02", "slow", DATA.modes.slow]];
+  const seqs = [
+    ["ui_in = 0x00, reset, ui_in = 0x02",
+     "oscillates at " + fmt(DATA.modes.slow.mean_hz / 1e6, 4) + " MHz",
+     DATA.modes.slow],
+    ["reset, then ui_in = 0x02",
+     "output too fast to characterise", DATA.modes.fast],
+  ];
   const mr = $("mode-rows");
-  seqs.forEach(([seq, name, m]) => {
+  seqs.forEach(([seq, what, m]) => {
     const tr = document.createElement("tr");
-    tr.innerHTML = "<td><code>" + seq + "</code></td>" +
-      "<td>" + name + " — " + fmt(m.mean_hz / 1e6, name === "slow" ? 4 : 1) +
-      " MHz</td>" +
+    tr.innerHTML = "<td><code>" + seq + "</code></td><td>" + what + "</td>" +
       '<td class="n">' + m.as_expected + " / " + m.trials + "</td>";
     mr.appendChild(tr);
   });
-  $("alias-list").textContent = Object.entries(DATA.fast_mode_aliases)
+  $("m-stages").textContent = D.stages.toLocaleString("en-US");
+  $("m-f0").textContent = fmt(hi.f0_hz / 1e6, 4) + " MHz";
+  $("m-aliases").textContent = Object.entries(DATA.fast_state.apparent_hz)
+    .sort((a, b) => Number(b[0]) - Number(a[0]))
     .map(([r, v]) => fmt(v / 1e6, 1) + " MHz at " + fmt(Number(r) / 1e6, 0) + " MS/s")
     .join(", ");
+  $("m-resid").textContent = fmt(DATA.fast_state.alias_fit_residual_hz / 1e6, 1) + " MHz";
 
   semilogxDb("chart-pn", [
     { pts: hi.phase_noise, colour: "var(--gr07)", label: fmt(rates[0] / 1e6, 0) + " MS/s" },

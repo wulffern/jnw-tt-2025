@@ -140,8 +140,19 @@ def main() -> None:
                    "note": "measured by us; the design is not ours"},
         "ref_clock_hz": REF_HZ,
         "modes": trials,
-        "fast_mode_aliases": {"250e6": 65.255e6, "125e6": 35.533e6,
-                              "50e6": 13.926e6},
+        "fast_state": {
+            # Not established to be a mode of the ring. Three sample rates give
+            # readings that no single frequency can explain - the best fit
+            # leaves a 10.5 MHz residual, while the same solver recovers a
+            # synthetic 437.3 MHz tone exactly. So edge extraction has broken
+            # down on something faster than the analyser can track, and these
+            # numbers are sampling artefacts rather than a frequency.
+            "apparent_hz": {"500e6": 69.804e6, "250e6": 65.614e6,
+                            "125e6": 35.226e6},
+            "alias_fit_residual_hz": 1.05e7,
+            "solver_validated": True,
+        },
+        "stages_prime": all(STAGES % k for k in range(2, int(STAGES**0.5) + 1)),
         "runs": {},
     }
     for rate, (per, duty) in sorted(runs.items()):

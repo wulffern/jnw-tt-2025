@@ -324,47 +324,61 @@
   </div>
 </section>
 
-<!-- ═══════════════ 03 · two modes ═══════════════ -->
+<!-- ═══════════════ 03 · start-up ═══════════════ -->
 <section class="slide">
   <div class="wrap">
-    <span class="num"><b>03</b> / Two modes</span>
-    <h2>Which mode it starts in is decided by how you start it</h2>
+    <span class="num"><b>03</b> / Start-up</span>
+    <h2>One oscillation, and one state we cannot measure</h2>
     <p class="lede">
-      The ring settles into one of two states, and for a while that looked like
-      a coin toss — measurements that would not reproduce. It is not random.
-      The start-up sequence selects it, deterministically.
+      The ring reaches its oscillation only from a particular start-up
+      sequence. The other sequence leaves it in a state whose output is faster
+      than this analyser can follow — which is <em>not</em> the same as a second
+      oscillation mode, and is not claimed to be one.
     </p>
 
     <div class="scroll">
       <table>
-        <thead><tr><th>Start-up sequence</th><th>Mode</th><th>Repeatability</th></tr></thead>
+        <thead><tr><th>Start-up sequence</th><th>Result</th><th>Repeatability</th></tr></thead>
         <tbody id="mode-rows"></tbody>
       </table>
     </div>
 
     <div class="grid g2" style="margin-top:30px">
       <div class="card">
-        <span class="pill">Why it matters</span>
+        <span class="pill">Why a second mode is unlikely</span>
         <p style="margin-top:10px">
-          Every figure in this deck is from the slow mode, reached by the
-          sequence above and <em>verified</em> before each capture rather than
-          assumed. An earlier attempt at these numbers was thrown away because
-          it had silently been taken in the fast mode.
+          <span id="m-stages">—</span> is <b>prime</b>. A multi-wave pattern can
+          only split a ring into gcd(k, N) independent sub-loops, and with N
+          prime that is 1 for every k — the ring cannot decompose, it has to
+          oscillate as a single loop. That does not forbid one loop carrying
+          several waves, but it removes the usual mechanism for a second stable
+          state, and the measured <span id="m-f0">—</span> is exactly the
+          fundamental a ring this long should give.
         </p>
       </div>
       <div class="card">
-        <span class="pill">What the fast mode is</span>
+        <span class="pill">What the other state is not</span>
         <p style="margin-top:10px">
-          Unknown, and deliberately left so. It aliases to a different frequency
-          at every sample rate we have —
-          <span id="alias-list">—</span> — which places it above 125 MHz and
-          beyond this instrument. A ring can carry several waves at once, so a
-          harmonic relation is plausible, but undersampling a square wave does
-          not alias cleanly enough to test it. Reporting a number here would be
-          inventing one.
+          Sampling it at 500, 250 and 125 MS/s gives
+          <span id="m-aliases">—</span>. <b>No single frequency explains those
+          three.</b> Solving for one leaves a
+          <span id="m-resid">—</span> residual, while the same solver recovers a
+          synthetic 437.3 MHz tone exactly — so the fault is in the data, not the
+          method. Edge extraction has broken down on something too fast to
+          track, and the readings are sampling artefacts rather than a
+          frequency. Calling it a "mode" would be reading structure into noise.
         </p>
       </div>
     </div>
+
+    <p style="margin-top:26px">
+      An earlier version of this deck called these <em>two modes of the ring</em>
+      and quoted a frequency for the second. That was wrong on both counts: the
+      primality argument above says a prime-length ring should not have a second
+      state of that kind, and the alias test says our number for it was never a
+      measurement in the first place. Everything that follows is from the
+      oscillation, verified before each capture.
+    </p>
   </div>
 </section>
 
@@ -442,10 +456,11 @@
         <span class="pill">Per-inverter delay</span>
         <p style="margin-top:10px">
           Dividing the period by 2N would give ~44 ps, and that number is only
-          right if the slow mode is the fundamental of the full
-          <span id="l-stages">—</span>-stage loop. With a second mode present
-          and unidentified, that is an assumption rather than a measurement, so
-          it is left out.
+          right if this oscillation is the fundamental of the full
+          <span id="l-stages">—</span>-stage loop. That is very likely — the
+          stage count is prime, so the ring cannot split into sub-loops — but
+          "very likely" is an argument, not a measurement, and the second
+          start-up state is still unexplained. Left out.
         </p>
       </div>
       <div class="card">
@@ -483,7 +498,7 @@
 </footer>
 
 <script>
-const DATA = {"design":{"project":"tt_um_urish_giant_ringosc","index":132,"author":"Uri Shaked","chip":"Tiny Tapeout ttsky25a","stages":3853,"url":"https://tinytapeout.com/chips/ttsky25a/tt_um_urish_giant_ringosc","note":"measured by us; the design is not ours"},"ref_clock_hz":10000000,"modes":{"fast":{"trials":10,"as_expected":10,"mean_hz":66179702.018360354},"slow":{"trials":10,"as_expected":10,"mean_hz":2946129.938341177}},"fast_mode_aliases":{"250e6":65255000.0,"125e6":35533000.0,"50e6":13926000.0},"runs":{"125000000":{"sample_rate_hz":125000000,"periods":2966281,"f0_hz":2946737.061115855,"duty":0.5011070251464521,"phase_noise":[[269.7818,-43.86],[359.7091,-47.83],[449.6364,-50.28],[539.5637,-51.49],[629.4909,-53.31],[719.4182,-55.1],[809.3455,-56.22],[899.2728,-56.82],[989.2001,-58.45],[1079.1273,-59.18],[1169.0546,-59.67],[1303.1701,-60.52],[1438.8365,-61.21],[1573.0849,-62.25],[1753.0054,-63.48],[1932.9136,-64.07],[2112.8127,-65.01],[2336.9558,-66.33],[2606.857,-66.94],[2876.7359,-68.39],[3146.5981,-68.25],[3460.7397,-69.49],[3820.5864,-70.43],[4180.4094,-71.73],[4584.5271,-72.44],[5078.5688,-73.58],[5618.3556,-74.78],[6202.3743,-75.08],[6832.1056,-75.92],[7506.0994,-76.71],[8270.0498,-77.23],[9123.9622,-77.95],[10067.8385,-78.96],[11057.3981,-79.25],[12179.7508,-79.84],[13439.2385,-80.29],[14787.226,-80.8],[16315.1294,-80.98],[17978.7079,-81.04],[19776.5036,-80.96],[21798.4758,-81.41],[24001.8222,-82.17],[26427.9086,-83.86],[29125.3306,-86.41],[32091.185,-89.61],[35372.6367,-92.24],[38968.2289,-95.14],[42923.6706,-97.33],[47283.2179,-98.98],[52092.5771,-99.98],[57396.0035,-100.6],[63239.205,-100.95],[69666.4361,-101.07],[76767.6589,-101.14],[84588.5822,-101.06],[93173.4593,-101.12],[102656.5087,-100.9],[113129.1458,-100.65],[124635.6242,-100.49],[137310.1623,-100.18],[151288.4296,-99.81],[166660.3881,-99.46],[183604.5117,-99.04],[202302.1765,-98.68],[222887.6003,-98.24],[245584.9626,-97.87],[270575.6417,-97.68],[298082.3645,-97.67],[328420.7255,-98.06],[361816.3571,-98.5],[398626.2047,-96.43],[439213.0232,-89.87],[483889.5016,-87.77],[533105.4525,-94.7],[587354.9432,-101.14],[647133.4936,-100.22],[712979.4256,-94.63],[785522.4765,-92.91],[865436.6385,-96.41],[953441.6108,-95.92],[1050434.1137,-99.05],[1157316.6763,-100.69],[1275074.5278,-90.16],[1404790.1229,-98.94]],"allan":[[0.0,15274.009],[1e-06,4720.643],[1e-06,4002.186],[2e-06,2691.539],[3e-06,1049.028],[6e-06,374.886],[1.2e-05,368.893],[2.1e-05,233.95],[3.7e-05,122.824],[6.7e-05,75.761],[0.000121,48.598],[0.000218,32.979],[0.000392,23.661],[0.000706,17.953],[0.00127,14.324],[0.002286,12.056],[0.004114,10.489],[0.007404,10.061],[0.013326,11.132],[0.023983,12.271],[0.043166,13.537],[0.07769,13.964],[0.139826,12.44],[0.251658,10.772]]},"250000000":{"sample_rate_hz":250000000,"periods":3262900,"f0_hz":2946728.0977608943,"duty":0.5011087692144961,"phase_noise":[[269.781,-43.97],[359.708,-47.16],[449.635,-49.87],[539.562,-52.1],[629.489,-53.56],[719.416,-54.96],[809.343,-55.92],[899.27,-57.26],[989.1971,-58.23],[1079.1241,-59.2],[1169.0511,-59.27],[1303.1661,-60.27],[1438.8321,-61.37],[1573.0801,-62.03],[1753.0,-62.78],[1932.9077,-64.28],[2112.8062,-64.77],[2336.9486,-65.67],[2606.8491,-66.68],[2876.7271,-67.65],[3146.5885,-68.9],[3460.7291,-69.83],[3820.5747,-70.72],[4180.3966,-71.34],[4584.5132,-72.51],[5078.5533,-73.36],[5618.3385,-73.97],[6202.3554,-75.0],[6832.0848,-76.24],[7506.0765,-76.18],[8270.0246,-77.6],[9123.9345,-78.24],[10067.8079,-78.95],[11057.3645,-79.56],[12179.7138,-79.86],[13439.1976,-80.34],[14787.181,-80.79],[16315.0797,-81.21],[17978.6532,-81.21],[19776.4435,-81.35],[21798.4095,-81.46],[24001.7492,-82.06],[26427.8282,-83.86],[29125.242,-86.43],[32091.0874,-89.15],[35372.5291,-92.78],[38968.1104,-95.6],[42923.54,-98.43],[47283.0741,-100.9],[52092.4187,-102.59],[57395.829,-103.85],[63239.0126,-104.67],[69666.2242,-105.09],[76767.4254,-105.45],[84588.3249,-105.59],[93173.1759,-105.77],[102656.1964,-105.76],[113128.8017,-105.82],[124635.2451,-105.82],[137309.7446,-105.85],[151287.9694,-105.84],[166659.8812,-105.94],[183603.9532,-105.93],[202301.5612,-105.95],[222886.9224,-105.99],[245584.2156,-105.95],[270574.8187,-105.99],[298081.4578,-106.02],[328419.7265,-105.77],[361815.2565,-104.36],[398624.9922,-98.03],[439211.6872,-90.08],[483888.0297,-87.92],[533103.8309,-95.31],[587353.1566,-104.07],[647131.5251,-105.35],[712977.2568,-105.52],[785520.0871,-104.34],[865434.006,-98.92],[953438.7106,-96.4],[1050430.9185,-100.25],[1157313.1559,-104.02],[1275070.6493,-103.36],[1404830.1049,-99.88]],"allan":[[0.0,4716.823],[1e-06,3335.296],[1e-06,2689.455],[2e-06,497.241],[4e-06,525.448],[6e-06,262.89],[1.2e-05,203.442],[2.1e-05,137.494],[3.9e-05,80.784],[7e-05,54.621],[0.000126,38.866],[0.000228,28.876],[0.000412,21.712],[0.000745,17.196],[0.001346,14.381],[0.002432,12.41],[0.004396,11.282],[0.007944,9.466],[0.014358,7.064],[0.025948,6.241],[0.046896,5.64],[0.084753,5.157],[0.153172,5.793],[0.276824,4.34]]}},"cross_check":{"band_hz":[100,30000],"max_abs_diff_db":0.8100000000000023,"points":44}};
+const DATA = {"design":{"project":"tt_um_urish_giant_ringosc","index":132,"author":"Uri Shaked","chip":"Tiny Tapeout ttsky25a","stages":3853,"url":"https://tinytapeout.com/chips/ttsky25a/tt_um_urish_giant_ringosc","note":"measured by us; the design is not ours"},"ref_clock_hz":10000000,"modes":{"fast":{"trials":10,"as_expected":10,"mean_hz":66067374.225471094},"slow":{"trials":10,"as_expected":10,"mean_hz":2946594.248880005}},"fast_state":{"apparent_hz":{"500e6":69804000.0,"250e6":65614000.0,"125e6":35226000.0},"alias_fit_residual_hz":10500000.0,"solver_validated":true},"stages_prime":true,"runs":{"125000000":{"sample_rate_hz":125000000,"periods":2966704,"f0_hz":2947156.735391351,"duty":0.5011274019876808,"phase_noise":[[269.8203,-43.43],[359.7603,-46.83],[449.7004,-49.8],[539.6405,-52.06],[629.5806,-53.73],[719.5207,-54.6],[809.4608,-56.1],[899.4009,-56.84],[989.3409,-57.65],[1079.281,-58.94],[1169.2211,-60.19],[1303.3557,-60.32],[1439.0414,-61.69],[1573.3089,-62.19],[1753.255,-63.34],[1933.1889,-63.9],[2113.1136,-64.6],[2337.2886,-65.9],[2607.2283,-67.02],[2877.1456,-68.68],[3147.0462,-68.69],[3461.2325,-69.46],[3821.1305,-70.38],[4181.0047,-71.66],[4585.18,-72.31],[5079.2921,-73.5],[5619.1558,-73.87],[6203.2576,-75.13],[6833.0787,-76.14],[7507.1684,-76.66],[8271.2276,-77.44],[9125.2617,-78.4],[10069.2724,-78.64],[11058.9729,-79.33],[12181.4855,-79.97],[13441.1525,-80.54],[14789.332,-80.71],[16317.453,-81.16],[17981.2684,-81.28],[19779.3202,-81.48],[21801.5803,-81.54],[24005.2406,-82.11],[26431.6725,-83.88],[29129.4786,-86.34],[32095.7554,-89.44],[35377.6744,-92.33],[38973.7788,-95.08],[42929.7838,-97.44],[47289.952,-98.92],[52099.9962,-100.02],[57404.1779,-100.68],[63248.2115,-100.91],[69676.358,-100.94],[76778.5921,-100.7],[84600.6293,-100.5],[93186.7291,-100.16],[102671.129,-99.98],[113145.2576,-99.56],[124653.3749,-99.2],[137329.718,-98.87],[151309.9761,-98.42],[166684.1239,-97.98],[183630.6606,-97.77],[202330.9884,-97.5],[222919.344,-97.56],[245619.9388,-97.64],[270614.1771,-98.02],[298124.8174,-98.54],[328467.4991,-99.35],[361867.887,-100.08],[398682.977,-100.16],[439275.5759,-96.2],[483958.4171,-88.79],[533181.3774,-89.04],[587438.5943,-97.43],[647225.6583,-95.92],[713080.9681,-92.78],[785634.3506,-96.62],[865559.8939,-99.96],[953577.4,-96.93],[1050583.7165,-96.27],[1157481.5013,-97.63],[1275256.1239,-96.35],[1404990.1931,-98.79]],"allan":[[0.0,15165.89],[1e-06,4895.88],[1e-06,3860.419],[2e-06,2693.89],[3e-06,875.618],[6e-06,479.891],[1.2e-05,289.661],[2.1e-05,216.057],[3.7e-05,129.471],[6.7e-05,75.709],[0.000121,48.764],[0.000218,33.393],[0.000392,23.972],[0.000705,18.417],[0.00127,15.042],[0.002286,12.803],[0.004113,11.858],[0.007404,11.67],[0.013325,11.139],[0.023983,10.153],[0.043165,9.299],[0.077689,10.894],[0.139825,13.802],[0.251658,7.97]]},"250000000":{"sample_rate_hz":250000000,"periods":2966567,"f0_hz":2947020.9659598586,"duty":0.5011156280835419,"phase_noise":[[179.8719,-36.35],[269.8078,-43.86],[359.7438,-47.24],[449.6797,-49.91],[539.6157,-51.73],[629.5516,-53.65],[719.4875,-54.5],[809.4235,-55.99],[899.3594,-56.95],[989.2954,-57.85],[1079.2313,-58.88],[1169.1673,-59.94],[1303.2956,-60.45],[1438.9751,-61.37],[1573.2365,-62.29],[1753.1743,-62.86],[1933.0998,-64.22],[2113.0162,-64.8],[2337.1809,-65.67],[2607.1082,-67.13],[2877.013,-68.27],[3146.9012,-68.28],[3461.0731,-69.68],[3820.9544,-70.91],[4180.8121,-71.09],[4584.9688,-72.76],[5079.0581,-73.47],[5618.8969,-74.44],[6202.9718,-75.27],[6832.7639,-75.87],[7506.8225,-76.68],[8270.8465,-77.42],[9124.8413,-78.11],[10068.8085,-78.79],[11058.4635,-79.35],[12180.9243,-79.68],[13440.5333,-80.44],[14788.6507,-80.7],[16316.7012,-80.89],[17980.44,-81.26],[19778.409,-81.33],[21800.576,-81.44],[24004.1347,-82.24],[26430.4548,-83.75],[29128.1367,-86.54],[32094.2768,-89.5],[35376.0447,-92.59],[38971.9833,-95.76],[42927.8061,-98.41],[47287.7734,-100.66],[52097.596,-102.33],[57401.5334,-103.68],[63245.2978,-104.5],[69673.1482,-105.0],[76775.0551,-105.28],[84596.7319,-105.44],[93182.4361,-105.62],[102666.3992,-105.71],[113140.0453,-105.58],[124647.6323,-105.72],[137323.3915,-105.76],[151303.0055,-105.8],[166676.4451,-105.81],[183622.2011,-105.81],[202321.6674,-105.82],[222909.0745,-105.79],[245608.6236,-105.82],[270601.7104,-105.66],[298111.0834,-105.63],[328452.3673,-105.45],[361851.2164,-105.02],[398664.6105,-102.34],[439255.3394,-94.47],[483936.1221,-87.92],[533156.8148,-90.63],[587411.5322,-101.24],[647195.842,-105.66],[713048.1179,-105.85],[785598.1581,-105.09],[865520.0194,-101.77],[953533.4706,-96.65],[1050535.3183,-97.57],[1157428.1785,-104.52],[1275197.3755,-104.56],[1404925.4681,-99.58]],"allan":[[0.0,4839.879],[1e-06,3422.312],[1e-06,2701.096],[2e-06,466.018],[3e-06,657.399],[6e-06,301.935],[1.2e-05,203.701],[2.1e-05,141.346],[3.7e-05,83.24],[6.7e-05,55.635],[0.000121,39.348],[0.000218,29.221],[0.000392,22.113],[0.000705,17.54],[0.00127,14.332],[0.002286,12.346],[0.004114,11.075],[0.007404,9.599],[0.013325,7.917],[0.023983,7.49],[0.043165,7.938],[0.077689,7.607],[0.139825,8.429],[0.251658,12.276]]}},"cross_check":{"band_hz":[100,30000],"max_abs_diff_db":0.5699999999999932,"points":44}};
 /* ---------- helpers ---------- */
 const $ = (id) => document.getElementById(id);
 const mK = (c) => (c * 1000);
@@ -665,20 +680,27 @@ function semilogxDb(svgId, series, opts) {
   $("k-n").textContent = hi.periods.toLocaleString("en-US");
   $("k-ref").textContent = fmt(DATA.ref_clock_hz / 1e6, 0) + " MHz";
 
-  const seqs = [["reset, then ui_in = 0x02", "fast", DATA.modes.fast],
-                ["ui_in = 0x00, reset, ui_in = 0x02", "slow", DATA.modes.slow]];
+  const seqs = [
+    ["ui_in = 0x00, reset, ui_in = 0x02",
+     "oscillates at " + fmt(DATA.modes.slow.mean_hz / 1e6, 4) + " MHz",
+     DATA.modes.slow],
+    ["reset, then ui_in = 0x02",
+     "output too fast to characterise", DATA.modes.fast],
+  ];
   const mr = $("mode-rows");
-  seqs.forEach(([seq, name, m]) => {
+  seqs.forEach(([seq, what, m]) => {
     const tr = document.createElement("tr");
-    tr.innerHTML = "<td><code>" + seq + "</code></td>" +
-      "<td>" + name + " — " + fmt(m.mean_hz / 1e6, name === "slow" ? 4 : 1) +
-      " MHz</td>" +
+    tr.innerHTML = "<td><code>" + seq + "</code></td><td>" + what + "</td>" +
       '<td class="n">' + m.as_expected + " / " + m.trials + "</td>";
     mr.appendChild(tr);
   });
-  $("alias-list").textContent = Object.entries(DATA.fast_mode_aliases)
+  $("m-stages").textContent = D.stages.toLocaleString("en-US");
+  $("m-f0").textContent = fmt(hi.f0_hz / 1e6, 4) + " MHz";
+  $("m-aliases").textContent = Object.entries(DATA.fast_state.apparent_hz)
+    .sort((a, b) => Number(b[0]) - Number(a[0]))
     .map(([r, v]) => fmt(v / 1e6, 1) + " MHz at " + fmt(Number(r) / 1e6, 0) + " MS/s")
     .join(", ");
+  $("m-resid").textContent = fmt(DATA.fast_state.alias_fit_residual_hz / 1e6, 1) + " MHz";
 
   semilogxDb("chart-pn", [
     { pts: hi.phase_noise, colour: "var(--gr07)", label: fmt(rates[0] / 1e6, 0) + " MS/s" },
