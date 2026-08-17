@@ -688,6 +688,14 @@ class MainWindow(QWidget):
         self.lbl_record.setStyleSheet(f"color:{TEXT_MUTED}; font-size:11px;")
         rf.addWidget(self.btn_record)
         rf.addWidget(self.btn_record_stop)
+        self.btn_sonify = QPushButton("Sonify...")
+        self.btn_sonify.setToolTip(
+            "Play the frequency trace as sound: the trace's own span maps\n"
+            "onto an audible pitch glide, ten seconds long. With no live\n"
+            "data yet this opens a recorded CSV instead."
+        )
+        self.btn_sonify.clicked.connect(self._on_sonify)
+        rf.addWidget(self.btn_sonify)
         rf.addWidget(self.lbl_record)
         return rec
 
@@ -1734,6 +1742,67 @@ class MainWindow(QWidget):
             self.lbl_sweep.setStyleSheet(f"color:{STATUS_WARN}; font-size:11px;")
 
     # ------------------------------------------------------------ recording
+    def _on_sonify(self) -> None:
+        """Play the frequency trace as a pitch glide.
+
+        The live trace when there is one; a recorded CSV through the
+        file dialog when there is not - which is also how a historical
+        run gets listened to without the board attached. Playback runs
+        on its own thread so a ten-second glide does not freeze the
+        readout loop.
+        """
+        import tempfile
+        import threading
+
+        from . import sonify as sf
+
+        key = next((k for k in self.settings.sensor_keys
+                    if k in self.traces and len(self.traces[k])), None)
+        if key is not None:
+            t, khz = self._trace_for(key).arrays()
+            f_hz = np.asarray(khz) * 1e3
+            label = key
+        else:
+            path, _ = QFileDialog.getOpenFileName(
+                self, "Sonify a recording", "data", "CSV files (*.csv)")
+            if not path:
+                return
+            try:
+                rec = sf.load_recording(path)
+            except (OSError, ValueError) as exc:
+                QMessageBox.warning(self, "Sonify",
+                                    f"Could not load {path}:\n{exc}")
+                return
+            label = sorted(k for k in rec.channels if k != "_extra")[0]
+            t, f_hz = rec.t_s, rec.rate_hz(label)
+
+        try:
+            audio = sf.sonify(t, f_hz)
+        except ValueError as exc:
+            QMessageBox.warning(self, "Sonify", str(exc))
+            return
+        out = os.path.join(tempfile.gettempdir(), f"jnwtemp-{label}.wav")
+        sf.write_wav(out, audio)
+        span = float(np.nanmax(t) - np.nanmin(t))
+        self._append_log(f"Sonify: {label}, {span:.0f} s of trace as "
+                         f"{len(audio) / sf.DEFAULT_SAMPLE_RATE:.0f} s of "
+                         f"audio, {out}")
+
+        prev = getattr(self, "_sonify_thread", None)
+        if prev is not None and prev.is_alive():
+            #- two glides at once is noise, not information
+            self._append_log("Sonify: already playing")
+            return
+
+        def _play() -> None:
+            try:
+                sf.play_wav(out)
+            except (RuntimeError, OSError) as exc:
+                self._append_log(f"Sonify: no player ({exc}); wav kept at {out}")
+
+        self._sonify_thread = threading.Thread(target=_play, daemon=True)
+        self._sonify_thread.start()
+
     def _on_record(self) -> None:
         if self.recorder is not None and self.recorder.active:
             return
