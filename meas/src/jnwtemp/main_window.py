@@ -224,6 +224,9 @@ class MainWindow(QWidget):
         self._last_redraw_t = 0.0
         self._skipped = 0
         self.recorder: Optional[TemperatureRecorder] = None
+        #: Live tone following the primary sensor's rate; exists only while
+        #: the Sonify-live box is checked, silent while the run is stopped.
+        self._live_sonifier = None
         #: identities reported by the instruments at connect, for provenance
         self._instruments: dict = {}
         #: The Vötsch chamber runs in its own thread, like the instruments.
@@ -454,6 +457,16 @@ class MainWindow(QWidget):
         self.btn_run.setEnabled(False)
         self.btn_run.clicked.connect(self._on_run_toggled)
         form.addRow(self.btn_run)
+
+        self.chk_sonify = QCheckBox("Sonify live")
+        self.chk_sonify.setToolTip(
+            "Play the run as you measure it: each capture's mean rate\n"
+            "retunes a tone, so drift is melody and jitter is vibrato.\n"
+            "The pitch band autoscales as the rate span grows, like the\n"
+            "offline Sonify button does over a finished trace."
+        )
+        self.chk_sonify.toggled.connect(self._on_sonify_live)
+        form.addRow(self.chk_sonify)
 
     def _group_measure(self) -> QWidget:
         # Connect lives in the status bar, beside the chips it affects.
@@ -1005,6 +1018,32 @@ class MainWindow(QWidget):
 
     def _on_run_state(self, running: bool) -> None:
         self.btn_run.setText("Stop" if running else "Start")
+        if not running and self._live_sonifier is not None:
+            # Fade out rather than drone at the last pitch; the box stays
+            # checked, so the next Start sounds again by itself.
+            self._live_sonifier.hush()
+
+    def _on_sonify_live(self, on: bool) -> None:
+        """Build or tear down the live tone as the box is toggled.
+
+        The audio pipeline is constructed lazily here, not at startup:
+        QtMultimedia only has to import, and an output device only has
+        to exist, on machines where someone actually asks for sound.
+        """
+        if not on:
+            if self._live_sonifier is not None:
+                self._live_sonifier.stop()
+                self._live_sonifier = None
+            return
+        try:
+            from .livesonify import LiveSonifier
+            self._live_sonifier = LiveSonifier(self)
+        except (ImportError, RuntimeError) as exc:
+            self._append_log(f"Sonify live: unavailable ({exc})")
+            self.chk_sonify.setChecked(False)
+            return
+        self._append_log(
+            "Sonify live: the tone follows the primary sensor's rate")
 
     def _on_error(self, msg: str) -> None:
         self._append_log(f"ERROR: {msg}")
@@ -1056,6 +1095,9 @@ class MainWindow(QWidget):
 
         self._update_tiles(keys, readings)
         self._update_bin_label(keys, readings)
+
+        if self._live_sonifier is not None:
+            self._live_sonifier.feed(primary.mean_rate_hz)
 
         # Recording is fed the readings themselves, not the plotted history, so
         # a "Clear history" during a run cannot punch a hole in the record.
@@ -2007,6 +2049,8 @@ class MainWindow(QWidget):
     def closeEvent(self, event) -> None:  # noqa: N802 (Qt naming)
         if self.recorder is not None and self.recorder.active:
             self._on_record_stop()
+        if self._live_sonifier is not None:
+            self._live_sonifier.stop()
         self._teardown_thread()
         self._teardown_chamber()
         self.cal_store.save()

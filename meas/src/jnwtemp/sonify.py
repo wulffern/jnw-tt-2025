@@ -218,6 +218,111 @@ def sonify(
     return audio
 
 
+#: Fraction of the first live rate used as the starting band width. The
+#: offline path scales the whole trace's span onto two octaves; live, the
+#: span is unknown at the start, and mapping the first few captures'
+#: jitter onto two octaves would be all swoop and no signal. 50 ppm is
+#: several times the capture-to-capture jitter seen on GR07, so jitter
+#: starts as vibrato and thermal drift still fills the band quickly.
+LIVE_MIN_SPAN = 50e-6
+
+#: Pitch glide time constant for the live tone. Long enough to smooth the
+#: step between captures into a slur, short enough that a thermal step
+#: reads as a note change rather than a drift.
+LIVE_GLIDE_S = 0.15
+
+
+class LiveMapper:
+    """Map rates onto the audible band as they arrive, one at a time.
+
+    The live counterpart of sonify()'s autoscale: the band starts as
+    ±LIVE_MIN_SPAN/2 around the first rate and only ever widens, so
+    the mapping of what has already been heard never flips direction.
+    Same log mapping as offline: equal frequency steps, equal
+    intervals.
+    """
+
+    def __init__(self, lo_hz: float = DEFAULT_LO_HZ,
+                 hi_hz: float = DEFAULT_HI_HZ,
+                 min_span: float = LIVE_MIN_SPAN):
+        self.lo_hz = float(lo_hz)
+        self.hi_hz = float(hi_hz)
+        self.min_span = float(min_span)
+        self._lo: Optional[float] = None
+        self._hi: Optional[float] = None
+
+    def pitch(self, f_hz: float) -> Optional[float]:
+        """Audible pitch for one measured rate; None for a NaN rate."""
+        f = float(f_hz)
+        if not math.isfinite(f):
+            return None
+        if self._lo is None:
+            half = max(abs(f) * self.min_span, 1e-12) / 2.0
+            self._lo, self._hi = f - half, f + half
+        self._lo = min(self._lo, f)
+        self._hi = max(self._hi, f)
+        x = (f - self._lo) / (self._hi - self._lo)
+        return self.lo_hz * (self.hi_hz / self.lo_hz) ** x
+
+
+class ToneSynth:
+    """Phase-continuous sine generator for the live tone, block by block.
+
+    render(n) produces the next n samples; set_pitch() retargets the
+    tone and the pitch glides there exponentially (LIVE_GLIDE_S), so
+    capture-to-capture steps slur instead of clicking - the same
+    reason the offline path integrates frequency to phase. The level
+    ramps over FADE_S on start and mute() for the same clickless ends
+    the offline fade provides.
+
+    set_pitch() and mute() are single attribute writes, atomic under
+    the GIL, so the audio thread may call render() with no lock.
+    """
+
+    def __init__(self, sample_rate: int = DEFAULT_SAMPLE_RATE,
+                 glide_s: float = LIVE_GLIDE_S, gain: float = 0.3):
+        self.sample_rate = int(sample_rate)
+        self.glide_s = float(glide_s)
+        self.gain = float(gain)
+        self._pitch: Optional[float] = None
+        self._target: Optional[float] = None
+        self._phase = 0.0
+        self._level = 0.0
+        self._on = False
+
+    def set_pitch(self, hz: float) -> None:
+        if self._pitch is None:
+            self._pitch = float(hz)
+        self._target = float(hz)
+        self._on = True
+
+    def mute(self) -> None:
+        """Fade to silence; the next set_pitch() fades back in."""
+        self._on = False
+
+    def render(self, n: int) -> np.ndarray:
+        if n <= 0:
+            return np.empty(0)
+        if self._pitch is None:
+            return np.zeros(n)
+        target = self._target if self._target is not None else self._pitch
+        dt = n / self.sample_rate
+        end = target + (self._pitch - target) * math.exp(-dt / self.glide_s)
+        pitch = np.linspace(self._pitch, end, n)
+        self._pitch = end
+
+        phase = self._phase + 2.0 * math.pi * np.cumsum(pitch) / self.sample_rate
+        self._phase = float(phase[-1] % (2.0 * math.pi))
+        audio = np.sin(phase)
+
+        want = self.gain if self._on else 0.0
+        step = self.gain * dt / FADE_S
+        end_level = self._level + min(max(want - self._level, -step), step)
+        audio *= np.linspace(self._level, end_level, n)
+        self._level = end_level
+        return audio
+
+
 def write_wav(path: str, audio: np.ndarray,
               sample_rate: int = DEFAULT_SAMPLE_RATE) -> str:
     """16-bit mono WAV via the stdlib - no audio dependency."""

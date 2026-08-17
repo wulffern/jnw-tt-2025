@@ -136,5 +136,76 @@ class Sonify(unittest.TestCase):
                 self.assertEqual(wf.getnframes(), len(audio))
 
 
+class LiveMapperTest(unittest.TestCase):
+
+    def test_first_rate_lands_mid_band(self):
+        m = sf.LiveMapper(lo_hz=220.0, hi_hz=880.0)
+        self.assertAlmostEqual(m.pitch(1e6), np.sqrt(220.0 * 880.0), places=6)
+
+    def test_jitter_stays_small_and_monotonic(self):
+        #- ppm-level jitter inside the seeded band must move the pitch
+        #- by far less than the band, and in the rate's direction
+        m = sf.LiveMapper(lo_hz=220.0, hi_hz=880.0)
+        mid = m.pitch(1e6)
+        up = m.pitch(1e6 + 2.0)     # +2 ppm
+        down = m.pitch(1e6 - 2.0)
+        self.assertGreater(up, mid)
+        self.assertLess(down, mid)
+        self.assertLess(up / down, 1.3)
+
+    def test_band_expands_to_real_drift(self):
+        #- a thermal step far outside the seeded band becomes the new
+        #- edge, so it maps to the top of the audible band
+        m = sf.LiveMapper(lo_hz=220.0, hi_hz=880.0)
+        m.pitch(1e6)
+        self.assertAlmostEqual(m.pitch(1.001e6), 880.0, places=6)
+        self.assertAlmostEqual(m.pitch(1e6 - 1000.0), 220.0, places=6)
+
+    def test_nan_rate_is_skipped(self):
+        m = sf.LiveMapper()
+        self.assertIsNone(m.pitch(float("nan")))
+
+
+class ToneSynthTest(unittest.TestCase):
+
+    def test_silent_until_first_pitch(self):
+        s = sf.ToneSynth(sample_rate=8000)
+        self.assertTrue(np.all(s.render(1000) == 0.0))
+
+    def test_fades_in_and_holds_pitch(self):
+        s = sf.ToneSynth(sample_rate=8000, gain=0.3)
+        s.set_pitch(440.0)
+        audio = s.render(8000)
+        #- clickless start: the very first samples are still quiet
+        self.assertLess(np.abs(audio[:8]).max(), 0.05)
+        self.assertAlmostEqual(np.abs(audio[4000:]).max(), 0.3, delta=0.02)
+        #- 440 Hz counted by zero crossings over the settled second half
+        crossings = np.sum(np.diff(np.signbit(audio[4000:])))
+        self.assertAlmostEqual(crossings / 2 / 0.5, 440.0, delta=10)
+
+    def test_phase_continuous_across_blocks(self):
+        #- rendered in many small blocks with a retune in the middle,
+        #- the waveform must never jump by more than one sample of the
+        #- highest pitch - a phase break would show as a step toward 2
+        s = sf.ToneSynth(sample_rate=8000, gain=1.0)
+        s.set_pitch(440.0)
+        blocks = []
+        for i in range(60):
+            if i == 30:
+                s.set_pitch(880.0)
+            blocks.append(s.render(160))
+        audio = np.concatenate(blocks)
+        self.assertLess(np.abs(np.diff(audio)).max(),
+                        1.5 * 2 * np.pi * 880.0 / 8000)
+
+    def test_mute_fades_to_silence(self):
+        s = sf.ToneSynth(sample_rate=8000)
+        s.set_pitch(440.0)
+        s.render(8000)
+        s.mute()
+        s.render(8000)
+        self.assertTrue(np.all(s.render(100) == 0.0))
+
+
 if __name__ == "__main__":
     unittest.main()
