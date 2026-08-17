@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 
 import click
@@ -100,6 +101,49 @@ def sweep(out, start, stop, step, tol, soak, dwell, max_settle, window,
     if chamber_host:
         cfg.chamber_host = chamber_host
     run_sweep(cfg, out_dir=out, log=click.echo)
+
+
+@main.command()
+@click.argument("csv_path", type=click.Path(exists=True, dir_okay=False))
+@click.option("--channel", default=None,
+              help="Which channel to listen to (e.g. GR07)  [default: first]")
+@click.option("--duration", default=10.0, show_default=True,
+              help="Length of the audio, s; 0 keeps the recording's real time")
+@click.option("--lo", default=220.0, show_default=True,
+              help="Bottom of the audible band, Hz")
+@click.option("--hi", default=880.0, show_default=True,
+              help="Top of the audible band, Hz")
+@click.option("--out", default=None, type=click.Path(dir_okay=False),
+              help="Output WAV  [default: alongside the CSV]")
+@click.option("--play", is_flag=True, help="Play the result when written")
+def sonify(csv_path, channel, duration, lo, hi, out, play) -> None:
+    """Turn a recorded frequency trace into sound.
+
+    Loads a historical recording (the recorder's CSVs or the chamber
+    scripts' traces, single- or multi-channel) and maps its rate_hz
+    over time onto an audible pitch glide: the recording's own
+    frequency span becomes the --lo..--hi band, log-spaced, and the
+    whole run is compressed onto --duration seconds. The thermal
+    steps become melody; the jitter becomes vibrato.
+    """
+    from . import sonify as sf
+
+    rec = sf.load_recording(csv_path)
+    names = sorted(n for n in rec.channels if n != "_extra")
+    name = channel or (names[0] if names else None)
+    f = rec.rate_hz(name)
+    audio = sf.sonify(rec.t_s, f,
+                      duration_s=(None if duration == 0 else duration),
+                      lo_hz=lo, hi_hz=hi)
+    if out is None:
+        stem = os.path.splitext(csv_path)[0]
+        out = f"{stem}.{name}.wav" if name else stem + ".wav"
+    sf.write_wav(out, audio)
+    span = rec.t_s[-1] - rec.t_s[0]
+    click.echo(f"{name}: {span:.1f} s of recording -> "
+               f"{len(audio) / sf.DEFAULT_SAMPLE_RATE:.1f} s of audio, {out}")
+    if play:
+        sf.play_wav(out)
 
 
 if __name__ == "__main__":
